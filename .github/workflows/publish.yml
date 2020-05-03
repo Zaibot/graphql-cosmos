@@ -16,7 +16,7 @@ jobs:
             - run: npm audit
             - run: npm ci
             - run: npm test
-            - run: npm build
+            - run: npm run build
             - run: npm publish --public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
