@@ -1,22 +1,6 @@
-import {
-    DirectiveLocation,
-    getNullableType,
-    GraphQLDirective,
-    GraphQLField,
-    GraphQLFieldResolver,
-    GraphQLInputFieldConfig,
-    GraphQLInputObjectType,
-    GraphQLInterfaceType,
-    GraphQLObjectType,
-    GraphQLScalarType,
-    GraphQLSchema,
-    GraphQLString,
-    isListType,
-    isObjectType,
-    isScalarType,
-} from 'graphql';
+import { DirectiveLocation, getNullableType, GraphQLDirective, GraphQLField, GraphQLFieldResolver, GraphQLInputFieldConfig, GraphQLInputObjectType, GraphQLInterfaceType, GraphQLObjectType, GraphQLScalarType, GraphQLSchema, GraphQLString, isListType, isObjectType, isScalarType } from 'graphql';
 import { SchemaDirectiveVisitor } from 'graphql-tools';
-import { GraphQLCosmosContext } from './context';
+import { GraphQLCosmosContext, GraphQLCosmosRequest } from './context';
 
 export class CosmosDirective extends SchemaDirectiveVisitor {
     static getDirectiveDeclaration(directiveName: string, schema: GraphQLSchema) {
@@ -64,11 +48,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
                 const resolver: GraphQLFieldResolver<Record<string, any>, GraphQLCosmosContext> = async (
                     _,
                     { where = {} },
-                    {
-                        directives: {
-                            cosmos: { client },
-                        },
-                    }: GraphQLCosmosContext,
+                    { directives }: GraphQLCosmosContext,
                     info,
                 ) => {
                     const params = Object.entries(where).map(([name, value]) => ({
@@ -112,16 +92,18 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
                         .filter(Boolean)
                         .join(` AND `)}`;
 
-                    console.log({ q, paramsq });
+                    const request: GraphQLCosmosRequest = {
+                        client: directives.cosmos.client,
+                        database: directives.cosmos.database,
+                        container: this.argContainer ?? ``,
+                        query: q,
+                        parameters: paramsq.map((x) => ({ name: x!.p!, value: x!.v! as any })),
+                    };
 
-                    const { resources } = await client
-                        .database(`ToDoList`)
-                        .container(this.argContainer!)
-                        .items.query({
-                            query: q,
-                            parameters: paramsq.map((x) => ({ name: x!.p!, value: x!.v! as any })),
-                        })
-                        .fetchAll();
+                    directives.cosmos.onBeforeQuery?.(request);
+
+                    const onQuery = directives.cosmos.onQuery ?? defaultOnQuery;
+                    const { resources } = await onQuery(request);
 
                     return resources;
                 };
@@ -163,3 +145,6 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         console.log({ object });
     }
 }
+
+const defaultOnQuery = (request: GraphQLCosmosRequest) =>
+    request.client.database(request.database).container(request.container).items.query({ query: request.query, parameters: request.parameters }).fetchAll();
