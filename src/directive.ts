@@ -68,9 +68,13 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
                     if (ours || theirs) {
                         const ourValueOrList = source[ours ?? 'id'];
                         if (Array.isArray(ourValueOrList)) {
-                            return await this.collectionResolver(otype, { where: { [`${theirs ?? 'id'}_in`]: ourValueOrList } }, context, container);
+                            const whereOurs = `${theirs ?? 'id'}_in`;
+                            if (whereOurs in args) throw Error(`argument contains conflicting filter on ${whereOurs}`);
+                            return await this.collectionResolver(otype, { where: { ...args, [whereOurs]: ourValueOrList } }, context, container);
                         } else {
-                            return await this.collectionResolver(otype, { where: { [`${theirs ?? 'id'}_eq`]: ourValueOrList } }, context, container);
+                            const whereOurs = `${theirs ?? 'id'}_eq`;
+                            if (whereOurs in args) throw Error(`argument contains conflicting filter on ${whereOurs}`);
+                            return await this.collectionResolver(otype, { where: { ...args, [whereOurs]: ourValueOrList } }, context, container);
                         }
                     } else {
                         return await this.collectionResolver(otype, args, context, container);
