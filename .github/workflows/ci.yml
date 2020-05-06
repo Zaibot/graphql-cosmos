@@ -13,3 +13,4 @@ jobs:
             - run: npm audit
             - run: npm ci
             - run: npm test
+            - run: npm build
