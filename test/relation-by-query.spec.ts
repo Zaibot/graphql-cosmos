@@ -48,7 +48,7 @@ const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequ
         };
     }
 
-    throw Error(`Unhandled: ${container} ${query} (${parameters.map((x) => `${x.name}=${x.value}`)})`);
+    throw Error(`Unhandled: ${container} ${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`})`);
 };
 
 describe(`Reference to other container`, () => {

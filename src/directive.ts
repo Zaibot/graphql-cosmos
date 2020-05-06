@@ -1,4 +1,18 @@
-import { DirectiveLocation, getNullableType, GraphQLDirective, GraphQLField, GraphQLInterfaceType, GraphQLObjectType, GraphQLScalarType, GraphQLSchema, GraphQLString, isListType, isObjectType, isScalarType } from 'graphql';
+import {
+    DirectiveLocation,
+    getNullableType,
+    GraphQLDirective,
+    GraphQLField,
+    GraphQLInterfaceType,
+    GraphQLObjectType,
+    GraphQLScalarType,
+    GraphQLSchema,
+    GraphQLString,
+    isListType,
+    isObjectType,
+    isScalarType,
+    getNamedType,
+} from 'graphql';
 import { SchemaDirectiveVisitor } from 'graphql-tools';
 import { GraphQLCosmosContext, GraphQLCosmosInitRequest, GraphQLCosmosRequest } from './context';
 import { createSqlQuery, defaultOnQuery } from './cosmos';
@@ -48,54 +62,69 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
     ): GraphQLField<any, any> | void | null {
         const operations = [``, `_eq`, `_neq`, `_gt`, `_gte`, `_lt`, `_lte`, `_in`, `_nin`, `_contains`, `_ncontains`];
 
-        if (isListType(field.type)) {
-            const otype = field.type.ofType;
-            if (isObjectType(otype)) {
-                const ours = this.argOurs;
-                const theirs = this.argTheirs;
-                const container = this.argContainer;
-                if (!container) throw Error(`requires container argument`);
+        const namedType = getNamedType(field.type);
+        const manyType = isListType(field.type) ? field.type : undefined;
+        if (isObjectType(namedType)) {
+            const ours = this.argOurs;
+            const theirs = this.argTheirs;
+            const container = this.argContainer;
+            if (!container) throw Error(`requires container argument`);
 
-                //
-                // Get scalar fields
-                const filterable = Object.entries(otype.getFields())
-                    .filter(([_, f]) => isScalarType(getNullableType(f.type)))
-                    .map(([name, tmpfield]) => ({ name, tmpfield, scalar: getNullableType(tmpfield.type) as GraphQLScalarType }));
+            //
+            // Get scalar fields
+            const filterable = Object.entries(namedType.getFields())
+                .filter(([_, f]) => isScalarType(getNullableType(f.type)))
+                .map(([name, tmpfield]) => ({ name, tmpfield, scalar: getNullableType(tmpfield.type) as GraphQLScalarType }));
 
-                //
-                // Replace resolver
-                field.resolve = async (source, args, context: GraphQLCosmosContext, info) => {
+            //
+            // Replace resolver
+            if (manyType) {
+                field.resolve = async (source, args, context: GraphQLCosmosContext, _info) => {
                     if (ours || theirs) {
                         const ourValueOrList = source[ours ?? 'id'];
                         if (Array.isArray(ourValueOrList)) {
                             const whereOurs = `${theirs ?? 'id'}_in`;
                             if (whereOurs in args) throw Error(`argument contains conflicting filter on ${whereOurs}`);
                             const where = { ...args.where, [whereOurs]: ourValueOrList };
-                            return await this.collectionResolver(otype, { ...args, where }, context, container);
+                            return await this.collectionResolver(namedType, { ...args, where }, context, container);
                         } else {
                             const whereOurs = `${theirs ?? 'id'}_eq`;
                             if (whereOurs in args) throw Error(`argument contains conflicting filter on ${whereOurs}`);
                             const where = { ...args.where, [whereOurs]: ourValueOrList };
-                            return await this.collectionResolver(otype, { ...args, where }, context, container);
+                            return await this.collectionResolver(namedType, { ...args, where }, context, container);
                         }
                     } else {
-                        return await this.collectionResolver(otype, args, context, container);
+                        return await this.collectionResolver(namedType, args, context, container);
                     }
                 };
-
-                //
-                // Generate where type holder filter input
-                const whereFields = Object.fromEntries(
-                    filterable.flatMap((field) =>
-                        operations
-                            .map((operation) => ({ ...field, operation }))
-                            .map(({ name, operation, scalar }) => [`${name}${operation}`, { type: scalar, extensions: { __operation: operation } }]),
-                    ),
-                );
-                const filterType = createOrGetWhereType(`${field.type.ofType.name}Where`, whereFields, this.schema);
-
-                addFieldArgument(field, `where`, filterType);
+            } else {
+                field.resolve = async (source, args, context: GraphQLCosmosContext, _info) => {
+                    if (ours || theirs) {
+                        const ourValueOrList = source[ours ?? 'id'];
+                        const whereOurs = `${theirs ?? 'id'}_eq`;
+                        if (whereOurs in args) throw Error(`argument contains conflicting filter on ${whereOurs}`);
+                        const where = { ...args.where, [whereOurs]: ourValueOrList };
+                        const result = await this.collectionResolver(namedType, { ...args, where }, context, container);
+                        return result?.[0];
+                    } else {
+                        const result = await this.collectionResolver(namedType, args, context, container);
+                        return result?.[0];
+                    }
+                };
             }
+
+            //
+            // Generate where type holder filter input
+            const whereFields = Object.fromEntries(
+                filterable.flatMap((field) =>
+                    operations
+                        .map((operation) => ({ ...field, operation }))
+                        .map(({ name, operation, scalar }) => [`${name}${operation}`, { type: scalar, extensions: { __operation: operation } }]),
+                ),
+            );
+            const filterType = createOrGetWhereType(`${namedType.name}Where`, whereFields, this.schema);
+
+            addFieldArgument(field, `where`, filterType);
         }
         return field;
     }

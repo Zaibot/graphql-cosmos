@@ -1,4 +1,4 @@
-import { execute, GraphQLSchema, validate, validateSchema } from 'graphql';
+import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql';
 import gql from 'graphql-tag';
 import { makeExecutableSchema } from 'graphql-tools';
 import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/context';
@@ -7,26 +7,26 @@ import { schema } from '../src/schema';
 
 const dummyTypeDefs = gql`
     type Query {
-        dummies: [Dummy] @cosmos(container: "Dummies")
+        lefts: [Left] @cosmos(container: "Lefts")
     }
 
-    type Dummy {
+    type Left {
         id: ID!
-        related: [Related] @cosmos(container: "Relations", ours: "relatedIds")
+        right: Right @cosmos(container: "Rights", ours: "rightId")
     }
 
-    type Related {
+    type Right {
         id: ID!
     }
 `;
 
 const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest) => {
     const queryResult: Record<string, Record<string, unknown[]>> = {
-        Dummies: {
-            'SELECT * FROM c': [{ id: `1`, relatedIds: [`1b`, `2b`] }],
+        Lefts: {
+            'SELECT * FROM c': [{ id: `l`, rightId: `r` }],
         },
-        Relations: {
-            'SELECT * FROM c WHERE c.id = @id AND c.id IN @id_in': [{ id: `1b` }],
+        Rights: {
+            'SELECT * FROM c WHERE c.id = @id_eq': [{ id: `r` }],
         },
     };
 
@@ -38,7 +38,7 @@ const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequ
     }
 };
 
-describe(`Reference to deep container`, () => {
+describe(`One to one`, () => {
     let context: GraphQLCosmosContext;
     let dummy: GraphQLSchema;
 
@@ -60,24 +60,13 @@ describe(`Reference to deep container`, () => {
     });
 
     it(`should be retrieve all items`, async () => {
-        const query = gql`
-            query {
-                dummies {
-                    __typename
-                    id
-                    related(where: { id: "1b" }) {
-                        __typename
-                        id
-                    }
-                }
-            }
-        `;
+        const query = parse(`query { lefts { __typename id right { __typename id } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                dummies: [{ __typename: 'Dummy', id: `1`, related: [{ __typename: 'Related', id: `1b` }] }],
+                lefts: [{ __typename: 'Left', id: `l`, right: { __typename: 'Right', id: `r` } }],
             },
         });
     });
