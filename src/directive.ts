@@ -46,7 +46,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
             objectType: GraphQLObjectType | GraphQLInterfaceType;
         },
     ): GraphQLField<any, any> | void | null {
-        const operations = [``, `_eq`, `_neq`, `_gt`, `_gte`, `_lt`, `_lte`, `_in`, `_nin`, `_contain`, `_ncontain`];
+        const operations = [``, `_eq`, `_neq`, `_gt`, `_gte`, `_lt`, `_lte`, `_in`, `_nin`, `_contains`, `_ncontains`];
 
         if (isListType(field.type)) {
             const otype = field.type.ofType;
@@ -70,11 +70,13 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
                         if (Array.isArray(ourValueOrList)) {
                             const whereOurs = `${theirs ?? 'id'}_in`;
                             if (whereOurs in args) throw Error(`argument contains conflicting filter on ${whereOurs}`);
-                            return await this.collectionResolver(otype, { where: { ...args, [whereOurs]: ourValueOrList } }, context, container);
+                            const where = { ...args.where, [whereOurs]: ourValueOrList };
+                            return await this.collectionResolver(otype, { ...args, where }, context, container);
                         } else {
                             const whereOurs = `${theirs ?? 'id'}_eq`;
                             if (whereOurs in args) throw Error(`argument contains conflicting filter on ${whereOurs}`);
-                            return await this.collectionResolver(otype, { where: { ...args, [whereOurs]: ourValueOrList } }, context, container);
+                            const where = { ...args.where, [whereOurs]: ourValueOrList };
+                            return await this.collectionResolver(otype, { ...args, where }, context, container);
                         }
                     } else {
                         return await this.collectionResolver(otype, args, context, container);

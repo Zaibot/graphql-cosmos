@@ -26,7 +26,7 @@ const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequ
             'SELECT * FROM c': [{ id: `1`, relatedIds: [`1b`, `2b`] }],
         },
         Relations: {
-            'SELECT * FROM c WHERE c.id IN @id_in': [{ id: `1b` }],
+            'SELECT * FROM c WHERE c.id = @id AND c.id IN @id_in': [{ id: `1b` }],
         },
     };
 

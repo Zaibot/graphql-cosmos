@@ -25,6 +25,8 @@ export function createSqlQuery(whereExpressions: { property: string; operation: 
         const parameter: SqlParameter = { name: expr.parameter, value: expr.value as any };
         if (sql) {
             return { sql, parameter };
+        } else {
+            throw Error(`unknown expression in ${JSON.stringify(whereExpressions)}`);
         }
     });
 
