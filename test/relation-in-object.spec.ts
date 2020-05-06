@@ -13,14 +13,9 @@ const dummyTypeDefs = gql`
     type Dummy {
         id: ID!
         embedded: [Embedded]
-        related: [Related] @cosmos(container: "Relations", field: "relatedIds")
     }
 
     type Embedded {
-        id: ID!
-    }
-
-    type Related {
         id: ID!
     }
 `;

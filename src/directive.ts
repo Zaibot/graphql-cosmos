@@ -18,7 +18,10 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
                 container: {
                     type: GraphQLString,
                 },
-                field: {
+                ours: {
+                    type: GraphQLString,
+                },
+                theirs: {
                     type: GraphQLString,
                 },
             },
@@ -29,8 +32,12 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         return this.args.container as string | undefined;
     }
 
-    get argField() {
-        return this.args.field as string | undefined;
+    get argOurs() {
+        return this.args.ours as string | undefined;
+    }
+
+    get argTheirs() {
+        return this.args.theirs as string | undefined;
     }
 
     visitFieldDefinition(
@@ -44,7 +51,8 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         if (isListType(field.type)) {
             const otype = field.type.ofType;
             if (isObjectType(otype)) {
-                const argField = this.argField;
+                const ours = this.argOurs;
+                const theirs = this.argTheirs;
                 const container = this.argContainer;
                 if (!container) throw Error(`requires container argument`);
 
@@ -57,11 +65,13 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
                 //
                 // Replace resolver
                 field.resolve = async (source, args, context: GraphQLCosmosContext, info) => {
-                    if (argField) {
-                        // Object has property with ID collection
-                        const list = Array.from(source[argField]);
-                        // const out = list.map((id) => ({ __typename: getNamedType(info.returnType).name, id }));
-                        return await this.collectionResolver(otype, { where: { id_in: list } }, context, container);
+                    if (ours || theirs) {
+                        const ourValueOrList = source[ours ?? 'id'];
+                        if (Array.isArray(ourValueOrList)) {
+                            return await this.collectionResolver(otype, { where: { [`${theirs ?? 'id'}_in`]: ourValueOrList } }, context, container);
+                        } else {
+                            return await this.collectionResolver(otype, { where: { [`${theirs ?? 'id'}_eq`]: ourValueOrList } }, context, container);
+                        }
                     } else {
                         return await this.collectionResolver(otype, args, context, container);
                     }

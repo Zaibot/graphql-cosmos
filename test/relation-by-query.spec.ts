@@ -12,7 +12,7 @@ const dummyTypeDefs = gql`
 
     type Dummy {
         id: ID!
-        related: [Related] @cosmos(container: "Relations", field: "relatedIds")
+        related: [Related] @cosmos(container: "Relations", ours: "relatedIds")
     }
 
     type Related {
