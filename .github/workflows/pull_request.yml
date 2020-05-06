@@ -13,6 +13,7 @@ jobs:
             - run: npm audit
             - run: npm ci
             - run: npm test -- --coverage
+            - run: npm build
             - name: Coverage monitor
               uses: slavcodev/coverage-monitor-action@1.1.0
               with:
