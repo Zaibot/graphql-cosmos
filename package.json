@@ -11,7 +11,9 @@
         "build:js": "babel --out-dir lib --extensions \".ts\" src"
     },
     "files": [
-        "lib"
+        "lib",
+        "src",
+        "test"
     ],
     "repository": {
         "type": "git",
