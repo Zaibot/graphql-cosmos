@@ -34,7 +34,7 @@ const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequ
     if (result) {
         return { resources: result };
     } else {
-        throw Error(`Unhandled: ${container} ${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`})`);
+        throw Error(`Unhandled: ${container} ${query} (${paramAsText || `no parameters`})`);
     }
 };
 

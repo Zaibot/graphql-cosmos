@@ -32,17 +32,17 @@ const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequ
             ],
         };
     }
-    if (container === `Relations` && query === `SELECT * FROM c WHERE c.id IN @id_in` && id_in?.toString() === `1b`) {
+    if (container === `Relations` && query === `SELECT * FROM c WHERE ARRAY_CONTAINS(@id_in, c.id)` && id_in?.toString() === `1b`) {
         return {
             resources: [{ id: `1b` }],
         };
     }
-    if (container === `Relations` && query === `SELECT * FROM c WHERE c.id IN @id_in` && id_in?.toString() === `2b`) {
+    if (container === `Relations` && query === `SELECT * FROM c WHERE ARRAY_CONTAINS(@id_in, c.id)` && id_in?.toString() === `2b`) {
         return {
             resources: [{ id: `2b` }],
         };
     }
-    if (container === `Relations` && query === `SELECT * FROM c WHERE c.id IN @id_in` && id_in?.toString() === `3b`) {
+    if (container === `Relations` && query === `SELECT * FROM c WHERE ARRAY_CONTAINS(@id_in, c.id)` && id_in?.toString() === `3b`) {
         return {
             resources: [{ id: `3b` }],
         };

@@ -16,8 +16,8 @@ export function createSqlQuery(whereExpressions: { property: string; operation: 
             gte: `${fromAlias}.${expr.property} >= ${expr.parameter}`,
             lt: `${fromAlias}.${expr.property} < ${expr.parameter}`,
             lte: `${fromAlias}.${expr.property} <= ${expr.parameter}`,
-            in: `${fromAlias}.${expr.property} IN ${expr.parameter}`,
-            nin: `${fromAlias}.${expr.property} NOT IN ${expr.parameter}`,
+            in: `ARRAY_CONTAINS(${expr.parameter}, ${fromAlias}.${expr.property})`,
+            nin: `NOT ARRAY_CONTAINS(${expr.parameter}, ${fromAlias}.${expr.property})`,
             contains: `CONTAINS(${fromAlias}.${expr.property}, ${expr.parameter})`,
             ncontains: `NOT CONTAINS(${fromAlias}.${expr.property}, ${expr.parameter})`,
         };
