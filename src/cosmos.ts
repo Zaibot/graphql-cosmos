@@ -5,7 +5,10 @@ import { SqlBuilder } from './sql';
 export const defaultOnQuery = ({ client, database, container, query, parameters }: GraphQLCosmosRequest) =>
     client.database(database).container(container).items.query({ query, parameters }).fetchAll();
 
-export function createSqlQuery(whereExpressions: { property: string; operation: string; value: unknown; parameter: string }[]) {
+export function createSqlQuery(
+    whereExpressions: Array<{ property: string; operation: string; value: unknown; parameter: string }>,
+    sortExpressions: Array<{ property: string; direction: string }>,
+) {
     const fromAlias = `c`;
     const expressions = whereExpressions.map((expr) => {
         const operationMap: Record<string, string> = {
@@ -36,6 +39,18 @@ export function createSqlQuery(whereExpressions: { property: string; operation: 
             sql.where(expr.sql);
         }
     }
+
+    for (const { property, direction } of sortExpressions) {
+        if (direction === `ASC`) {
+            sql.orderBy(`${fromAlias}.${property}`, `ASC`);
+        } else if (direction === `DESC`) {
+            sql.orderBy(`${fromAlias}.${property}`, `DESC`);
+        } else {
+            throw Error(`sort direction of ${property} must be ASC or DESC`);
+        }
+    }
+
+    sql.orderBy(`${fromAlias}.id`, `ASC`);
 
     const parameters = expressions.map((x) => x?.parameter).filter((x): x is SqlParameter => !!x);
 

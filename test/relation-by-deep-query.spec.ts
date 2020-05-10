@@ -23,10 +23,10 @@ const dummyTypeDefs = gql`
 const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest) => {
     const queryResult: Record<string, Record<string, unknown[]>> = {
         Dummies: {
-            'SELECT * FROM c': [{ id: `1`, relatedIds: [`1b`, `2b`] }],
+            'SELECT * FROM c ORDER BY c.id': [{ id: `1`, relatedIds: [`1b`, `2b`] }],
         },
         Relations: {
-            'SELECT * FROM c WHERE c.id = @id AND ARRAY_CONTAINS(@id_in, c.id)': [{ id: `1b` }],
+            'SELECT * FROM c WHERE c.id = @id AND ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id': [{ id: `1b` }],
         },
     };
 

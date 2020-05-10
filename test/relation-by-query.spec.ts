@@ -23,7 +23,7 @@ const dummyTypeDefs = gql`
 const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest) => {
     const id_in = parameters.find((x) => x.name === `@id_in`)?.value as string[] | undefined;
 
-    if (container === `Dummies` && query === `SELECT * FROM c`) {
+    if (container === `Dummies` && query === `SELECT * FROM c ORDER BY c.id`) {
         return {
             resources: [
                 { id: `1`, relatedIds: [`1b`] },
@@ -32,17 +32,17 @@ const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequ
             ],
         };
     }
-    if (container === `Relations` && query === `SELECT * FROM c WHERE ARRAY_CONTAINS(@id_in, c.id)` && id_in?.toString() === `1b`) {
+    if (container === `Relations` && query === `SELECT * FROM c WHERE ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id` && id_in?.toString() === `1b`) {
         return {
             resources: [{ id: `1b` }],
         };
     }
-    if (container === `Relations` && query === `SELECT * FROM c WHERE ARRAY_CONTAINS(@id_in, c.id)` && id_in?.toString() === `2b`) {
+    if (container === `Relations` && query === `SELECT * FROM c WHERE ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id` && id_in?.toString() === `2b`) {
         return {
             resources: [{ id: `2b` }],
         };
     }
-    if (container === `Relations` && query === `SELECT * FROM c WHERE ARRAY_CONTAINS(@id_in, c.id)` && id_in?.toString() === `3b`) {
+    if (container === `Relations` && query === `SELECT * FROM c WHERE ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id` && id_in?.toString() === `3b`) {
         return {
             resources: [{ id: `3b` }],
         };

@@ -16,10 +16,10 @@ const dummyTypeDefs = gql`
 `;
 
 const onCosmosQuery = async ({ query }) => {
-    if (query === `SELECT * FROM c WHERE c.id = @id`) {
+    if (query === `SELECT * FROM c WHERE c.id = @id ORDER BY c.id`) {
         return { resources: [{ id: `1` }] };
     }
-    if (query === `SELECT * FROM c`) {
+    if (query === `SELECT * FROM c ORDER BY c.id`) {
         return {
             resources: [{ id: `1` }, { id: `2` }, { id: `3` }],
         };

@@ -1,8 +1,10 @@
 import {
     DirectiveLocation,
+    getNamedType,
     getNullableType,
     GraphQLDirective,
     GraphQLField,
+    GraphQLInt,
     GraphQLInterfaceType,
     GraphQLObjectType,
     GraphQLScalarType,
@@ -11,7 +13,6 @@ import {
     isListType,
     isObjectType,
     isScalarType,
-    getNamedType,
 } from 'graphql';
 import { SchemaDirectiveVisitor } from 'graphql-tools';
 import { GraphQLCosmosContext, GraphQLCosmosInitRequest, GraphQLCosmosRequest } from './context';
@@ -63,7 +64,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         const operations = [``, `_eq`, `_neq`, `_gt`, `_gte`, `_lt`, `_lte`, `_in`, `_nin`, `_contains`, `_ncontains`];
 
         const namedType = getNamedType(field.type);
-        const manyType = isListType(field.type) ? field.type : undefined;
+        const manyType = isListType(getNullableType(field.type)) ? field.type : undefined;
         if (isObjectType(namedType)) {
             const ours = this.argOurs;
             const theirs = this.argTheirs;
@@ -72,7 +73,10 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
 
             //
             // Get scalar fields
-            const filterable = Object.entries(namedType.getFields())
+            const filterableScalar = Object.entries(namedType.getFields())
+                .filter(([_, f]) => isScalarType(getNullableType(f.type)))
+                .map(([name, tmpfield]) => ({ name, tmpfield, scalar: getNullableType(tmpfield.type) as GraphQLScalarType }));
+            const sortableScalar = Object.entries(namedType.getFields())
                 .filter(([_, f]) => isScalarType(getNullableType(f.type)))
                 .map(([name, tmpfield]) => ({ name, tmpfield, scalar: getNullableType(tmpfield.type) as GraphQLScalarType }));
 
@@ -116,21 +120,31 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
             //
             // Generate where type holder filter input
             const whereFields = Object.fromEntries(
-                filterable.flatMap((field) =>
+                filterableScalar.flatMap((field) =>
                     operations
                         .map((operation) => ({ ...field, operation }))
                         .map(({ name, operation, scalar }) => [`${name}${operation}`, { type: scalar, extensions: { __operation: operation } }]),
                 ),
             );
             const filterType = createOrGetWhereType(`${namedType.name}Where`, whereFields, this.schema);
-
             addFieldArgument(field, `where`, filterType);
+
+            //
+            // Generate where type holder filter input
+            const sortFields = Object.fromEntries(
+                sortableScalar.flatMap(({ name }) => [
+                    [`${name}_ASC`, { type: GraphQLInt }],
+                    [`${name}_DESC`, { type: GraphQLInt }],
+                ]),
+            );
+            const sortType = createOrGetWhereType(`${namedType.name}Sort`, sortFields, this.schema);
+            addFieldArgument(field, `sort`, sortType);
         }
         return field;
     }
 
     private async collectionResolver(type: GraphQLObjectType<any, any>, args: Record<string, any>, context: GraphQLCosmosContext, container: string) {
-        const { where = {} } = args;
+        const { where = {}, sort = {} } = args;
         const { cosmos } = context.directives;
         const { onBeforeQuery, onQuery = defaultOnQuery } = cosmos;
 
@@ -142,8 +156,18 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         });
 
         //
+        // Parse GraphQL sort fields
+        const sortInputExpressions = Object.entries(sort)
+            .map(([k, v]) => [k, Number(v)] as [string, number])
+            .sort((a, b) => a[1] - b[1])
+            .map(([sortField]) => {
+                const [property, direction] = sortField.split(`_`);
+                return { property, direction };
+            });
+
+        //
         // Construct query
-        const { sql, parameters } = createSqlQuery(whereInputExpressions);
+        const { sql, parameters } = createSqlQuery(whereInputExpressions, sortInputExpressions);
 
         //
         // Prepare CosmosDB query

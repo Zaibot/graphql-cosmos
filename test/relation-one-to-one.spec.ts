@@ -23,10 +23,10 @@ const dummyTypeDefs = gql`
 const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest) => {
     const queryResult: Record<string, Record<string, unknown[]>> = {
         Lefts: {
-            'SELECT * FROM c': [{ id: `l`, rightId: `r` }],
+            'SELECT * FROM c ORDER BY c.id': [{ id: `l`, rightId: `r` }],
         },
         Rights: {
-            'SELECT * FROM c WHERE c.id = @id_eq': [{ id: `r` }],
+            'SELECT * FROM c WHERE c.id = @id_eq ORDER BY c.id': [{ id: `r` }],
         },
     };
 
@@ -34,7 +34,7 @@ const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequ
     if (result) {
         return { resources: result };
     } else {
-        throw Error(`Unhandled: ${container} ${query} (${paramAsText || `no parameters`})`);
+        throw Error(`Unhandled: ${container} ${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`})`);
     }
 };
 
