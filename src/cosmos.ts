@@ -8,6 +8,7 @@ export const defaultOnQuery = ({ client, database, container, query, parameters 
 export function createSqlQuery(
     whereExpressions: Array<{ property: string; operation: string; value: unknown; parameter: string }>,
     sortExpressions: Array<{ property: string; direction: string }>,
+    pagination: { offset: number; limit: number } | undefined,
 ) {
     const fromAlias = `c`;
     const expressions = whereExpressions.map((expr) => {
@@ -51,6 +52,10 @@ export function createSqlQuery(
     }
 
     sql.orderBy(`${fromAlias}.id`, `ASC`);
+
+    if (pagination) {
+        sql.offsetLimit(pagination.offset, pagination.limit);
+    }
 
     const parameters = expressions.map((x) => x?.parameter).filter((x): x is SqlParameter => !!x);
 

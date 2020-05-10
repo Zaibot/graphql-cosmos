@@ -139,14 +139,21 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
             );
             const sortType = createOrGetWhereType(`${namedType.name}Sort`, sortFields, this.schema);
             addFieldArgument(field, `sort`, sortType);
+
+            addFieldArgument(field, `offset`, GraphQLInt);
+            addFieldArgument(field, `limit`, GraphQLInt);
         }
         return field;
     }
 
     private async collectionResolver(type: GraphQLObjectType<any, any>, args: Record<string, any>, context: GraphQLCosmosContext, container: string) {
-        const { where = {}, sort = {} } = args;
+        const { where = {}, sort = {}, offset = 0, limit = 0 } = args;
         const { cosmos } = context.directives;
         const { onBeforeQuery, onQuery = defaultOnQuery } = cosmos;
+
+        if (offset > 0 && limit <= 0) {
+            throw Error(`where filters $limit must be set when $offset has been defined`);
+        }
 
         //
         // Parse GraphQL where fields
@@ -160,14 +167,14 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         const sortInputExpressions = Object.entries(sort)
             .map(([k, v]) => [k, Number(v)] as [string, number])
             .sort((a, b) => a[1] - b[1])
-            .map(([sortField]) => {
+            .map(([sortField, value]) => {
                 const [property, direction] = sortField.split(`_`);
                 return { property, direction };
             });
 
         //
         // Construct query
-        const { sql, parameters } = createSqlQuery(whereInputExpressions, sortInputExpressions);
+        const { sql, parameters } = createSqlQuery(whereInputExpressions, sortInputExpressions, offset || limit ? { offset, limit } : undefined);
 
         //
         // Prepare CosmosDB query
