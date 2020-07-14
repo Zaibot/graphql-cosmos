@@ -185,6 +185,22 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
             query: sql,
             parameters,
         };
+
+        //
+        // When looking for a single `id` value, attempt to use data loader
+        const byId = whereInputExpressions.find((x) => x.property === `id` && (x.operation === `eq` || x.operation === ``))?.value;
+        const singleExpression = whereInputExpressions.length === 1;
+        if (typeof byId !== `undefined` && singleExpression) {
+            const dataloader = context.directives.cosmos.dataloader?.({ database: init.database, container });
+            if (dataloader) {
+                if (byId) {
+                    return [await dataloader(byId)];
+                } else {
+                    return [];
+                }
+            }
+        }
+
         onBeforeQuery?.(init);
 
         //

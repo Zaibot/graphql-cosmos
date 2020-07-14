@@ -3,11 +3,17 @@ export class SqlBuilder {
     readonly wheres: string[] = [];
     readonly orderBys: string[] = [];
     from: string = ``;
+    _distinct = false;
     offset?: number;
     limit?: number;
 
     constructor(from: string) {
         this.from = from;
+    }
+
+    distinct(on = true) {
+        this._distinct = on;
+        return this;
     }
 
     where(condition: string) {
@@ -35,7 +41,8 @@ export class SqlBuilder {
     }
 
     toSql() {
-        const select = this.selects.length ? `SELECT ${this.selects.join(`, `)}` : `SELECT *`;
+        const distinct = this._distinct ? ` DISTINCT` : ``;
+        const select = this.selects.length ? `SELECT${distinct} ${this.selects.join(`, `)}` : `SELECT *`;
         const from = ` FROM ${this.from}`;
         const where = this.wheres.length ? ` WHERE ${this.wheres.join(` AND `)}` : ``;
         const orderBy = this.orderBys.length ? ` ORDER BY ${this.orderBys.join(`, `)}` : ``;

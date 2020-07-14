@@ -9,10 +9,13 @@ export interface GraphQLDirectivesContext {
     cosmos: {
         database: string;
         client: CosmosClient;
+        dataloader?: GraphQLCosmosDataLoaderResolver;
         onBeforeQuery?: (request: GraphQLCosmosInitRequest) => void;
         onQuery?: (request: GraphQLCosmosRequest) => Promise<FeedResponse<any>>;
     };
 }
+
+export type GraphQLCosmosDataLoaderResolver = (args: { database: string; container: string }) => null | ((id: any) => any | Promise<any>);
 
 export interface GraphQLCosmosInitRequest {
     client: CosmosClient;
