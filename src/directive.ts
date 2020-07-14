@@ -188,19 +188,27 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
 
         //
         // When looking for a single `id` value, attempt to use data loader
-        const byId = whereInputExpressions.find((x) => x.property === `id` && (x.operation === `eq` || x.operation === ``))?.value;
+        const byId = whereInputExpressions.find((x) => x.property === `id`);
+
         const singleExpression = whereInputExpressions.length === 1;
-        if (typeof byId !== `undefined` && singleExpression) {
+        if (singleExpression && (byId?.operation === `` || byId?.operation === `eq`)) {
             const dataloader = context.directives.cosmos.dataloader?.({ database: init.database, container });
             if (dataloader) {
-                if (byId) {
-                    return [await dataloader(byId)];
-                } else {
-                    return [];
-                }
+                // Find single entity by id
+                return [await dataloader(byId.value)];
             }
         }
 
+        if (singleExpression && (byId?.operation === `` || byId?.operation === `in`)) {
+            const dataloader = context.directives.cosmos.dataloader?.({ database: init.database, container });
+            if (dataloader) {
+                // Find multiple entities using id list
+                return await Promise.all((byId.value as Array<any>).map(dataloader));
+            }
+        }
+
+        //
+        // Notify query about to be requested
         onBeforeQuery?.(init);
 
         //
