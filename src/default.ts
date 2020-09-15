@@ -9,4 +9,6 @@ export const defaultOnInit = (request: CosmosRequest, init: GraphQLCosmosInitReq
     const sql = convertToSql(request);
     init.query = sql.sql;
     init.parameters = sql.parameters;
+    init.options ??= {};
+    init.options.continuationToken = request.cursor;
 };

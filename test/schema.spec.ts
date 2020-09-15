@@ -33,7 +33,7 @@ describe(`Processed schema`, () => {
         expect(validateSchema(dummy)).toHaveLength(0);
 
         output = printSchema(dummy, { commentDescriptions: false });
-        console.log(output);
+        // console.log(output);
     });
 
     it(`should match expected`, () => {
@@ -46,12 +46,12 @@ describe(`Processed schema`, () => {
                 directive @sort(ours: String) on FIELD_DEFINITION
             
                 type Query {
-                    dummies(where: DummyWhere, offset: Int, limit: Int): [Dummy]
+                    dummies(where: DummyWhere, cursor: String): DummyPage
                 }
             
                 type Dummy {
                     id: ID!
-                    related(where: RelatedWhere, sort: RelatedSort, offset: Int, limit: Int): [Related]
+                    related(where: RelatedWhere, sort: RelatedSort, cursor: String): RelatedPage
                 }
             
                 type Related {
@@ -63,6 +63,11 @@ describe(`Processed schema`, () => {
                     id_eq: ID
                 }
             
+                type DummyPage {
+                    nextCursor: String
+                    page: [Dummy]
+                }
+            
                 input RelatedWhere {
                     id_eq: ID
                 }
@@ -70,6 +75,11 @@ describe(`Processed schema`, () => {
                 input RelatedSort {
                     name_ASC: Int
                     name_DESC: Int
+                }
+            
+                type RelatedPage {
+                    nextCursor: String
+                    page: [Related]
                 }
             `),
         );

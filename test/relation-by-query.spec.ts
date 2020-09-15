@@ -73,17 +73,19 @@ describe(`Reference to other container`, () => {
     });
 
     it(`should be retrieve all items`, async () => {
-        const query = parse(`query { dummies { __typename id related { __typename id } } } `);
+        const query = parse(`query { dummies { page { __typename id related { page { __typename id } } } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                dummies: [
-                    { __typename: 'Dummy', id: `1`, related: [{ __typename: 'Related', id: `1b` }] },
-                    { __typename: 'Dummy', id: `2`, related: [{ __typename: 'Related', id: `2b` }] },
-                    { __typename: 'Dummy', id: `3`, related: [{ __typename: 'Related', id: `3b` }] },
-                ],
+                dummies: {
+                    page: [
+                        { __typename: 'Dummy', id: `1`, related: { page: [{ __typename: 'Related', id: `1b` }] } },
+                        { __typename: 'Dummy', id: `2`, related: { page: [{ __typename: 'Related', id: `2b` }] } },
+                        { __typename: 'Dummy', id: `3`, related: { page: [{ __typename: 'Related', id: `3b` }] } },
+                    ],
+                },
             },
         });
     });

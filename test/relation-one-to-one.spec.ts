@@ -60,13 +60,13 @@ describe(`One to one`, () => {
     });
 
     it(`should be retrieve all items`, async () => {
-        const query = parse(`query { lefts { __typename id right { __typename id } } } `);
+        const query = parse(`query { lefts { page { __typename id right { __typename id } } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                lefts: [{ __typename: 'Left', id: `l`, right: { __typename: 'Right', id: `r` } }],
+                lefts: { page: [{ __typename: 'Left', id: `l`, right: { __typename: 'Right', id: `r` } }] },
             },
         });
     });

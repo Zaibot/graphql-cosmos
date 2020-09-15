@@ -19,10 +19,10 @@ export const resolverOne = async (
         const where = { ...args.where, [whereOurs]: ourValueOrList };
         const graphquery = argsToCosmosRequest({ ...args, where });
         const result = await collectionResolver(typename, graphquery, context, container);
-        return result?.[0];
+        return result.page?.[0];
     } else {
         const graphquery = argsToCosmosRequest(args);
         const result = await collectionResolver(typename, graphquery, context, container);
-        return result?.[0];
+        return result.page?.[0];
     }
 };

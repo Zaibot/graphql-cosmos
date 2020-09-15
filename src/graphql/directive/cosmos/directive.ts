@@ -2,7 +2,7 @@ import * as GraphQL from 'graphql';
 import { DirectiveLocation, getNamedType, getNullableType, isListType, isObjectType, isScalarType } from 'graphql';
 import { SchemaDirectiveVisitor } from 'graphql-tools';
 import { GraphQLCosmosContext } from '../../../configuration';
-import { addFieldArgument } from '../../internal/schema';
+import { addFieldArgument, createOrGetPageType } from '../../internal/schema';
 import { resolverCollection } from '../../resolver/all';
 import { resolverOne } from '../../resolver/first';
 import { SortDirective } from '../sort/directive';
@@ -52,8 +52,12 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
             objectType: GraphQL.GraphQLObjectType | GraphQL.GraphQLInterfaceType;
         },
     ): GraphQL.GraphQLField<any, any> | void | null {
-        const namedType = getNamedType(field.type);
-        const manyType = isListType(getNullableType(field.type)) ? field.type : undefined;
+        const directiveNameWhere = `where`;
+        const directiveNameSort = `sort`;
+
+        const type = field.type;
+        const namedType = getNamedType(type);
+        const manyType = isListType(getNullableType(type)) ? type : undefined;
         if (isObjectType(namedType)) {
             const ours = this.argOurs;
             const theirs = this.argTheirs;
@@ -61,32 +65,44 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
             if (!container) throw Error(`requires container argument`);
 
             const filterableScalar = Object.entries(namedType.getFields())
-                .filter(([_, f]) => isScalarType(getNullableType(f.type)))
-                .map(([name, field]) => ({ name, field, scalar: getNullableType(field.type) as GraphQL.GraphQLScalarType }));
+                .map(([name, field]) => ({ name, field, scalar: getNullableType(field.type) as GraphQL.GraphQLScalarType }))
+                .filter(({ field }) => isScalarType(getNullableType(field.type)));
             const filterType = inputWhere(
                 namedType.name,
                 filterableScalar.map(({ field, name, scalar }) => ({
                     name,
                     scalar,
-                    operations: WhereDirective.getOp(`where`, this.schema, field.astNode!) ?? [],
+                    operations: WhereDirective.getOp(directiveNameWhere, this.schema, field.astNode!) ?? [],
                 })),
                 this.schema,
             );
 
             const sortableScalar = Object.entries(namedType.getFields())
-                .map(([name, field]) => ({ name, field, scalar: getNullableType(field.type) as GraphQL.GraphQLScalarType }))
+                .map(([name, field]) => ({ name, field, scalar: getNullableType(type) as GraphQL.GraphQLScalarType }))
                 .filter(({ field }) => isScalarType(getNullableType(field.type)))
-                .filter(({ field }) => SortDirective.has(`sort`, this.schema, field.astNode!));
+                .filter(({ field }) => SortDirective.has(directiveNameSort, this.schema, field.astNode!));
             const sortType = inputSort(namedType.name, sortableScalar, this.schema);
 
-            addFieldArgument(field, `where`, filterType);
-            addFieldArgument(field, `sort`, sortType);
-            addFieldArgument(field, `offset`, GraphQL.GraphQLInt);
-            addFieldArgument(field, `limit`, GraphQL.GraphQLInt);
+            if (filterableScalar.length > 0) {
+                addFieldArgument(field, `where`, filterType);
+            }
+            if (sortableScalar.length > 0) {
+                addFieldArgument(field, `sort`, sortType);
+            }
+            addFieldArgument(field, `cursor`, GraphQL.GraphQLString);
 
             //
             // Replace resolver
             if (manyType) {
+                field.type = createOrGetPageType(
+                    `${namedType.name}Page`,
+                    {
+                        nextCursor: { type: GraphQL.GraphQLString },
+                        page: { type: type },
+                    },
+                    this.schema,
+                );
+
                 field.resolve = async (source, args, context: GraphQLCosmosContext, _info) => {
                     return resolverCollection(namedType.name, container, ours, theirs, source, args, context, _info);
                 };

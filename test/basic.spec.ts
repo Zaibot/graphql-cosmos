@@ -49,26 +49,26 @@ describe(`@cosmos`, () => {
     });
 
     it(`should be retrieve all items`, async () => {
-        const query = parse(`query { dummies { id } } `);
+        const query = parse(`query { dummies { page { id } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
-        expect(result).toEqual({ data: { dummies: [{ id: `1` }, { id: `2` }, { id: `3` }] } });
+        expect(result).toEqual({ data: { dummies: { page: [{ id: `1` }, { id: `2` }, { id: `3` }] } } });
     });
 
     it(`should be able to filter on id`, async () => {
-        const query = parse(`query { dummies(where: { id_eq: "1" }) { id } } `);
+        const query = parse(`query { dummies(where: { id_eq: "1" }) { page { id } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
-        expect(result).toEqual({ data: { dummies: [{ id: `1` }] } });
+        expect(result).toEqual({ data: { dummies: { page: [{ id: `1` }] } } });
     });
 
     it(`should be able to filter on id`, async () => {
-        const query = parse(`query { dummies(where: { id_eq: "1" }) { id } } `);
+        const query = parse(`query { dummies(where: { id_eq: "1" }) { page { id } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
-        expect(result).toEqual({ data: { dummies: [{ id: `1` }] } });
+        expect(result).toEqual({ data: { dummies: { page: [{ id: `1` }] } } });
     });
 });

@@ -63,11 +63,15 @@ describe(`Reference to deep container`, () => {
         const query = gql`
             query {
                 dummies {
-                    __typename
-                    id
-                    related(where: { id_eq: "1b" }) {
+                    page {
                         __typename
                         id
+                        related(where: { id_eq: "1b" }) {
+                            page {
+                                __typename
+                                id
+                            }
+                        }
                     }
                 }
             }
@@ -77,7 +81,7 @@ describe(`Reference to deep container`, () => {
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                dummies: [{ __typename: 'Dummy', id: `1`, related: [{ __typename: 'Related', id: `1b` }] }],
+                dummies: { page: [{ __typename: 'Dummy', id: `1`, related: { page: [{ __typename: 'Related', id: `1b` }] } }] },
             },
         });
     });

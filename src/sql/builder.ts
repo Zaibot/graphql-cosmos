@@ -4,8 +4,6 @@ export class SqlBuilder {
     readonly orderBys: string[] = [];
     from: string = ``;
     _distinct = false;
-    offset?: number;
-    limit?: number;
 
     constructor(from: string) {
         this.from = from;
@@ -35,19 +33,13 @@ export class SqlBuilder {
         return this;
     }
 
-    offsetLimit(offset: number, limit: number) {
-        this.offset = offset;
-        this.limit = limit;
-    }
-
     toSql() {
         const distinct = this._distinct ? ` DISTINCT` : ``;
         const select = this.selects.length ? `SELECT${distinct} ${this.selects.join(`, `)}` : `SELECT *`;
         const from = ` FROM ${this.from}`;
         const where = this.wheres.length ? ` WHERE ${this.wheres.join(` AND `)}` : ``;
         const orderBy = this.orderBys.length ? ` ORDER BY ${this.orderBys.join(`, `)}` : ``;
-        const offsetLimit = typeof this.offset === `number` && typeof this.limit === `number` ? ` OFFSET ${this.offset} LIMIT ${this.limit}` : ``;
-        return `${select}${from}${where}${orderBy}${offsetLimit}`;
+        return `${select}${from}${where}${orderBy}`;
     }
 }
 

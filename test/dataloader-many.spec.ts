@@ -78,23 +78,25 @@ describe(`Data Loader`, () => {
     });
 
     it(`should be retrieve all items`, async () => {
-        const query = parse(`query { dummies { related { id } } } `);
+        const query = parse(`query { dummies { page { related { page { id } } } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                dummies: [
-                    {
-                        related: [{ id: `1a` }, { id: `1b` }],
-                    },
-                    {
-                        related: [{ id: `2a` }, { id: `2b` }],
-                    },
-                    {
-                        related: [{ id: `3a` }, { id: `3b` }],
-                    },
-                ],
+                dummies: {
+                    page: [
+                        {
+                            related: { page: [{ id: `1a` }, { id: `1b` }] },
+                        },
+                        {
+                            related: { page: [{ id: `2a` }, { id: `2b` }] },
+                        },
+                        {
+                            related: { page: [{ id: `3a` }, { id: `3b` }] },
+                        },
+                    ],
+                },
             },
         });
         expect(dataloader).toEqual([`1a`, `1b`, `2a`, `2b`, `3a`, `3b`]);

@@ -3,7 +3,7 @@ import { SqlOpParameter } from '../sql/op';
 export interface CosmosRequest {
     where: Array<CosmosArgWhere>;
     sort: Array<CosmosArgSort>;
-    paging: CosmosArgPaging | undefined;
+    cursor: string | undefined;
 }
 
 export interface CosmosArgWhere {
@@ -16,9 +16,4 @@ export interface CosmosArgWhere {
 export interface CosmosArgSort {
     property: string;
     direction: string;
-}
-
-export interface CosmosArgPaging {
-    offset: number;
-    limit: number;
 }

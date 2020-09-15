@@ -3,7 +3,7 @@ import { CosmosRequest } from './intermediate/model';
 import { SqlBuilder } from './sql/builder';
 import { isSqlOperation, sqlOp } from './sql/op';
 
-export function convertToSql({ where, sort, paging }: CosmosRequest) {
+export function convertToSql({ where, sort }: CosmosRequest) {
     const alias = `c`;
 
     const expressions = where.map((expr) => {
@@ -34,10 +34,6 @@ export function convertToSql({ where, sort, paging }: CosmosRequest) {
     }
 
     sql.orderBy(`${alias}.id`, `ASC`);
-
-    if (paging) {
-        sql.offsetLimit(paging.offset, paging.limit);
-    }
 
     const parameters = expressions.map((x) => x?.parameter).filter((x): x is SqlParameter => !!x);
 

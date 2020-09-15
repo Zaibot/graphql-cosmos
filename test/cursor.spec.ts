@@ -15,18 +15,23 @@ const dummyTypeDefs = gql`
     }
 `;
 
-const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest) => {
+const onCosmosQuery = async ({ container, query, parameters, options }: GraphQLCosmosRequest) => {
     const queryResult: Record<string, Record<string, unknown[]>> = {
         Dummies: {
-            'SELECT * FROM c ORDER BY c.id OFFSET 0 LIMIT 10': [{ id: `1` }, { id: `2` }, { id: `3` }],
-            'SELECT * FROM c ORDER BY c.id OFFSET 0 LIMIT 1': [{ id: `1` }],
-            'SELECT * FROM c ORDER BY c.id OFFSET 1 LIMIT 2': [{ id: `2` }, { id: `3` }],
+            'SELECT * FROM c ORDER BY c.id': [{ id: `1` }],
+            'SELECT * FROM c ORDER BY c.id @1': [{ id: `2` }, { id: `3` }],
         },
     };
-
-    const result = queryResult[container]?.[query];
-    if (result) {
-        return { resources: result };
+    const nextCursor: Record<string, Record<string, string>> = {
+        Dummies: {
+            'SELECT * FROM c ORDER BY c.id': `1`,
+        },
+    };
+    const cursor = options?.continuationToken ? ` @${options.continuationToken}` : ``;
+    const resources = queryResult[container]?.[`${query}${cursor}`];
+    const continuationToken = nextCursor[container]?.[query];
+    if (resources) {
+        return { resources, continuationToken };
     } else {
         throw Error(`Unhandled: ${container} ${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`})`);
     }
@@ -53,45 +58,34 @@ describe(`Pagination`, () => {
         expect(validateSchema(dummy)).toHaveLength(0);
     });
 
-    it(`all results`, async () => {
-        const query = parse(`query { dummies(offset: 0, limit: 10) { __typename id } } `);
+    it(`returns part one`, async () => {
+        const query = parse(`query { dummies { nextCursor page { __typename id } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                dummies: [
-                    { __typename: 'Dummy', id: `1` },
-                    { __typename: 'Dummy', id: `2` },
-                    { __typename: 'Dummy', id: `3` },
-                ],
+                dummies: {
+                    nextCursor: `1`,
+                    page: [{ __typename: 'Dummy', id: `1` }],
+                },
             },
         });
     });
 
-    it(`page one`, async () => {
-        const query = parse(`query { dummies(offset: 0, limit: 1) { __typename id } } `);
+    it(`returns part two`, async () => {
+        const query = parse(`query { dummies(cursor: "1") { page { __typename id } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                dummies: [{ __typename: 'Dummy', id: `1` }],
-            },
-        });
-    });
-
-    it(`page two`, async () => {
-        const query = parse(`query { dummies(offset: 1, limit: 2) { __typename id } } `);
-        const result = await execute(dummy, query, undefined, context);
-
-        expect(validate(dummy, query)).toHaveLength(0);
-        expect(result).toEqual({
-            data: {
-                dummies: [
-                    { __typename: 'Dummy', id: `2` },
-                    { __typename: 'Dummy', id: `3` },
-                ],
+                dummies: {
+                    page: [
+                        { __typename: 'Dummy', id: `2` },
+                        { __typename: 'Dummy', id: `3` },
+                    ],
+                },
             },
         });
     });

@@ -24,17 +24,14 @@ export const argsToCosmosRequest = (args: Record<string, any>) => {
             });
     };
 
-    const { where = {}, sort = {}, offset = 0, limit = 0 } = args;
-
-    if (offset > 0 && limit <= 0) {
-        throw Error(`where filters $limit must be set when $offset has been defined`);
-    }
+    const { where = {}, sort = {}, cursor = undefined as string | undefined } = args;
 
     const graphquery: CosmosRequest = {
         where: parseWhere(where),
         sort: parseSort(sort),
-        paging: offset || limit ? { offset, limit } : undefined,
+        cursor,
     };
+
     return graphquery;
 };
 
@@ -48,6 +45,9 @@ export const collectionResolver = async (typename: string, graphquery: CosmosReq
         client: cosmos.client,
         database: cosmos.database,
         container,
+        options: {
+            continuationToken: graphquery.cursor,
+        },
     };
     onInit(graphquery, init);
 
@@ -60,7 +60,7 @@ export const collectionResolver = async (typename: string, graphquery: CosmosReq
         const dataloader = context.directives.cosmos.dataloader?.({ database: init.database, container });
         if (dataloader) {
             // Find single entity by id
-            return [await dataloader(byId.value)];
+            return { page: [await dataloader(byId.value)] };
         }
     }
 
@@ -68,7 +68,7 @@ export const collectionResolver = async (typename: string, graphquery: CosmosReq
         const dataloader = context.directives.cosmos.dataloader?.({ database: init.database, container });
         if (dataloader) {
             // Find multiple entities using id list
-            return await Promise.all(byId.value.map(dataloader));
+            return { page: await Promise.all(byId.value.map(dataloader)) };
         }
     }
 
@@ -91,8 +91,11 @@ export const collectionResolver = async (typename: string, graphquery: CosmosReq
         container: init.container,
         query: init.query.toSql(),
         parameters: init.parameters,
+        options: init.options,
     };
-    const response = await onQuery(request);
 
-    return response.resources.map((item) => ({ __typename: typename, ...item }));
+    const response = await onQuery(request);
+    const nextCursor = response.continuationToken;
+    const page = response.resources.map((item) => ({ __typename: typename, ...item }));
+    return { response, nextCursor, page };
 };

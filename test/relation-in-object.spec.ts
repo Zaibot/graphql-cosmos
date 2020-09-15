@@ -62,17 +62,19 @@ describe(`Embedded relations`, () => {
     });
 
     it(`should be retrieve all items`, async () => {
-        const query = parse(`query { dummies { __typename id embedded { __typename id } } } `);
+        const query = parse(`query { dummies { page { __typename id embedded { __typename id } } } }`);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                dummies: [
-                    { __typename: 'Dummy', id: `1`, embedded: [{ __typename: 'Embedded', id: `1b` }] },
-                    { __typename: 'Dummy', id: `2`, embedded: [{ __typename: 'Embedded', id: `2b` }] },
-                    { __typename: 'Dummy', id: `3`, embedded: [{ __typename: 'Embedded', id: `3b` }] },
-                ],
+                dummies: {
+                    page: [
+                        { __typename: 'Dummy', id: `1`, embedded: [{ __typename: 'Embedded', id: `1b` }] },
+                        { __typename: 'Dummy', id: `2`, embedded: [{ __typename: 'Embedded', id: `2b` }] },
+                        { __typename: 'Dummy', id: `3`, embedded: [{ __typename: 'Embedded', id: `3b` }] },
+                    ],
+                },
             },
         });
     });

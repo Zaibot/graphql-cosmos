@@ -67,49 +67,55 @@ describe(`Sorting`, () => {
     });
 
     it(`should be retrieve all items`, async () => {
-        const query = parse(`query { dummies(sort: { name_ASC: 1 }) { __typename id name } } `);
+        const query = parse(`query { dummies(sort: { name_ASC: 1 }) { page { __typename id name } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                dummies: [
-                    { __typename: 'Dummy', id: `1`, name: `A` },
-                    { __typename: 'Dummy', id: `2`, name: `B` },
-                    { __typename: 'Dummy', id: `3`, name: `C` },
-                ],
+                dummies: {
+                    page: [
+                        { __typename: 'Dummy', id: `1`, name: `A` },
+                        { __typename: 'Dummy', id: `2`, name: `B` },
+                        { __typename: 'Dummy', id: `3`, name: `C` },
+                    ],
+                },
             },
         });
     });
 
     it(`should be retrieve all items reversed`, async () => {
-        const query = parse(`query { dummies(sort: { name_DESC: 1 }) { __typename id name } } `);
+        const query = parse(`query { dummies(sort: { name_DESC: 1 }) { page { __typename id name } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                dummies: [
-                    { __typename: 'Dummy', id: `3`, name: `C` },
-                    { __typename: 'Dummy', id: `2`, name: `B` },
-                    { __typename: 'Dummy', id: `1`, name: `A` },
-                ],
+                dummies: {
+                    page: [
+                        { __typename: 'Dummy', id: `3`, name: `C` },
+                        { __typename: 'Dummy', id: `2`, name: `B` },
+                        { __typename: 'Dummy', id: `1`, name: `A` },
+                    ],
+                },
             },
         });
     });
 
     it(`should be retrieve all items reversed 2`, async () => {
-        const query = parse(`query { dummies(sort: { name_DESC: 1, id_DESC: 2 }) { __typename id name } } `);
+        const query = parse(`query { dummies(sort: { name_DESC: 1, id_DESC: 2 }) { page { __typename id name } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                dummies: [
-                    { __typename: 'Dummy', id: `3`, name: `C` },
-                    { __typename: 'Dummy', id: `2`, name: `B` },
-                    { __typename: 'Dummy', id: `1`, name: `A` },
-                ],
+                dummies: {
+                    page: [
+                        { __typename: 'Dummy', id: `3`, name: `C` },
+                        { __typename: 'Dummy', id: `2`, name: `B` },
+                        { __typename: 'Dummy', id: `1`, name: `A` },
+                    ],
+                },
             },
         });
     });
