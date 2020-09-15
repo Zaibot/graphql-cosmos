@@ -1,9 +1,9 @@
 import { execute, GraphQLSchema, validate, validateSchema } from 'graphql';
 import gql from 'graphql-tag';
 import { makeExecutableSchema } from 'graphql-tools';
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/context';
-import { CosmosDirective } from '../src/directive';
-import { schema } from '../src/schema';
+import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration';
+import { CosmosDirective } from '../src/graphql/directive/cosmos/directive';
+import { schema } from '../src/graphql/directive/schema';
 
 const dummyTypeDefs = gql`
     type Query {
@@ -11,12 +11,12 @@ const dummyTypeDefs = gql`
     }
 
     type Dummy {
-        id: ID!
+        id: ID! @where(op: "eq")
         related: [Related] @cosmos(container: "Relations", ours: "relatedIds")
     }
 
     type Related {
-        id: ID!
+        id: ID! @where(op: "eq")
     }
 `;
 
@@ -26,7 +26,7 @@ const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequ
             'SELECT * FROM c ORDER BY c.id': [{ id: `1`, relatedIds: [`1b`, `2b`] }],
         },
         Relations: {
-            'SELECT * FROM c WHERE c.id = @id AND ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id': [{ id: `1b` }],
+            'SELECT * FROM c WHERE c.id = @id_eq AND ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id': [{ id: `1b` }],
         },
     };
 
@@ -52,8 +52,8 @@ describe(`Reference to deep container`, () => {
         dummy = makeExecutableSchema({
             typeDefs: [schema.typeDefs, dummyTypeDefs],
             schemaDirectives: {
-                cosmos: CosmosDirective,
-            } as any,
+                ...schema.schemaDirectives,
+            },
         });
 
         expect(validateSchema(dummy)).toHaveLength(0);
@@ -65,7 +65,7 @@ describe(`Reference to deep container`, () => {
                 dummies {
                     __typename
                     id
-                    related(where: { id: "1b" }) {
+                    related(where: { id_eq: "1b" }) {
                         __typename
                         id
                     }

@@ -1,9 +1,9 @@
 import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql';
 import gql from 'graphql-tag';
 import { makeExecutableSchema } from 'graphql-tools';
-import { GraphQLCosmosContext } from '../src/context';
-import { CosmosDirective } from '../src/directive';
-import { schema } from '../src/schema';
+import { GraphQLCosmosContext } from '../src/configuration';
+import { CosmosDirective } from '../src/graphql/directive/cosmos/directive';
+import { schema } from '../src/graphql/directive/schema';
 
 const dummyTypeDefs = gql`
     type Query {
@@ -11,12 +11,12 @@ const dummyTypeDefs = gql`
     }
 
     type Dummy {
-        id: ID!
+        id: ID! @where(op: "eq")
     }
 `;
 
 const onCosmosQuery = async ({ query }) => {
-    if (query === `SELECT * FROM c WHERE c.id = @id ORDER BY c.id`) {
+    if (query === `SELECT * FROM c WHERE c.id = @id_eq ORDER BY c.id`) {
         return { resources: [{ id: `1` }] };
     }
     if (query === `SELECT * FROM c ORDER BY c.id`) {
@@ -41,8 +41,8 @@ describe(`@cosmos`, () => {
         dummy = makeExecutableSchema({
             typeDefs: [schema.typeDefs, dummyTypeDefs],
             schemaDirectives: {
-                cosmos: CosmosDirective,
-            } as any,
+                ...schema.schemaDirectives,
+            },
         });
 
         expect(validateSchema(dummy)).toHaveLength(0);
@@ -57,7 +57,7 @@ describe(`@cosmos`, () => {
     });
 
     it(`should be able to filter on id`, async () => {
-        const query = parse(`query { dummies(where: { id: "1" }) { id } } `);
+        const query = parse(`query { dummies(where: { id_eq: "1" }) { id } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
@@ -65,7 +65,7 @@ describe(`@cosmos`, () => {
     });
 
     it(`should be able to filter on id`, async () => {
-        const query = parse(`query { dummies(where: { id: "1" }) { id } } `);
+        const query = parse(`query { dummies(where: { id_eq: "1" }) { id } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);

@@ -1,9 +1,9 @@
 import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql';
 import gql from 'graphql-tag';
 import { makeExecutableSchema } from 'graphql-tools';
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/context';
-import { CosmosDirective } from '../src/directive';
-import { schema } from '../src/schema';
+import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration';
+import { CosmosDirective } from '../src/graphql/directive/cosmos/directive';
+import { schema } from '../src/graphql/directive/schema';
 
 const dummyTypeDefs = gql`
     type Query {
@@ -65,8 +65,8 @@ describe(`Reference to other container`, () => {
         dummy = makeExecutableSchema({
             typeDefs: [schema.typeDefs, dummyTypeDefs],
             schemaDirectives: {
-                cosmos: CosmosDirective,
-            } as any,
+                ...schema.schemaDirectives,
+            },
         });
 
         expect(validateSchema(dummy)).toHaveLength(0);
