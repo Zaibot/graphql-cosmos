@@ -18,13 +18,13 @@ const dummyTypeDefs = gql`
 const onCosmosQuery = async ({ container, query, parameters, options }: GraphQLCosmosRequest) => {
     const queryResult: Record<string, Record<string, unknown[]>> = {
         Dummies: {
-            'SELECT * FROM c ORDER BY c.id': [{ id: `1` }],
-            'SELECT * FROM c ORDER BY c.id @1': [{ id: `2` }, { id: `3` }],
+            'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }],
+            'SELECT c.id FROM c ORDER BY c.id @1': [{ id: `2` }, { id: `3` }],
         },
     };
     const nextCursor: Record<string, Record<string, string>> = {
         Dummies: {
-            'SELECT * FROM c ORDER BY c.id': `1`,
+            'SELECT c.id FROM c ORDER BY c.id': `1`,
         },
     };
     const cursor = options?.continuationToken ? ` @${options.continuationToken}` : ``;

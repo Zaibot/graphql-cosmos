@@ -1,7 +1,10 @@
+import { FeedResponse } from '@azure/cosmos';
+import DataLoader from 'dataloader';
 import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql';
 import gql from 'graphql-tag';
 import { makeExecutableSchema } from 'graphql-tools';
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration';
+import { DataLoaderSpec, GraphQLCosmosContext, GraphQLCosmosDataLoaderResolver, GraphQLCosmosRequest } from '../src/configuration';
+import { defaultDataLoader } from '../src/default';
 import { CosmosDirective } from '../src/graphql/directive/cosmos/directive';
 import { schema } from '../src/graphql/directive/schema';
 
@@ -16,20 +19,23 @@ const dummyTypeDefs = gql`
     }
 `;
 
-const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest) => {
+const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
     const queryResult: Record<string, Record<string, unknown[]>> = {
         Dummies: {
-            'SELECT * FROM c ORDER BY c.name, c.id': [
+            'SELECT c.id FROM c ORDER BY c.name, c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
+            'SELECT r.id, r.name FROM r WHERE ARRAY_CONTAINS(@batch, r.id) ORDER BY r.name, r.id': [
                 { id: `1`, name: `A` },
                 { id: `2`, name: `B` },
                 { id: `3`, name: `C` },
             ],
-            'SELECT * FROM c ORDER BY c.name DESC, c.id': [
+            'SELECT c.id FROM c ORDER BY c.name DESC, c.id': [{ id: `3` }, { id: `2` }, { id: `1` }],
+            'SELECT r.id, r.name FROM r WHERE ARRAY_CONTAINS(@batch, r.id) ORDER BY r.name DESC, r.id': [
                 { id: `3`, name: `C` },
                 { id: `2`, name: `B` },
                 { id: `1`, name: `A` },
             ],
-            'SELECT * FROM c ORDER BY c.name DESC, c.id DESC, c.id': [
+            'SELECT c.id FROM c ORDER BY c.name DESC, c.id DESC, c.id': [{ id: `3` }, { id: `2` }, { id: `1` }],
+            'SELECT r.id, r.name FROM r WHERE ARRAY_CONTAINS(@batch, r.id)': [
                 { id: `3`, name: `C` },
                 { id: `2`, name: `B` },
                 { id: `1`, name: `A` },
@@ -39,7 +45,7 @@ const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequ
 
     const result = queryResult[container]?.[query];
     if (result) {
-        return { resources: result };
+        return { resources: result } as any;
     } else {
         throw Error(`Unhandled: ${container} ${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`})`);
     }
@@ -52,7 +58,7 @@ describe(`Sorting`, () => {
     beforeEach(() => {
         context = {
             directives: {
-                cosmos: { onQuery: onCosmosQuery } as any,
+                cosmos: { database: null as any, client: null as any, onQuery: onCosmosQuery, dataloader: defaultDataLoader(onCosmosQuery) },
             },
         };
 

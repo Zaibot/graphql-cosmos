@@ -1,8 +1,9 @@
+import { FeedResponse } from '@azure/cosmos';
 import { execute, GraphQLSchema, validate, validateSchema } from 'graphql';
 import gql from 'graphql-tag';
 import { makeExecutableSchema } from 'graphql-tools';
 import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration';
-import { CosmosDirective } from '../src/graphql/directive/cosmos/directive';
+import { defaultDataLoader } from '../src/default';
 import { schema } from '../src/graphql/directive/schema';
 
 const dummyTypeDefs = gql`
@@ -20,19 +21,20 @@ const dummyTypeDefs = gql`
     }
 `;
 
-const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest) => {
+const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
     const queryResult: Record<string, Record<string, unknown[]>> = {
         Dummies: {
-            'SELECT * FROM c ORDER BY c.id': [{ id: `1`, relatedIds: [`1b`, `2b`] }],
+            'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }],
+            'SELECT r.id, r.relatedIds FROM r WHERE ARRAY_CONTAINS(@batch, r.id)': [{ id: `1`, relatedIds: [`1b`, `2b`] }],
         },
         Relations: {
-            'SELECT * FROM c WHERE c.id = @id_eq AND ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id': [{ id: `1b` }],
+            'SELECT c.id FROM c WHERE c.id = @id_eq AND ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id': [{ id: `1b` }],
         },
     };
 
     const result = queryResult[container]?.[query];
     if (result) {
-        return { resources: result };
+        return { resources: result } as any;
     } else {
         throw Error(`Unhandled: ${container} ${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`})`);
     }
@@ -45,7 +47,7 @@ describe(`Reference to deep container`, () => {
     beforeEach(() => {
         context = {
             directives: {
-                cosmos: { onQuery: onCosmosQuery } as any,
+                cosmos: { database: null as any, client: null as any, onQuery: onCosmosQuery, dataloader: defaultDataLoader(onCosmosQuery) },
             },
         };
 

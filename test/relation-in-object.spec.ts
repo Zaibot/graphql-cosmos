@@ -1,7 +1,9 @@
+import { FeedResponse } from '@azure/cosmos';
 import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql';
 import gql from 'graphql-tag';
 import { makeExecutableSchema } from 'graphql-tools';
 import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration';
+import { defaultDataLoader } from '../src/default';
 import { CosmosDirective } from '../src/graphql/directive/cosmos/directive';
 import { schema } from '../src/graphql/directive/schema';
 
@@ -20,11 +22,11 @@ const dummyTypeDefs = gql`
     }
 `;
 
-const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest) => {
+const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
     const queryResult: Record<string, Record<string, unknown[]>> = {
         Dummies: {
-            'SELECT * FROM c WHERE c.id = @id_ ORDER BY c.id': [{ id: `1`, embedded: [{ id: `1b` }] }],
-            'SELECT * FROM c ORDER BY c.id': [
+            'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
+            'SELECT r.id, r.embedded FROM r WHERE ARRAY_CONTAINS(@batch, r.id)': [
                 { id: `1`, embedded: [{ id: `1b` }] },
                 { id: `2`, embedded: [{ id: `2b` }] },
                 { id: `3`, embedded: [{ id: `3b` }] },
@@ -34,7 +36,7 @@ const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequ
 
     const result = queryResult[container]?.[query];
     if (result) {
-        return { resources: result };
+        return { resources: result } as any;
     } else {
         throw Error(`Unhandled: ${container} ${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`})`);
     }
@@ -47,7 +49,7 @@ describe(`Embedded relations`, () => {
     beforeEach(() => {
         context = {
             directives: {
-                cosmos: { onQuery: onCosmosQuery } as any,
+                cosmos: { database: null as any, client: null as any, onQuery: onCosmosQuery, dataloader: defaultDataLoader(onCosmosQuery) },
             },
         };
 

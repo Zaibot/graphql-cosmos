@@ -4,6 +4,7 @@
         "target": "ESNext",
         "module": "ESNext",
         "moduleResolution": "node",
+        "lib": ["ESNext"],
         "declaration": true,
         "strict": true,
         "esModuleInterop": true,

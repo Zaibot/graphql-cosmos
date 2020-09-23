@@ -1,9 +1,12 @@
+import { FeedResponse } from '@azure/cosmos';
 import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql';
 import gql from 'graphql-tag';
 import { makeExecutableSchema } from 'graphql-tools';
 import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration';
+import { defaultDataLoader } from '../src/default';
 import { CosmosDirective } from '../src/graphql/directive/cosmos/directive';
 import { schema } from '../src/graphql/directive/schema';
+import { SqlOpScalar } from '../src/sql/op';
 
 const dummyTypeDefs = gql`
     type Query {
@@ -17,23 +20,32 @@ const dummyTypeDefs = gql`
 
     type Related {
         id: ID!
+        text: String
     }
 `;
 
-const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest): Promise<any> => {
+const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
     const queryResult: Record<string, Record<string, unknown[]>> = {
         Dummies: {
-            'SELECT * FROM c ORDER BY c.id': [
+            'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
+            'SELECT r.id, r.relatedId FROM r WHERE ARRAY_CONTAINS(@batch, r.id)': [
                 { id: `1`, relatedId: `1b` },
                 { id: `2`, relatedId: `2b` },
                 { id: `3`, relatedId: `3b` },
+            ],
+        },
+        Relations: {
+            'SELECT r.id, r.text FROM r WHERE ARRAY_CONTAINS(@batch, r.id)': [
+                { id: `1b`, text: null },
+                { id: `2b`, text: null },
+                { id: `3b`, text: null },
             ],
         },
     };
 
     const result = queryResult[container]?.[query];
     if (result) {
-        return { resources: result };
+        return { resources: result } as any;
     } else {
         throw Error(`Unhandled: ${container} ${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`})`);
     }
@@ -42,25 +54,25 @@ const onCosmosQuery = async ({ container, query, parameters }: GraphQLCosmosRequ
 describe(`Data Loader`, () => {
     let context: GraphQLCosmosContext;
     let dummy: GraphQLSchema;
-    let dataloader: string[];
+    let dataloader: SqlOpScalar[];
 
     beforeEach(() => {
         context = {
             directives: {
                 cosmos: {
-                    client: null as any,
                     database: null as any,
-                    dataloader({ container }) {
-                        if (container === `Relations`) {
-                            return (id: any) => {
-                                dataloader.push(id);
-                                return { id };
+                    client: null as any,
+                    onQuery: onCosmosQuery,
+                    dataloader(context) {
+                        if (context.container === `Relations`) {
+                            return (spec) => {
+                                dataloader.push(spec.id);
+                                return defaultDataLoader(onCosmosQuery)(context)(spec);
                             };
                         } else {
-                            return null;
+                            return defaultDataLoader(onCosmosQuery)(context);
                         }
                     },
-                    onQuery: onCosmosQuery,
                 },
             },
         };
@@ -78,13 +90,13 @@ describe(`Data Loader`, () => {
     });
 
     it(`should be retrieve all items`, async () => {
-        const query = parse(`query { dummies { page { related { id } } } } `);
+        const query = parse(`query { dummies { page { related { id text } } } } `);
         const result = await execute(dummy, query, undefined, context);
 
         expect(validate(dummy, query)).toHaveLength(0);
         expect(result).toEqual({
             data: {
-                dummies: { page: [{ related: { id: `1b` } }, { related: { id: `2b` } }, { related: { id: `3b` } }] },
+                dummies: { page: [{ related: { id: `1b`, text: null } }, { related: { id: `2b`, text: null } }, { related: { id: `3b`, text: null } }] },
             },
         });
         expect(dataloader).toEqual([`1b`, `2b`, `3b`]);
