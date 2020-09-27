@@ -5,12 +5,12 @@ import { schema } from '../src/graphql/directive/schema';
 
 const dummyTypeDefs = gql`
     type Query {
-        dummies: [Dummy] @cosmos(container: "Dummies")
+        dummies: [Dummy!]! @cosmos(container: "Dummies")
     }
 
     type Dummy {
         id: ID! @where(op: "eq")
-        related: [Related] @cosmos(container: "Relations", ours: "relatedIds")
+        related: [Related!]! @cosmos(container: "Relations", ours: "relatedIds")
     }
 
     type Related {
@@ -46,12 +46,12 @@ describe(`Processed schema`, () => {
                 directive @sort(ours: String) on FIELD_DEFINITION
             
                 type Query {
-                    dummies(where: DummyWhere, cursor: String): DummyPage
+                    dummies(where: DummyWhere, cursor: String): DummyPage!
                 }
             
                 type Dummy {
                     id: ID!
-                    related(where: RelatedWhere, sort: RelatedSort, cursor: String): RelatedPage
+                    related(where: RelatedWhere, sort: RelatedSort, cursor: String): RelatedPage!
                 }
             
                 type Related {
@@ -65,7 +65,7 @@ describe(`Processed schema`, () => {
             
                 type DummyPage {
                     nextCursor: String
-                    page: [Dummy]
+                    page: [Dummy!]!
                 }
             
                 input RelatedWhere {
@@ -79,7 +79,7 @@ describe(`Processed schema`, () => {
             
                 type RelatedPage {
                     nextCursor: String
-                    page: [Related]
+                    page: [Related!]!
                 }
             `),
         );

@@ -127,7 +127,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
                 // Pagination
                 if (returnTypeMany) {
                     addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString);
-                    fieldType.type = wrapOutputWithPagination(fieldType.type, this.schema);
+                    fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema));
                 }
 
                 //
