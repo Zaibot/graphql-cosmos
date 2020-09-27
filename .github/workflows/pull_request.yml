@@ -10,7 +10,7 @@ jobs:
             - uses: actions/setup-node@v1
               with:
                   node-version: 12
-            - run: npm audit
+            # - run: npm audit
             - run: npm ci
             - run: npm test -- --coverage
             - run: npm build
