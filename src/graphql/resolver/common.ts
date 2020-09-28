@@ -16,7 +16,7 @@ import {
   SqlOperationScalar,
   SqlOpParameter,
 } from "../../sql/op";
-import { ToCosmosReference } from "../reference";
+import { ToCosmosReference, withCosmosReference } from "../reference";
 
 export const argsToCosmosRequest = (
   columnNames: string[],
@@ -139,11 +139,9 @@ export const cosmosResolve = async (
 
     const response = await onQuery(request);
     const nextCursor = response.continuationToken;
-    const page = response.resources.map((item) => ({
-      __typename: typename,
-      __cosmos_container: container,
-      ...item,
-    }));
+    const page = response.resources.map((item) =>
+      withCosmosReference(typename, container, item)
+    );
     return { response, nextCursor, page };
   }
 };

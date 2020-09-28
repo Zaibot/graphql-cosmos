@@ -32,7 +32,7 @@ export const resolveManyOurs = (
     findOwnerContainer(typeFieldToContainer)(i.path);
   const returnTypeCore = GraphQL.getNamedType(fieldType.type);
   return resolveWithCosmosSource(
-    objectContainer ?? uhuh(),
+    objectContainer,
     DEFAULT_ID,
     ours ?? fieldType.name,
     async (source, args, context: GraphQLCosmosContext, _info) => {
@@ -95,7 +95,7 @@ export const resolveOneOurs = (
     findOwnerContainer(typeFieldToContainer)(i.path);
   const returnTypeCore = GraphQL.getNamedType(fieldType.type);
   return resolveWithCosmosSource(
-    objectContainer ?? uhuh(),
+    objectContainer,
     DEFAULT_ID,
     ours ?? fieldType.name,
     async (source, _args, _context: GraphQLCosmosContext, _info) => {
@@ -115,7 +115,7 @@ export const resolveOneTheirs = (
 ): GraphQL.GraphQLFieldResolver<any, any> => (s, a, c, i) => {
   const returnTypeCore = GraphQL.getNamedType(fieldType.type);
   return resolveWithCosmosSource(
-    container ?? uhuh(),
+    container,
     DEFAULT_ID,
     ours ?? fieldType.name,
     async (source, _args, _context: GraphQLCosmosContext, info) => {
@@ -148,8 +148,4 @@ const pathList = (path?: GraphQL.ResponsePath) => {
     entries.push({ typename: current.typename, key: current.key });
   }
   return entries;
-};
-
-const uhuh = () => {
-  throw Error(`uhuh`);
 };

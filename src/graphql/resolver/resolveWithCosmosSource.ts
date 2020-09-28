@@ -2,7 +2,7 @@ import * as GraphQL from "graphql";
 import { GraphQLCosmosContext } from "../../configuration";
 
 export const resolveWithCosmosSource = (
-  container: string,
+  container: string | null | undefined,
   columnId: string,
   requiresColumn: string,
   resolver: GraphQL.GraphQLFieldResolver<any, any>
@@ -13,6 +13,12 @@ export const resolveWithCosmosSource = (
       // Information already available
       return resolver(source, args, context, info);
     } else {
+      if (!container) {
+        throw Error(
+          `unable to resolve with cosmos source, container undefined`
+        );
+      }
+
       // Fetch record from cosmos with the field we require
       const dataloader = context.directives.cosmos.dataloader;
       const database = context.directives.cosmos.database;

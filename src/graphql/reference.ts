@@ -18,12 +18,16 @@ export const toCosmosReference = <
   id: ID | null | undefined
 ) =>
   notNullOrUndefined(id)
-    ? {
-        __typename: typename,
-        __cosmos_container: container,
-        /*[DEFAULT_ID]:*/ id,
-      }
+    ? withCosmosReference(typename, container, { /*[DEFAULT_ID]:*/ id })
     : null;
+
+export const withCosmosReference = <TypeName extends string, T extends {}>(
+  typename: TypeName,
+  container: string,
+  input: T
+): T & { __typename: TypeName; __cosmos_container: string } => {
+  return { ...input, __typename: typename, __cosmos_container: container };
+};
 
 const notNullOrUndefined = <T>(a: T | null | undefined): a is T =>
   a !== null && a !== undefined;

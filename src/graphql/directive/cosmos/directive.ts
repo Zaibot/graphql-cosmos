@@ -168,7 +168,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
             const old = fieldType.resolve;
             const container = findOwnerContainer(typeFieldToContainer);
             fieldType.resolve = (s, a, c, i) => {
-                const objectContainer = getCosmosReferenceContainer(s) ?? container(i.path) ?? uhuh();
+                const objectContainer = getCosmosReferenceContainer(s) ?? container(i.path);
                 return resolveSourceField(objectContainer, DEFAULT_ID, ours ?? fieldType.name, old ?? GraphQL.defaultFieldResolver)(s, a, c, i);
             };
         }
@@ -176,10 +176,6 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         return fieldType;
     }
 }
-
-const uhuh = () => {
-    throw Error(`uhuh`);
-};
 
 const wrapOutputWithPagination = (type: GraphQL.GraphQLOutputType, schema: GraphQL.GraphQLSchema) => {
     return createOrGetPageType(
