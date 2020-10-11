@@ -6,7 +6,7 @@ import {
   GraphQLInputType,
   GraphQLObjectType,
   GraphQLSchema,
-} from "graphql";
+} from 'graphql'
 
 export const createOrGetWhereType = (
   name: string,
@@ -14,7 +14,7 @@ export const createOrGetWhereType = (
   schema: GraphQLSchema
 ) => {
   if (schema.getTypeMap()[name]) {
-    return schema.getTypeMap()[name] as GraphQLInputType;
+    return schema.getTypeMap()[name] as GraphQLInputType
   }
 
   const filterType = new GraphQLInputObjectType({
@@ -24,13 +24,13 @@ export const createOrGetWhereType = (
     fields: properties,
     astNode: undefined,
     extensionASTNodes: undefined,
-  });
+  })
 
   // HACK
-  schema.getTypeMap()[name] = filterType;
+  schema.getTypeMap()[name] = filterType
 
-  return filterType;
-};
+  return filterType
+}
 
 export const createOrGetPageType = (
   name: string,
@@ -38,7 +38,7 @@ export const createOrGetPageType = (
   schema: GraphQLSchema
 ): GraphQLObjectType => {
   if (schema.getTypeMap()[name]) {
-    return schema.getTypeMap()[name] as GraphQLObjectType;
+    return schema.getTypeMap()[name] as GraphQLObjectType
   }
 
   const filterType = new GraphQLObjectType({
@@ -48,19 +48,15 @@ export const createOrGetPageType = (
     fields: properties,
     astNode: undefined,
     extensionASTNodes: undefined,
-  });
+  })
 
   // HACK
-  schema.getTypeMap()[name] = filterType;
+  schema.getTypeMap()[name] = filterType
 
-  return filterType;
-};
+  return filterType
+}
 
-export const addFieldArgument = (
-  field: GraphQLField<any, any, any>,
-  name: string,
-  type: GraphQLInputType
-) => {
+export const addFieldArgument = (field: GraphQLField<any, any, any>, name: string, type: GraphQLInputType) => {
   field.args.push({
     name,
     type,
@@ -68,5 +64,5 @@ export const addFieldArgument = (
     extensions: undefined,
     description: undefined,
     defaultValue: undefined,
-  });
-};
+  })
+}

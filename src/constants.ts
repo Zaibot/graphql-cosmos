@@ -1,1 +1,1 @@
-export const DEFAULT_ID: string = `id`;
+export const DEFAULT_ID: string = `id`

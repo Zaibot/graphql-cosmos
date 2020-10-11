@@ -1,7 +1,7 @@
-import { GraphQLSchema, printSchema, validateSchema } from 'graphql';
-import gql from 'graphql-tag';
-import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
-import { schema } from '../src/graphql/directive/schema';
+import { GraphQLSchema, printSchema, validateSchema } from 'graphql'
+import gql from 'graphql-tag'
+import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools'
+import { schema } from '../src/graphql/directive/schema'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -17,24 +17,24 @@ const dummyTypeDefs = gql`
     id: ID! @where(op: "eq")
     name: String! @sort(ours: "test")
   }
-`;
+`
 
 describe(`Processed schema`, () => {
-  let output: string;
-  let dummy: GraphQLSchema;
+  let output: string
+  let dummy: GraphQLSchema
 
   beforeEach(() => {
     dummy = makeExecutableSchema({
       typeDefs: [schema.typeDefs, dummyTypeDefs],
       schemaDirectives: schema.schemaDirectives,
-    });
+    })
 
-    SchemaDirectiveVisitor.visitSchemaDirectives(dummy, {});
-    expect(validateSchema(dummy)).toHaveLength(0);
+    SchemaDirectiveVisitor.visitSchemaDirectives(dummy, {})
+    expect(validateSchema(dummy)).toHaveLength(0)
 
-    output = printSchema(dummy, { commentDescriptions: false });
+    output = printSchema(dummy, { commentDescriptions: false })
     // console.log(output);
-  });
+  })
 
   it(`should match expected`, () => {
     expect(normalize(output)).toBe(
@@ -84,13 +84,13 @@ describe(`Processed schema`, () => {
                     page: [Related!]!
                 }
             `)
-    );
-  });
-});
+    )
+  })
+})
 
 const normalize = (text: string) =>
   text
     .split(/\r?\n/)
     .map((x) => x.trim())
     .filter(Boolean)
-    .join(`\n`);
+    .join(`\n`)

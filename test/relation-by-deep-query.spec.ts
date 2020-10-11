@@ -1,10 +1,10 @@
-import { FeedResponse } from '@azure/cosmos';
-import { execute, GraphQLSchema, validate, validateSchema } from 'graphql';
-import gql from 'graphql-tag';
-import { makeExecutableSchema } from 'graphql-tools';
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration';
-import { defaultDataLoader } from '../src/default';
-import { schema } from '../src/graphql/directive/schema';
+import { FeedResponse } from '@azure/cosmos'
+import { execute, GraphQLSchema, validate, validateSchema } from 'graphql'
+import gql from 'graphql-tag'
+import { makeExecutableSchema } from 'graphql-tools'
+import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
+import { defaultDataLoader } from '../src/default'
+import { schema } from '../src/graphql/directive/schema'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -19,11 +19,11 @@ const dummyTypeDefs = gql`
   type Related {
     id: ID! @where(op: "eq")
   }
-`;
+`
 
 const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
-  const { container, query, parameters } = request;
-  const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query;
+  const { container, query, parameters } = request
+  const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query
 
   const responses: Record<string, Record<string, unknown[]>> = {
     Dummies: {
@@ -39,19 +39,19 @@ const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedRespons
         { id: `1b` },
       ],
     },
-  };
-
-  const result = responses[container]?.[key];
-  if (result) {
-    return { resources: result } as any;
-  } else {
-    throw Error(`Unhandled: ${container} ${key}`);
   }
-};
+
+  const result = responses[container]?.[key]
+  if (result) {
+    return { resources: result } as any
+  } else {
+    throw Error(`Unhandled: ${container} ${key}`)
+  }
+}
 
 describe(`Reference to deep container`, () => {
-  let context: GraphQLCosmosContext;
-  let dummy: GraphQLSchema;
+  let context: GraphQLCosmosContext
+  let dummy: GraphQLSchema
 
   beforeEach(() => {
     context = {
@@ -63,17 +63,17 @@ describe(`Reference to deep container`, () => {
           dataloader: defaultDataLoader(onCosmosQuery),
         },
       },
-    };
+    }
 
     dummy = makeExecutableSchema({
       typeDefs: [schema.typeDefs, dummyTypeDefs],
       schemaDirectives: {
         ...schema.schemaDirectives,
       },
-    });
+    })
 
-    expect(validateSchema(dummy)).toHaveLength(0);
-  });
+    expect(validateSchema(dummy)).toHaveLength(0)
+  })
 
   it(`should be retrieve all items`, async () => {
     const query = gql`
@@ -93,10 +93,10 @@ describe(`Reference to deep container`, () => {
           }
         }
       }
-    `;
-    const result = await execute(dummy, query, undefined, context);
+    `
+    const result = await execute(dummy, query, undefined, context)
 
-    expect(validate(dummy, query)).toHaveLength(0);
+    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
@@ -113,6 +113,6 @@ describe(`Reference to deep container`, () => {
           ],
         },
       },
-    });
-  });
-});
+    })
+  })
+})

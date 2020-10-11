@@ -1,11 +1,11 @@
-import { FeedResponse } from '@azure/cosmos';
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql';
-import gql from 'graphql-tag';
-import { makeExecutableSchema } from 'graphql-tools';
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration';
-import { defaultDataLoader } from '../src/default';
-import { CosmosDirective } from '../src/graphql/directive/cosmos/directive';
-import { schema } from '../src/graphql/directive/schema';
+import { FeedResponse } from '@azure/cosmos'
+import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
+import gql from 'graphql-tag'
+import { makeExecutableSchema } from 'graphql-tools'
+import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
+import { defaultDataLoader } from '../src/default'
+import { CosmosDirective } from '../src/graphql/directive/cosmos/directive'
+import { schema } from '../src/graphql/directive/schema'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -20,7 +20,7 @@ const dummyTypeDefs = gql`
   type Embedded {
     id: ID!
   }
-`;
+`
 
 const onCosmosQuery = async ({
   container,
@@ -37,23 +37,23 @@ const onCosmosQuery = async ({
         { id: `3`, embedded: [{ id: `3b` }] },
       ],
     },
-  };
+  }
 
-  const result = queryResult[container]?.[query];
+  const result = queryResult[container]?.[query]
   if (result) {
-    return { resources: result } as any;
+    return { resources: result } as any
   } else {
     throw Error(
       `Unhandled: ${container} ${query} (${
         parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`
       })`
-    );
+    )
   }
-};
+}
 
 describe(`Embedded relations`, () => {
-  let context: GraphQLCosmosContext;
-  let dummy: GraphQLSchema;
+  let context: GraphQLCosmosContext
+  let dummy: GraphQLSchema
 
   beforeEach(() => {
     context = {
@@ -65,23 +65,23 @@ describe(`Embedded relations`, () => {
           dataloader: defaultDataLoader(onCosmosQuery),
         },
       },
-    };
+    }
 
     dummy = makeExecutableSchema({
       typeDefs: [schema.typeDefs, dummyTypeDefs],
       schemaDirectives: {
         ...schema.schemaDirectives,
       },
-    });
+    })
 
-    expect(validateSchema(dummy)).toHaveLength(0);
-  });
+    expect(validateSchema(dummy)).toHaveLength(0)
+  })
 
   it(`should be retrieve all items`, async () => {
-    const query = parse(`query { dummies { total page { __typename id embedded { __typename id } } } }`);
-    const result = await execute(dummy, query, undefined, context);
+    const query = parse(`query { dummies { total page { __typename id embedded { __typename id } } } }`)
+    const result = await execute(dummy, query, undefined, context)
 
-    expect(validate(dummy, query)).toHaveLength(0);
+    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
@@ -105,6 +105,6 @@ describe(`Embedded relations`, () => {
           ],
         },
       },
-    });
-  });
-});
+    })
+  })
+})

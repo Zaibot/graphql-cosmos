@@ -1,11 +1,11 @@
-import { FeedResponse } from '@azure/cosmos';
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql';
-import gql from 'graphql-tag';
-import { makeExecutableSchema } from 'graphql-tools';
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration';
-import { toTraceString } from '../src/debug';
-import { defaultDataLoader } from '../src/default';
-import { schema } from '../src/graphql/directive/schema';
+import { FeedResponse } from '@azure/cosmos'
+import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
+import gql from 'graphql-tag'
+import { makeExecutableSchema } from 'graphql-tools'
+import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
+import { toTraceString } from '../src/debug'
+import { defaultDataLoader } from '../src/default'
+import { schema } from '../src/graphql/directive/schema'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -21,11 +21,11 @@ const dummyTypeDefs = gql`
     id: ID!
     dummies: [Dummy!]! @cosmos(container: "Dummies", theirs: "relatedIds")
   }
-`;
+`
 
 const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
-  const { container, query, parameters } = request;
-  const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query;
+  const { container, query, parameters } = request
+  const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query
 
   const responses = {
     Dummies: {
@@ -66,19 +66,19 @@ const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedRespons
       'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id (@id_in=2b)': [{ id: `2b` }],
       'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id (@id_in=3b)': [{ id: `3b` }],
     },
-  };
-
-  const result = responses[container]?.[key];
-  if (result) {
-    return { resources: result } as any;
-  } else {
-    throw Error(`Unhandled: ${container} ${key}`);
   }
-};
+
+  const result = responses[container]?.[key]
+  if (result) {
+    return { resources: result } as any
+  } else {
+    throw Error(`Unhandled: ${container} ${key}`)
+  }
+}
 
 describe(`Reference to other container`, () => {
-  let context: GraphQLCosmosContext;
-  let dummy: GraphQLSchema;
+  let context: GraphQLCosmosContext
+  let dummy: GraphQLSchema
 
   beforeEach(() => {
     context = {
@@ -90,26 +90,26 @@ describe(`Reference to other container`, () => {
           dataloader: defaultDataLoader(onCosmosQuery),
         },
       },
-    };
+    }
 
     dummy = makeExecutableSchema({
       typeDefs: [schema.typeDefs, dummyTypeDefs],
       schemaDirectives: {
         ...schema.schemaDirectives,
       },
-    });
+    })
 
-    expect(validateSchema(dummy)).toHaveLength(0);
-  });
+    expect(validateSchema(dummy)).toHaveLength(0)
+  })
 
   it(`should be retrieve all items (root)`, async () => {
-    const query = parse(`query { dummies { total page { __typename id } } } `);
-    const result = await execute(dummy, query, undefined, context);
+    const query = parse(`query { dummies { total page { __typename id } } } `)
+    const result = await execute(dummy, query, undefined, context)
     if (result.errors?.length) {
-      result.errors.forEach((e) => console.error(e.path.join(`/`), e.stack));
+      result.errors.forEach((e) => console.error(e.path.join(`/`), e.stack))
     }
 
-    expect(validate(dummy, query)).toHaveLength(0);
+    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
@@ -121,17 +121,17 @@ describe(`Reference to other container`, () => {
           ],
         },
       },
-    });
-  });
+    })
+  })
 
   it(`should be retrieve all items (ours)`, async () => {
-    const query = parse(`query { dummies { total page { __typename id related { total page { __typename id } } } } } `);
-    const result = await execute(dummy, query, undefined, context);
+    const query = parse(`query { dummies { total page { __typename id related { total page { __typename id } } } } } `)
+    const result = await execute(dummy, query, undefined, context)
     if (result.errors?.length) {
-      result.errors.forEach((e) => console.error(e.path.join(`/`), e.stack));
+      result.errors.forEach((e) => console.error(e.path.join(`/`), e.stack))
     }
 
-    expect(validate(dummy, query)).toHaveLength(0);
+    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
@@ -164,19 +164,19 @@ describe(`Reference to other container`, () => {
           ],
         },
       },
-    });
-  });
+    })
+  })
 
   it(`should be retrieve all items (theirs)`, async () => {
     const query = parse(
       `query { dummies { total page { __typename id related { total page { __typename id dummies { total page { __typename id } } } } } } } `
-    );
-    const result = await execute(dummy, query, undefined, context);
+    )
+    const result = await execute(dummy, query, undefined, context)
     if (result.errors?.length) {
-      result.errors.forEach((e) => console.error(e.path.join(`/`), e.stack));
+      result.errors.forEach((e) => console.error(e.path.join(`/`), e.stack))
     }
 
-    expect(validate(dummy, query)).toHaveLength(0);
+    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
@@ -236,6 +236,6 @@ describe(`Reference to other container`, () => {
           ],
         },
       },
-    });
-  });
-});
+    })
+  })
+})

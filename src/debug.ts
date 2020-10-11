@@ -1,8 +1,8 @@
-import { GraphQLResolveInfo, ResponsePath } from 'graphql/type';
-import { GraphQLCosmosRequest } from './configuration';
+import { GraphQLResolveInfo, ResponsePath } from 'graphql/type'
+import { GraphQLCosmosRequest } from './configuration'
 
 export const cosmosRequestToDebugString = ({ query, parameters, init }: GraphQLCosmosRequest) => {
-  const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query;
+  const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query
   return JSON.stringify(
     {
       container: init?.container,
@@ -12,8 +12,8 @@ export const cosmosRequestToDebugString = ({ query, parameters, init }: GraphQLC
     },
     undefined,
     2
-  );
-};
+  )
+}
 
 const pathToString = (info: GraphQLResolveInfo) => {
   return {
@@ -23,13 +23,13 @@ const pathToString = (info: GraphQLResolveInfo) => {
       .map((x) => (x.typename ? `${x.typename}.${x.key}` : x.key))
       .reverse()
       .join(`/`),
-  };
-};
+  }
+}
 
 const pathList = (path?: ResponsePath) => {
-  const entries: { typename: string | undefined; key: string | number }[] = [];
+  const entries: { typename: string | undefined; key: string | number }[] = []
   for (let current = path; current; current = current.prev) {
-    entries.push({ typename: current.typename, key: current.key });
+    entries.push({ typename: current.typename, key: current.key })
   }
-  return entries;
-};
+  return entries
+}

@@ -1,52 +1,52 @@
-import { DEFAULT_ID } from '../constants';
-import { SqlOpScalar } from '../sql/op';
+import { DEFAULT_ID } from '../constants'
+import { SqlOpScalar } from '../sql/op'
 
 export interface CosmosTag {
-  container?: string;
-  source?: any;
-  args?: any;
+  container?: string
+  source?: any
+  args?: any
 }
 
 export const getCosmosTagContainer = (obj: any): string => {
-  return obj && obj.__cosmos_tag ? obj.__cosmos_tag.container : null;
-};
+  return obj && obj.__cosmos_tag ? obj.__cosmos_tag.container : null
+}
 
 export const getCosmosTagSource = (obj: any): any => {
-  return obj && obj.__cosmos_tag ? obj.__cosmos_tag.source : null;
-};
+  return obj && obj.__cosmos_tag ? obj.__cosmos_tag.source : null
+}
 
 export const getCosmosTagArgs = (obj: any): any => {
-  return obj && obj.__cosmos_tag ? obj.__cosmos_tag.args : null;
-};
+  return obj && obj.__cosmos_tag ? obj.__cosmos_tag.args : null
+}
 
-export const ToCosmosTag = (tag: CosmosTag) => <T>(props: T) => toCosmosTag(tag, props);
+export const ToCosmosTag = (tag: CosmosTag) => <T>(props: T) => toCosmosTag(tag, props)
 export const toCosmosTag = <T extends {}>(tag: CosmosTag, props: T) =>
-  notNullOrUndefined(props) ? withCosmosTag(tag, props) : null;
+  notNullOrUndefined(props) ? withCosmosTag(tag, props) : null
 export const withCosmosTag = <T extends {}>(tag: CosmosTag, input: T): T & { __cosmos_tag: CosmosTag } => {
-  return { ...input, __cosmos_tag: tag };
-};
+  return { ...input, __cosmos_tag: tag }
+}
 
 export const ToCosmosReference = <TypeName extends string>(typename: TypeName, container: string) => <
   ID extends SqlOpScalar
 >(
   id: ID
-) => toCosmosReference(typename, container, id);
+) => toCosmosReference(typename, container, id)
 export const toCosmosReference = <TypeName extends string, ID extends SqlOpScalar>(
   typename: TypeName,
   container: string,
   id: ID | null | undefined
-) => (notNullOrUndefined(id) ? withCosmosReference(typename, container, { [DEFAULT_ID]: id }) : null);
+) => (notNullOrUndefined(id) ? withCosmosReference(typename, container, { [DEFAULT_ID]: id }) : null)
 export const withCosmosReference = <TypeName extends string, T extends {}>(
   typename: TypeName,
   container: string,
   input: T
 ): T & { __typename: TypeName; __cosmos_tag: CosmosTag } => {
-  return withCosmosTag({ container }, withTypename(typename)(input));
-};
+  return withCosmosTag({ container }, withTypename(typename)(input))
+}
 
 const withTypename = <TypeName extends string>(typename: TypeName) => <T>(input: T): T & { __typename: TypeName } => ({
   ...input,
   __typename: typename,
-});
+})
 
-const notNullOrUndefined = <T>(a: T | null | undefined): a is T => a !== null && a !== undefined;
+const notNullOrUndefined = <T>(a: T | null | undefined): a is T => a !== null && a !== undefined

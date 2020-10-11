@@ -1,17 +1,17 @@
-import { FeedResponse } from '@azure/cosmos';
-import DataLoader from 'dataloader';
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql';
-import gql from 'graphql-tag';
-import { makeExecutableSchema } from 'graphql-tools';
+import { FeedResponse } from '@azure/cosmos'
+import DataLoader from 'dataloader'
+import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
+import gql from 'graphql-tag'
+import { makeExecutableSchema } from 'graphql-tools'
 import {
   DataLoaderSpec,
   GraphQLCosmosContext,
   GraphQLCosmosDataLoaderResolver,
   GraphQLCosmosRequest,
-} from '../src/configuration';
-import { defaultDataLoader } from '../src/default';
-import { CosmosDirective } from '../src/graphql/directive/cosmos/directive';
-import { schema } from '../src/graphql/directive/schema';
+} from '../src/configuration'
+import { defaultDataLoader } from '../src/default'
+import { CosmosDirective } from '../src/graphql/directive/cosmos/directive'
+import { schema } from '../src/graphql/directive/schema'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -22,7 +22,7 @@ const dummyTypeDefs = gql`
     id: ID! @sort
     name: String! @sort
   }
-`;
+`
 
 const onCosmosQuery = async ({
   container,
@@ -52,23 +52,23 @@ const onCosmosQuery = async ({
         { id: `1`, name: `A` },
       ],
     },
-  };
+  }
 
-  const result = queryResult[container]?.[query];
+  const result = queryResult[container]?.[query]
   if (result) {
-    return { resources: result } as any;
+    return { resources: result } as any
   } else {
     throw Error(
       `Unhandled: ${container} ${query} (${
         parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`
       })`
-    );
+    )
   }
-};
+}
 
 describe(`Sorting`, () => {
-  let context: GraphQLCosmosContext;
-  let dummy: GraphQLSchema;
+  let context: GraphQLCosmosContext
+  let dummy: GraphQLSchema
 
   beforeEach(() => {
     context = {
@@ -80,23 +80,23 @@ describe(`Sorting`, () => {
           dataloader: defaultDataLoader(onCosmosQuery),
         },
       },
-    };
+    }
 
     dummy = makeExecutableSchema({
       typeDefs: [schema.typeDefs, dummyTypeDefs],
       schemaDirectives: {
         ...schema.schemaDirectives,
       },
-    });
+    })
 
-    expect(validateSchema(dummy)).toHaveLength(0);
-  });
+    expect(validateSchema(dummy)).toHaveLength(0)
+  })
 
   it(`should be retrieve all items`, async () => {
-    const query = parse(`query { dummies(sort: { name_ASC: 1 }) { total page { __typename id name } } } `);
-    const result = await execute(dummy, query, undefined, context);
+    const query = parse(`query { dummies(sort: { name_ASC: 1 }) { total page { __typename id name } } } `)
+    const result = await execute(dummy, query, undefined, context)
 
-    expect(validate(dummy, query)).toHaveLength(0);
+    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
@@ -108,14 +108,14 @@ describe(`Sorting`, () => {
           ],
         },
       },
-    });
-  });
+    })
+  })
 
   it(`should be retrieve all items reversed`, async () => {
-    const query = parse(`query { dummies(sort: { name_DESC: 1 }) { total page { __typename id name } } } `);
-    const result = await execute(dummy, query, undefined, context);
+    const query = parse(`query { dummies(sort: { name_DESC: 1 }) { total page { __typename id name } } } `)
+    const result = await execute(dummy, query, undefined, context)
 
-    expect(validate(dummy, query)).toHaveLength(0);
+    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
@@ -127,14 +127,14 @@ describe(`Sorting`, () => {
           ],
         },
       },
-    });
-  });
+    })
+  })
 
   it(`should be retrieve all items reversed 2`, async () => {
-    const query = parse(`query { dummies(sort: { name_DESC: 1, id_DESC: 2 }) { total page { __typename id name } } } `);
-    const result = await execute(dummy, query, undefined, context);
+    const query = parse(`query { dummies(sort: { name_DESC: 1, id_DESC: 2 }) { total page { __typename id name } } } `)
+    const result = await execute(dummy, query, undefined, context)
 
-    expect(validate(dummy, query)).toHaveLength(0);
+    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
@@ -146,6 +146,6 @@ describe(`Sorting`, () => {
           ],
         },
       },
-    });
-  });
-});
+    })
+  })
+})
