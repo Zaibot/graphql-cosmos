@@ -1,6 +1,10 @@
-import { SqlOpParameter } from "../sql/op";
+import { GraphQLResolveInfo } from 'graphql/type';
+import { SqlOpParameter } from '../sql/op';
 
 export interface CosmosRequest {
+  type: 'array' | 'count';
+  resolverDescription: string;
+  graphqlInfo: GraphQLResolveInfo;
   columns: Array<string>;
   where: Array<CosmosArgWhere>;
   sort: Array<CosmosArgSort>;

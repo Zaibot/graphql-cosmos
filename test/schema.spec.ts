@@ -4,41 +4,41 @@ import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
 import { schema } from '../src/graphql/directive/schema';
 
 const dummyTypeDefs = gql`
-    type Query {
-        dummies: [Dummy!]! @cosmos(container: "Dummies")
-    }
+  type Query {
+    dummies: [Dummy!]! @cosmos(container: "Dummies")
+  }
 
-    type Dummy {
-        id: ID! @where(op: "eq")
-        related: [Related!]! @cosmos(container: "Relations", ours: "relatedIds")
-    }
+  type Dummy {
+    id: ID! @where(op: "eq")
+    related: [Related!]! @cosmos(container: "Relations", ours: "relatedIds")
+  }
 
-    type Related {
-        id: ID! @where(op: "eq")
-        name: String! @sort(ours: "test")
-    }
+  type Related {
+    id: ID! @where(op: "eq")
+    name: String! @sort(ours: "test")
+  }
 `;
 
 describe(`Processed schema`, () => {
-    let output: string;
-    let dummy: GraphQLSchema;
+  let output: string;
+  let dummy: GraphQLSchema;
 
-    beforeEach(() => {
-        dummy = makeExecutableSchema({
-            typeDefs: [schema.typeDefs, dummyTypeDefs],
-            schemaDirectives: schema.schemaDirectives,
-        });
-
-        SchemaDirectiveVisitor.visitSchemaDirectives(dummy, {});
-        expect(validateSchema(dummy)).toHaveLength(0);
-
-        output = printSchema(dummy, { commentDescriptions: false });
-        // console.log(output);
+  beforeEach(() => {
+    dummy = makeExecutableSchema({
+      typeDefs: [schema.typeDefs, dummyTypeDefs],
+      schemaDirectives: schema.schemaDirectives,
     });
 
-    it(`should match expected`, () => {
-        expect(normalize(output)).toBe(
-            normalize(`
+    SchemaDirectiveVisitor.visitSchemaDirectives(dummy, {});
+    expect(validateSchema(dummy)).toHaveLength(0);
+
+    output = printSchema(dummy, { commentDescriptions: false });
+    // console.log(output);
+  });
+
+  it(`should match expected`, () => {
+    expect(normalize(output)).toBe(
+      normalize(`
                 directive @cosmos(container: String, ours: String, theirs: String) on FIELD_DEFINITION
 
                 directive @where(op: String, ours: String) on FIELD_DEFINITION
@@ -65,6 +65,7 @@ describe(`Processed schema`, () => {
             
                 type DummyPage {
                     nextCursor: String
+                    total: Int!
                     page: [Dummy!]!
                 }
             
@@ -79,16 +80,17 @@ describe(`Processed schema`, () => {
             
                 type RelatedPage {
                     nextCursor: String
+                    total: Int!
                     page: [Related!]!
                 }
-            `),
-        );
-    });
+            `)
+    );
+  });
 });
 
 const normalize = (text: string) =>
-    text
-        .split(/\r?\n/)
-        .map((x) => x.trim())
-        .filter(Boolean)
-        .join(`\n`);
+  text
+    .split(/\r?\n/)
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .join(`\n`);

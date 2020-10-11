@@ -1,18 +1,14 @@
-import { SqlParameter } from "@azure/cosmos";
-import { DEFAULT_ID } from "./constants";
-import { CosmosRequest } from "./intermediate/model";
-import { SqlBuilder } from "./sql/builder";
-import { isSqlOperation, sqlOp } from "./sql/op";
+import { SqlParameter } from '@azure/cosmos';
+import { DEFAULT_ID } from './constants';
+import { CosmosRequest } from './intermediate/model';
+import { SqlBuilder } from './sql/builder';
+import { isSqlOperation, sqlOp } from './sql/op';
 
 export interface ConvertToSql {
   sql: SqlBuilder;
   parameters: SqlParameter[];
 }
-export function convertToSql({
-  columns: columnNames,
-  where,
-  sort,
-}: CosmosRequest): ConvertToSql {
+export function convertToSql({ type, columns: columnNames, where, sort }: CosmosRequest): ConvertToSql {
   const alias = `c`;
 
   const expressions = where.map((expr) => {
@@ -30,8 +26,12 @@ export function convertToSql({
 
   const sql = new SqlBuilder(alias);
 
-  for (const columnName of columnNames) {
-    sql.select(`${alias}.${columnName}`);
+  if (type === `count`) {
+    sql.select(`VALUE COUNT(1)`);
+  } else {
+    for (const columnName of columnNames) {
+      sql.select(`${alias}.${columnName}`);
+    }
   }
 
   for (const expr of expressions) {
@@ -40,17 +40,21 @@ export function convertToSql({
     }
   }
 
-  for (const { property, direction } of sort) {
-    if (direction === `ASC`) {
-      sql.orderBy(`${alias}.${property}`, `ASC`);
-    } else if (direction === `DESC`) {
-      sql.orderBy(`${alias}.${property}`, `DESC`);
-    } else {
-      throw Error(`sort direction of ${property} must be ASC or DESC`);
+  if (type === `count`) {
+    // Skip ordering when counting
+  } else {
+    for (const { property, direction } of sort) {
+      if (direction === `ASC`) {
+        sql.orderBy(`${alias}.${property}`, `ASC`);
+      } else if (direction === `DESC`) {
+        sql.orderBy(`${alias}.${property}`, `DESC`);
+      } else {
+        throw Error(`sort direction of ${property} must be ASC or DESC`);
+      }
     }
-  }
 
-  sql.orderBy(`${alias}.${DEFAULT_ID}`, `ASC`);
+    sql.orderBy(`${alias}.${DEFAULT_ID}`, `ASC`);
+  }
 
   const parameters = expressions.map((x) => x.parameter);
 

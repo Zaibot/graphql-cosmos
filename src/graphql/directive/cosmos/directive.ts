@@ -13,7 +13,7 @@ import {
 import { SchemaDirectiveVisitor } from 'graphql-tools';
 import { DEFAULT_ID } from '../../../constants';
 import { addFieldArgument, createOrGetPageType } from '../../internal/schema';
-import { getCosmosReferenceContainer } from '../../reference';
+import { getCosmosTagContainer } from '../../reference';
 import { SortDirective } from '../sort/directive';
 import { inputSort } from '../sort/input';
 import { WhereDirective } from '../where/directive';
@@ -80,7 +80,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
 
         const ours = this.argOurs;
         const theirs = this.argTheirs;
-        const container = this.argContainer;
+        const theirContainer = this.argContainer;
 
         //
         // Snapshot of which type.field is stored in a Cosmos container
@@ -94,8 +94,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
             ]);
         const typeFieldToContainer = new Map(typeFieldToContainerValues.map(([name, f]) => [name, new Map(f)]));
 
-        if (container) {
-            const objectType = details.objectType;
+        if (theirContainer) {
             const returnType = fieldType.type;
             const returnTypeCore = getNamedType(returnType);
             const returnTypeMany = isListType(getNullableType(returnType)) ? returnType : undefined;
@@ -124,29 +123,23 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
                 }
 
                 //
-                // Pagination
-                if (returnTypeMany) {
-                    addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString);
-                    fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema));
-                }
-
-                //
                 // Override resolvers per relation type
                 if (returnTypeMany && theirs) {
-                    // console.log(`${objectType.name}.${fieldType.name}: resolveManyTheirs(${theirs})`);
-                    fieldType.resolve = resolveManyTheirs(container, ours, theirs, fieldType);
+                    addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString);
+                    fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema));
+                    fieldType.resolve = resolveManyTheirs(theirContainer, ours, theirs, fieldType);
                 } else if (returnTypeMany && ours) {
-                    // console.log(`${objectType.name}.${fieldType.name}: resolveManyOurs(${ours})`);
-                    fieldType.resolve = resolveManyOurs(typeFieldToContainer, container, ours, theirs, fieldType);
+                    addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString);
+                    fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema));
+                    fieldType.resolve = resolveManyOurs(typeFieldToContainer, theirContainer, ours, theirs, fieldType);
                 } else if (returnTypeMany) {
-                    // console.log(`${objectType.name}.${fieldType.name}: resolveRootQuery`);
-                    fieldType.resolve = resolveRootQuery(container, fieldType);
+                    addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString);
+                    fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema));
+                    fieldType.resolve = resolveRootQuery(theirContainer, fieldType);
                 } else if (ours) {
-                    // console.log(`${objectType.name}.${fieldType.name}: resolveOneOurs(${ours})`);
-                    fieldType.resolve = resolveOneOurs(typeFieldToContainer, ours, container, fieldType);
+                    fieldType.resolve = resolveOneOurs(typeFieldToContainer, ours, theirContainer, fieldType);
                 } else if (theirs) {
-                    // console.log(`${objectType.name}.${fieldType.name}: resolveOneTheirs(${theirs})`);
-                    fieldType.resolve = resolveOneTheirs(container, ours, fieldType);
+                    fieldType.resolve = resolveOneTheirs(theirContainer, ours, fieldType);
                 }
 
                 //
@@ -158,7 +151,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
                             field.resolve ??= GraphQL.defaultFieldResolver;
                         } else {
                             const ours = CosmosDirective.getOurs(`cosmos`, this.schema, field.astNode ?? {});
-                            field.resolve ??= resolveSourceField(container, DEFAULT_ID, ours ?? field.name, field.resolve ?? GraphQL.defaultFieldResolver);
+                            field.resolve ??= resolveSourceField(theirContainer, DEFAULT_ID, ours ?? field.name, field.resolve ?? GraphQL.defaultFieldResolver);
                         }
                     }
                 }
@@ -168,7 +161,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
             const old = fieldType.resolve;
             const container = findOwnerContainer(typeFieldToContainer);
             fieldType.resolve = (s, a, c, i) => {
-                const objectContainer = getCosmosReferenceContainer(s) ?? container(i.path);
+                const objectContainer = getCosmosTagContainer(s) ?? container(i.path);
                 return resolveSourceField(objectContainer, DEFAULT_ID, ours ?? fieldType.name, old ?? GraphQL.defaultFieldResolver)(s, a, c, i);
             };
         }
@@ -182,6 +175,7 @@ const wrapOutputWithPagination = (type: GraphQL.GraphQLOutputType, schema: Graph
         `${getNamedType(type).name}Page`,
         {
             nextCursor: { type: GraphQL.GraphQLString },
+            total: { type: new GraphQL.GraphQLNonNull(GraphQL.GraphQLInt) },
             page: { type },
         },
         schema,

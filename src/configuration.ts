@@ -35,6 +35,7 @@ export type GraphQLCosmosDataLoaderResolver = (args: {
 
 export interface GraphQLCosmosInitRequest {
   client: CosmosClient;
+  request: CosmosRequest;
   database: string;
   container: string;
   query?: SqlBuilder;
@@ -43,6 +44,7 @@ export interface GraphQLCosmosInitRequest {
 }
 
 export interface GraphQLCosmosRequest {
+  init?: GraphQLCosmosInitRequest;
   client: CosmosClient;
   database: string;
   container: string;
