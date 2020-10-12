@@ -33,13 +33,9 @@ const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedRespons
 
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
 
-      'SELECT r.id, r.relatedIds FROM r WHERE ARRAY_CONTAINS(@batch, r.id) (@batch=1)': [
+      'SELECT r.id, r.relatedIds FROM r WHERE ARRAY_CONTAINS(@batch, r.id) (@batch=1,2,3)': [
         { id: `1`, relatedIds: [`1b`] },
-      ],
-      'SELECT r.id, r.relatedIds FROM r WHERE ARRAY_CONTAINS(@batch, r.id) (@batch=2)': [
         { id: `2`, relatedIds: [`2b`] },
-      ],
-      'SELECT r.id, r.relatedIds FROM r WHERE ARRAY_CONTAINS(@batch, r.id) (@batch=3)': [
         { id: `3`, relatedIds: [`3b`] },
       ],
 

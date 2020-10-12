@@ -27,7 +27,7 @@ export function convertToSql({ type, columns: columnNames, where, sort }: Cosmos
   const sql = new SqlBuilder(alias)
 
   if (type === `count`) {
-    sql.select(`VALUE COUNT(1)`)
+    sql.value().select(`COUNT(1)`)
   } else {
     for (const columnName of columnNames) {
       sql.select(`${alias}.${columnName}`)

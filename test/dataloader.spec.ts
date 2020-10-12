@@ -4,7 +4,6 @@ import gql from 'graphql-tag'
 import { makeExecutableSchema } from 'graphql-tools'
 import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
 import { defaultDataLoader } from '../src/default'
-import { CosmosDirective } from '../src/graphql/directive/cosmos/directive'
 import { schema } from '../src/graphql/directive/schema'
 import { SqlOpScalar } from '../src/sql/op'
 
@@ -71,14 +70,12 @@ describe(`Data Loader`, () => {
           database: null as any,
           client: null as any,
           onQuery: onCosmosQuery,
-          dataloader(context) {
-            if (context.container === `Relations`) {
-              return (spec) => {
-                dataloader.push(spec.id)
-                return defaultDataLoader(onCosmosQuery)(context)(spec)
-              }
+          dataloader(spec) {
+            if (spec.container === `Relations`) {
+              dataloader.splice(dataloader.length, 0, ...spec.id)
+              return defaultDataLoader(onCosmosQuery)(spec)
             } else {
-              return defaultDataLoader(onCosmosQuery)(context)
+              return defaultDataLoader(onCosmosQuery)(spec)
             }
           },
         },

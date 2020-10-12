@@ -29,19 +29,15 @@ const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedRespons
   const responses: Record<string, Record<string, unknown[]>> = {
     Entities: {
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }],
+      'SELECT r.id, r.status FROM r WHERE ARRAY_CONTAINS(@batch, r.id) (@batch=1,2)': [
+        { __typename: 'Entity', id: `1`, status: `OPEN` },
+        { __typename: 'Entity', id: `2`, status: `CLOSE` },
+      ],
       'SELECT r.id, r.status FROM r WHERE ARRAY_CONTAINS(@batch, r.id) (@batch=1)': [
-        {
-          __typename: 'Entity',
-          id: `1`,
-          status: `OPEN`,
-        },
+        { __typename: 'Entity', id: `1`, status: `OPEN` },
       ],
       'SELECT r.id, r.status FROM r WHERE ARRAY_CONTAINS(@batch, r.id) (@batch=2)': [
-        {
-          __typename: 'Entity',
-          id: `2`,
-          status: `CLOSE`,
-        },
+        { __typename: 'Entity', id: `2`, status: `CLOSE` },
       ],
       'SELECT c.id FROM c WHERE c.status = @status_eq ORDER BY c.id (@status_eq=OPEN)': [{ id: `1` }],
       'SELECT c.id FROM c WHERE c.status != @status_neq ORDER BY c.id (@status_neq=OPEN)': [{ id: `2` }],

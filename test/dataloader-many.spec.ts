@@ -70,14 +70,12 @@ describe(`Data Loader`, () => {
         cosmos: {
           client: null as any,
           database: null as any,
-          dataloader(context) {
-            if (context.container === `Relations`) {
-              return (spec) => {
-                dataloader.push(spec.id)
-                return defaultDataLoader(onCosmosQuery)(context)(spec)
-              }
+          dataloader(spec) {
+            if (spec.container === `Relations`) {
+              dataloader.splice(dataloader.length, 0, ...spec.id)
+              return defaultDataLoader(onCosmosQuery)(spec)
             } else {
-              return defaultDataLoader(onCosmosQuery)(context)
+              return defaultDataLoader(onCosmosQuery)(spec)
             }
           },
           onQuery: onCosmosQuery,

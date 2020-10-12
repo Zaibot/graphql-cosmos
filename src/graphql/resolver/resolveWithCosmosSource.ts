@@ -15,11 +15,13 @@ export const resolveCosmosSource = (container: string | null | undefined, column
       // Fetch record from cosmos with the field we require
       const dataloader = context.directives.cosmos.dataloader
       const database = context.directives.cosmos.database
-      const cosmosSource: any = await dataloader?.({ database, container })?.({
-        id: source[columnId],
+      const cosmosSource: any = await dataloader?.({
+        database,
+        container,
+        id: [source[columnId]],
         columns: [requiresColumn],
       })
-      const combinedSource = { ...source, ...cosmosSource }
+      const combinedSource = { ...source, ...cosmosSource?.[0] }
       return combinedSource
     }
   }
@@ -44,11 +46,13 @@ export const resolveWithCosmosSource = (
       // Fetch record from cosmos with the field we require
       const dataloader = context.directives.cosmos.dataloader
       const database = context.directives.cosmos.database
-      const cosmosSource: any = await dataloader?.({ database, container })?.({
-        id: source[columnId],
+      const cosmosSource: any = await dataloader?.({
+        database,
+        container,
+        id: [source[columnId]],
         columns: [requiresColumn],
       })
-      const combinedSource = { ...source, ...cosmosSource }
+      const combinedSource = { ...source, ...cosmosSource?.[0] }
       return resolver(combinedSource, args, context, info)
     }
   }

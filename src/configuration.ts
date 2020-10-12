@@ -1,7 +1,7 @@
-import { CosmosClient, FeedResponse, FeedOptions } from '@azure/cosmos'
-import { SqlBuilder } from './sql/builder'
-import { SqlOpScalar } from './sql/op'
+import { CosmosClient, FeedOptions, FeedResponse } from '@azure/cosmos'
+import { GraphQLCosmosDataLoaderResolver } from './dataloader'
 import { CosmosRequest } from './intermediate/model'
+import { SqlBuilder } from './sql/builder'
 
 export interface GraphQLCosmosContext {
   directives: GraphQLDirectivesContext
@@ -21,15 +21,6 @@ export interface GraphQLDirectivesContext {
     onQuery?: CosmosQueryHandler
   }
 }
-
-export interface DataLoaderSpec {
-  id: SqlOpScalar
-  columns: string[]
-}
-export type GraphQLCosmosDataLoaderResolver = (args: {
-  database: string
-  container: string
-}) => null | ((spec: DataLoaderSpec) => unknown | Promise<unknown>)
 
 export interface GraphQLCosmosInitRequest {
   client: CosmosClient

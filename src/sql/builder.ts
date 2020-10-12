@@ -4,6 +4,7 @@ export class SqlBuilder {
   readonly orderBys: string[] = []
   from: string = ``
   _distinct = false
+  _value = false
 
   constructor(from: string) {
     this.from = from
@@ -11,6 +12,11 @@ export class SqlBuilder {
 
   distinct(on = true) {
     this._distinct = on
+    return this
+  }
+
+  value(on = true) {
+    this._value = on
     return this
   }
 
@@ -35,11 +41,12 @@ export class SqlBuilder {
 
   toSql() {
     const distinct = this._distinct ? ` DISTINCT` : ``
-    const select = this.selects.length ? `SELECT${distinct} ${this.selects.join(`, `)}` : `SELECT *`
-    const from = ` FROM ${this.from}`
+    const value = this._value ? ` VALUE` : ``
+    const select = this.selects.length ? ` ${this.selects.join(`, `)}` : ` *`
+    const from = ` ${this.from}`
     const where = this.wheres.length ? ` WHERE ${this.wheres.join(` AND `)}` : ``
     const orderBy = this.orderBys.length ? ` ORDER BY ${this.orderBys.join(`, `)}` : ``
-    return `${select}${from}${where}${orderBy}`
+    return `SELECT${distinct}${value}${select} FROM${from}${where}${orderBy}`
   }
 }
 
