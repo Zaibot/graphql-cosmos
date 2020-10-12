@@ -15,7 +15,7 @@ export const defaultOnInit = (request: CosmosRequest, init: GraphQLCosmosInitReq
 }
 
 export const defaultDataLoader = (onQuery: CosmosQueryHandler): GraphQLCosmosDataLoaderResolver => {
-  const loader = createDataLoader(onQuery)
+  const loader = createDataLoader({ onQuery })
   return (spec) => {
     return loader(spec)
   }

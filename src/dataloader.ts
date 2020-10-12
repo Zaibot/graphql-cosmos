@@ -42,11 +42,21 @@ export const handleDataLoaderQuery = async (onQuery: CosmosQueryHandler, spec: G
   return query.resources
 }
 
-export const createDataLoader = (onQuery: CosmosQueryHandler) => {
+export interface DataLoaderOptions {
+  onQuery: CosmosQueryHandler
+  batchSize?: number
+  interval?: number
+}
+
+export const createDataLoader = ({ onQuery, interval = 10, batchSize = 100 }: DataLoaderOptions) => {
   const pending = new Set<{ promise: ReturnType<typeof createPromise>; spec: GraphQLCosmosDataLoaderSpec }>()
 
   const combine = (spec: GraphQLCosmosDataLoaderSpec) => {
     for (const p of pending) {
+      if (p.spec.id.length > batchSize) {
+        // Should not attempt this bucket
+        continue
+      }
       const c = combineDataLoaderSpec(p.spec, spec)
       if (c) {
         // Matching entry found
@@ -66,7 +76,7 @@ export const createDataLoader = (onQuery: CosmosQueryHandler) => {
       timer = setTimeout(() => {
         timer = null
         resolvePending()
-      }, 100)
+      }, interval)
     }
   }
   const resolvePending = () => {

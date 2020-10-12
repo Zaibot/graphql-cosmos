@@ -1,4 +1,5 @@
 export * from './configuration'
+export * from './dataloader'
 export * from './debug'
 export * from './default'
 export * from './graphql/directive/cosmos/directive'
