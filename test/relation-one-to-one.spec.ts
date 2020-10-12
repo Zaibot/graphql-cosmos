@@ -4,7 +4,6 @@ import gql from 'graphql-tag'
 import { makeExecutableSchema } from 'graphql-tools'
 import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
 import { defaultDataLoader } from '../src/default'
-import { CosmosDirective } from '../src/graphql/directive/cosmos/directive'
 import { schema } from '../src/graphql/directive/schema'
 
 const dummyTypeDefs = gql`

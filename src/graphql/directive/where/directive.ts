@@ -1,10 +1,10 @@
 import {
   DirectiveLocation,
+  DirectiveNode,
+  getDirectiveValues,
   GraphQLDirective,
   GraphQLSchema,
   GraphQLString,
-  getDirectiveValues,
-  DirectiveNode,
 } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { isSqlOperation } from '../../../sql/op'
@@ -41,7 +41,8 @@ export class WhereDirective extends SchemaDirectiveVisitor<{
     const directive = WhereDirective.getDirectiveDeclaration(directiveName, schema)
     const values = getDirectiveValues(directive, node)
     const raw = values?.op as string | undefined
-    return raw?.split(`,`).filter(isSqlOperation)
+    const ops = raw?.split(` `).filter(isSqlOperation)
+    return ops
   }
 
   static getOurs(
@@ -57,7 +58,8 @@ export class WhereDirective extends SchemaDirectiveVisitor<{
 
   get argOp() {
     const raw = this.args.op as string | undefined
-    return raw?.split(`,`).filter(isSqlOperation)
+    const ops = raw?.split(` `).filter(isSqlOperation)
+    return ops
   }
 
   get argOurs() {

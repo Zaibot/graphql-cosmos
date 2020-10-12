@@ -10,12 +10,18 @@ const dummyTypeDefs = gql`
 
   type Dummy {
     id: ID! @where(op: "eq")
+    status: Status! @where(op: "eq neq")
     related: [Related!]! @cosmos(container: "Relations", ours: "relatedIds")
   }
 
   type Related {
     id: ID! @where(op: "eq")
     name: String! @sort(ours: "test")
+  }
+
+  enum Status {
+    OPEN
+    CLOSE
   }
 `
 
@@ -51,6 +57,7 @@ describe(`Processed schema`, () => {
             
                 type Dummy {
                     id: ID!
+                    status: Status!
                     related(where: RelatedWhere, sort: RelatedSort, cursor: String): RelatedPage!
                 }
             
@@ -59,8 +66,15 @@ describe(`Processed schema`, () => {
                     name: String!
                 }
             
+                enum Status {
+                    OPEN
+                    CLOSE
+                }
+
                 input DummyWhere {
                     id_eq: ID
+                    status_eq: Status
+                    status_neq: Status
                 }
             
                 type DummyPage {
