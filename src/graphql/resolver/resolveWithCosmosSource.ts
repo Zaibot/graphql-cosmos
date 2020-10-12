@@ -12,17 +12,27 @@ export const resolveCosmosSource = (container: string | null | undefined, column
         throw Error(`unable to resolve with cosmos source, container undefined`)
       }
 
-      // Fetch record from cosmos with the field we require
-      const dataloader = context.directives.cosmos.dataloader
-      const database = context.directives.cosmos.database
-      const cosmosSource: any = await dataloader?.({
-        database,
-        container,
-        id: [source[columnId]],
-        columns: [requiresColumn],
-      })
-      const combinedSource = { ...source, ...cosmosSource?.[0] }
-      return combinedSource
+      const id = source[columnId]
+      if (id) {
+        // Fetch record from cosmos with the field we require
+        const dataloader = context.directives.cosmos.dataloader
+        const database = context.directives.cosmos.database
+        const cosmosSource: any = await dataloader?.({
+          database,
+          container,
+          id: [id],
+          columns: [requiresColumn],
+        })
+        const combinedSource = { ...source, ...cosmosSource?.[0] }
+        return combinedSource
+      } else {
+        console.warn(`[@zaibot/graphql-cosmos] source is missing id column`, {
+          container,
+          columnId,
+          requiresColumn,
+        })
+        return source
+      }
     }
   }
 }
@@ -43,17 +53,27 @@ export const resolveWithCosmosSource = (
         throw Error(`unable to resolve with cosmos source, container undefined`)
       }
 
-      // Fetch record from cosmos with the field we require
-      const dataloader = context.directives.cosmos.dataloader
-      const database = context.directives.cosmos.database
-      const cosmosSource: any = await dataloader?.({
-        database,
-        container,
-        id: [source[columnId]],
-        columns: [requiresColumn],
-      })
-      const combinedSource = { ...source, ...cosmosSource?.[0] }
-      return resolver(combinedSource, args, context, info)
+      const id = source[columnId]
+      if (id) {
+        // Fetch record from cosmos with the field we require
+        const dataloader = context.directives.cosmos.dataloader
+        const database = context.directives.cosmos.database
+        const cosmosSource: any = await dataloader?.({
+          database,
+          container,
+          id: [id],
+          columns: [requiresColumn],
+        })
+        const combinedSource = { ...source, ...cosmosSource?.[0] }
+        return resolver(combinedSource, args, context, info)
+      } else {
+        console.warn(`[@zaibot/graphql-cosmos] source is missing id column`, {
+          container,
+          columnId,
+          requiresColumn,
+        })
+        return source
+      }
     }
   }
 }
