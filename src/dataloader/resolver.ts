@@ -1,11 +1,11 @@
 import { CosmosQueryHandler } from '../configuration'
 import { DataLoaderSpec } from './spec'
 
-export type DataLoaderResolveHandler = (spec: DataLoaderSpec) => Promise<Array<any>>
+export type DataLoaderResolveHandler<GraphQLContext> = (spec: DataLoaderSpec<GraphQLContext>) => Promise<Array<any>>
 
-export const defaultOnDataLoaderResolve = (onQuery: CosmosQueryHandler): DataLoaderResolveHandler => async (
-  spec: DataLoaderSpec
-) => {
+export const defaultOnDataLoaderResolve = <GraphQLContext>(
+  onQuery: CosmosQueryHandler
+): DataLoaderResolveHandler<GraphQLContext> => async (spec: DataLoaderSpec<GraphQLContext>) => {
   const idList = unique(spec.id)
   const columnList = unique(spec.columns)
   const select = columnList.length ? [`id`, ...columnList].map((x) => `r.${x}`).join(`, `) : `*`

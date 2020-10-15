@@ -2,24 +2,24 @@ import { DataLoaderCombineHandler, defaultOnDataLoaderCombine } from './combine'
 import { DataLoaderResolveHandler } from './resolver'
 import { DataLoaderSpec } from './spec'
 
-export type DataLoaderHandler = (spec: DataLoaderSpec) => unknown | Promise<unknown>
+export type DataLoaderHandler<GraphQLContext> = (spec: DataLoaderSpec<GraphQLContext>) => unknown | Promise<unknown>
 
-export interface DataLoaderOptions {
-  resolve: DataLoaderResolveHandler
-  combine?: DataLoaderCombineHandler
+export interface DataLoaderOptions<GraphQLContext> {
+  resolve: DataLoaderResolveHandler<GraphQLContext>
+  combine?: DataLoaderCombineHandler<GraphQLContext>
   batchSize?: number
   interval?: number
 }
 
-export const createDataLoader = ({
+export const createDataLoader = <GraphQLContext>({
   resolve,
   combine = defaultOnDataLoaderCombine,
   interval = 10,
   batchSize = 100,
-}: DataLoaderOptions): DataLoaderResolveHandler => {
-  const pending = new Set<{ promise: ReturnType<typeof createPromise>; spec: DataLoaderSpec }>()
+}: DataLoaderOptions<GraphQLContext>): DataLoaderResolveHandler<GraphQLContext> => {
+  const pending = new Set<{ promise: ReturnType<typeof createPromise>; spec: DataLoaderSpec<GraphQLContext> }>()
 
-  const combineOrAddPending = (spec: DataLoaderSpec) => {
+  const combineOrAddPending = (spec: DataLoaderSpec<GraphQLContext>) => {
     for (const p of pending) {
       if (p.spec.id.length > batchSize) {
         // Should not attempt this bucket
@@ -63,7 +63,7 @@ export const createDataLoader = ({
     }
   }
 
-  return (spec: DataLoaderSpec) => {
+  return (spec: DataLoaderSpec<GraphQLContext>) => {
     const promise = combineOrAddPending(spec)
     queueResolvePending()
     return promise.then((x) => spec.id.map((y) => x.find((z) => z.id === y)))

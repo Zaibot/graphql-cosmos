@@ -18,6 +18,7 @@ export const resolveCosmosSource = (container: string | null | undefined, column
         const dataloader = context.directives.cosmos.dataloader
         const database = context.directives.cosmos.database
         const cosmosSource: any = await dataloader?.({
+          context,
           database,
           container,
           id: [id],
@@ -59,6 +60,7 @@ export const resolveWithCosmosSource = (
         const dataloader = context.directives.cosmos.dataloader
         const database = context.directives.cosmos.database
         const cosmosSource: any = await dataloader?.({
+          context,
           database,
           container,
           id: [id],

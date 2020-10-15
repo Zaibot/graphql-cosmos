@@ -13,7 +13,7 @@ export interface GraphQLDirectivesContext {
   cosmos: {
     database: string
     client: CosmosClient
-    dataloader?: DataLoaderHandler
+    dataloader?: DataLoaderHandler<GraphQLCosmosContext>
     /** default: defaultOnInit */
     onInit?: (request: CosmosRequest, init: GraphQLCosmosInitRequest) => void
     onBeforeQuery?: (request: GraphQLCosmosInitRequest) => void

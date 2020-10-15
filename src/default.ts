@@ -15,7 +15,7 @@ export const defaultOnInit = (request: CosmosRequest, init: GraphQLCosmosInitReq
   init.options.continuationToken = request.cursor
 }
 
-export const defaultDataLoader = (query: CosmosQueryHandler): DataLoaderHandler => {
+export const defaultDataLoader = <GraphQLContext>(query: CosmosQueryHandler): DataLoaderHandler<GraphQLContext> => {
   const loader = createDataLoader({ resolve: defaultOnDataLoaderResolve(query) })
   return (spec) => {
     return loader(spec)
