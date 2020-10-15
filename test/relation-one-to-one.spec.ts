@@ -30,7 +30,7 @@ const onCosmosQuery = async ({
     Lefts: {
       'SELECT VALUE COUNT(1) FROM c': [1],
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `l` }],
-      'SELECT r.id, r.rightId FROM r WHERE ARRAY_CONTAINS(@batch, r.id)': [{ id: `l`, rightId: `r` }],
+      'SELECT c.id, c.rightId FROM c WHERE ARRAY_CONTAINS(@batch, c.id)': [{ id: `l`, rightId: `r` }],
     },
     Rights: {
       'SELECT c.id FROM c WHERE c.id = @id_eq ORDER BY c.id': [{ id: `r` }],
@@ -54,13 +54,15 @@ describe(`One to one`, () => {
   let dummy: GraphQLSchema
 
   beforeEach(() => {
+    const loader = defaultDataLoader()
+
     context = {
       directives: {
         cosmos: {
           database: null as any,
           client: null as any,
           onQuery: onCosmosQuery,
-          dataloader: defaultDataLoader(onCosmosQuery),
+          dataloader: loader,
         },
       },
     }

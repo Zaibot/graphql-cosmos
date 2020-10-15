@@ -4,7 +4,7 @@ import { GraphQLCosmosContext, GraphQLCosmosInitRequest, GraphQLCosmosRequest } 
 import { DEFAULT_ID } from '../../constants'
 import { defaultOnInit, defaultOnQuery } from '../../default'
 import { CosmosArgSort, CosmosArgWhere, CosmosRequest } from '../../intermediate/model'
-import { isSqlOperation, SqlOperationList, SqlOperationScalar, SqlOpParameter } from '../../sql/op'
+import { isSqlOperation, SqlOperationList, SqlOperationScalar, SqlOpParameter, SqlOpScalar } from '../../sql/op'
 import { toCosmosReference, ToCosmosReference } from '../reference'
 
 const parseWhere = (where: Record<string, unknown>): Array<CosmosArgWhere> => {
@@ -14,7 +14,7 @@ const parseWhere = (where: Record<string, unknown>): Array<CosmosArgWhere> => {
       return {
         property,
         operation,
-        value: value as SqlOpParameter,
+        value: value as SqlOpScalar,
         parameter: `@${whereField}`,
       }
     } else {
@@ -34,7 +34,7 @@ const parseSort = (sort: Record<string, number>): Array<CosmosArgSort> => {
 
 export const argsToCosmosCountRequest = (
   resolverDescription: string,
-  args: Record<string, any>,
+  args: Record<string, SqlOpScalar>,
   graphqlInfo: GraphQLResolveInfo
 ) => {
   const { where = {} } = args
@@ -55,7 +55,7 @@ export const argsToCosmosCountRequest = (
 export const argsToCosmosRequest = (
   resolverDescription: string,
   columnNames: string[],
-  args: Record<string, any>,
+  args: Record<string, SqlOpScalar>,
   graphqlInfo: GraphQLResolveInfo
 ) => {
   const { where = {}, sort = {}, cursor = undefined as string | undefined } = args
@@ -63,11 +63,11 @@ export const argsToCosmosRequest = (
   const graphquery: CosmosRequest = {
     resolverDescription,
     graphqlInfo,
-    type: `array`,
+    type: `query`,
     columns: columnNames,
     where: parseWhere(where),
     sort: parseSort(sort),
-    cursor,
+    cursor: cursor?.toString(),
   }
 
   return graphquery
@@ -171,7 +171,7 @@ export const cosmosResolve = async (
 
       const response = await onQuery(request)
       const nextCursor = response.continuationToken
-      const page = response.resources.map((item) => toCosmosReference(typename, container, item.id))
+      const page = response.resources.map((item: any) => toCosmosReference(typename, container, item?.id))
       return { response, nextCursor, page }
     }
   }

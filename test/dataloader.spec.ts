@@ -31,14 +31,14 @@ const onCosmosQuery = async ({
   const queryResult: Record<string, Record<string, unknown[]>> = {
     Dummies: {
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
-      'SELECT r.id, r.relatedId FROM r WHERE ARRAY_CONTAINS(@batch, r.id)': [
+      'SELECT c.id, c.relatedId FROM c WHERE ARRAY_CONTAINS(@batch, c.id)': [
         { id: `1`, relatedId: `1b` },
         { id: `2`, relatedId: `2b` },
         { id: `3`, relatedId: `3b` },
       ],
     },
     Relations: {
-      'SELECT r.id, r.text FROM r WHERE ARRAY_CONTAINS(@batch, r.id)': [
+      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@batch, c.id)': [
         { id: `1b`, text: null },
         { id: `2b`, text: null },
         { id: `3b`, text: null },
@@ -64,6 +64,8 @@ describe(`Data Loader`, () => {
   let dataloader: SqlOpScalar[]
 
   beforeEach(() => {
+    const loader = defaultDataLoader()
+
     context = {
       directives: {
         cosmos: {
@@ -73,9 +75,9 @@ describe(`Data Loader`, () => {
           dataloader(spec) {
             if (spec.container === `Relations`) {
               dataloader.splice(dataloader.length, 0, ...spec.id)
-              return defaultDataLoader(onCosmosQuery)(spec)
+              return loader(spec)
             } else {
-              return defaultDataLoader(onCosmosQuery)(spec)
+              return loader(spec)
             }
           },
         },

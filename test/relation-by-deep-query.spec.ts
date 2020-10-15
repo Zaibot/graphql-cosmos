@@ -29,7 +29,7 @@ const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedRespons
     Dummies: {
       'SELECT VALUE COUNT(1) FROM c': [1],
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }],
-      'SELECT r.id, r.relatedIds FROM r WHERE ARRAY_CONTAINS(@batch, r.id) (@batch=1)': [
+      'SELECT c.id, c.relatedIds FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=1)': [
         { id: `1`, relatedIds: [`1b`, `2b`] },
       ],
     },
@@ -54,13 +54,15 @@ describe(`Reference to deep container`, () => {
   let dummy: GraphQLSchema
 
   beforeEach(() => {
+    const loader = defaultDataLoader()
+
     context = {
       directives: {
         cosmos: {
           database: null as any,
           client: null as any,
           onQuery: onCosmosQuery,
-          dataloader: defaultDataLoader(onCosmosQuery),
+          dataloader: loader,
         },
       },
     }

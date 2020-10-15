@@ -1,25 +1,25 @@
 import { DataLoaderCombineHandler, defaultOnDataLoaderCombine } from './combine'
-import { DataLoaderResolveHandler } from './resolver'
+import { DataLoaderResolveHandler, defaultOnDataLoaderResolve } from './resolver'
 import { DataLoaderSpec } from './spec'
 
-export type DataLoaderHandler<GraphQLContext> = (spec: DataLoaderSpec<GraphQLContext>) => unknown | Promise<unknown>
+export type DataLoaderHandler = (spec: DataLoaderSpec) => unknown | Promise<unknown>
 
-export interface DataLoaderOptions<GraphQLContext> {
-  resolve: DataLoaderResolveHandler<GraphQLContext>
-  combine?: DataLoaderCombineHandler<GraphQLContext>
+export interface DataLoaderOptions {
+  resolve?: DataLoaderResolveHandler
+  combine?: DataLoaderCombineHandler
   batchSize?: number
   interval?: number
 }
 
-export const createDataLoader = <GraphQLContext>({
-  resolve,
+export const createDataLoader = ({
+  resolve = defaultOnDataLoaderResolve,
   combine = defaultOnDataLoaderCombine,
   interval = 10,
   batchSize = 100,
-}: DataLoaderOptions<GraphQLContext>): DataLoaderResolveHandler<GraphQLContext> => {
-  const pending = new Set<{ promise: ReturnType<typeof createPromise>; spec: DataLoaderSpec<GraphQLContext> }>()
+}: DataLoaderOptions): DataLoaderHandler => {
+  const pending = new Set<{ promise: ReturnType<typeof createPromise>; spec: DataLoaderSpec }>()
 
-  const combineOrAddPending = (spec: DataLoaderSpec<GraphQLContext>) => {
+  const combineOrAddPending = (spec: DataLoaderSpec) => {
     for (const p of pending) {
       if (p.spec.id.length > batchSize) {
         // Should not attempt this bucket
@@ -63,22 +63,18 @@ export const createDataLoader = <GraphQLContext>({
     }
   }
 
-  return (spec: DataLoaderSpec<GraphQLContext>) => {
+  return (spec: DataLoaderSpec) => {
     const promise = combineOrAddPending(spec)
     queueResolvePending()
-    return promise.then((x) => spec.id.map((y) => x.find((z) => z.id === y)))
+    return promise.then((x) => spec.id.map((y) => x.find((z: any) => z.id === y)))
   }
 }
 
-interface DataLoaderResult {
-  id: string
-}
-
 const createPromise = () => {
-  let resolve!: (r: Array<DataLoaderResult>) => void
+  let resolve!: (r: Array<unknown>) => void
   let reject!: (err: Error) => void
 
-  const promise = new Promise<Array<DataLoaderResult>>((_resolve, _reject) => {
+  const promise = new Promise<Array<unknown>>((_resolve, _reject) => {
     resolve = _resolve
     reject = _reject
   })

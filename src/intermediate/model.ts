@@ -1,20 +1,20 @@
 import { GraphQLResolveInfo } from 'graphql/type'
-import { SqlOpParameter } from '../sql/op'
+import { SqlOpScalar } from '../sql/op'
 
 export interface CosmosRequest {
-  type: 'array' | 'count'
+  type: 'query' | 'count' | 'dataloader'
   resolverDescription: string
-  graphqlInfo: GraphQLResolveInfo
+  graphqlInfo?: GraphQLResolveInfo
   columns: Array<string>
   where: Array<CosmosArgWhere>
-  sort: Array<CosmosArgSort>
+  sort: Array<CosmosArgSort> | false
   cursor: string | undefined
 }
 
 export interface CosmosArgWhere {
   property: string
   operation: string
-  value: SqlOpParameter
+  value: SqlOpScalar
   parameter: string
 }
 

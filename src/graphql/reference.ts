@@ -11,11 +11,11 @@ export const getCosmosTagContainer = (obj: any): string => {
   return obj && obj.__cosmos_tag ? obj.__cosmos_tag.container : null
 }
 
-export const getCosmosTagSource = (obj: any): any => {
+export const getCosmosTagSource = (obj: any): unknown => {
   return obj && obj.__cosmos_tag ? obj.__cosmos_tag.source : null
 }
 
-export const getCosmosTagArgs = (obj: any): any => {
+export const getCosmosTagArgs = (obj: any): unknown => {
   return obj && obj.__cosmos_tag ? obj.__cosmos_tag.args : null
 }
 

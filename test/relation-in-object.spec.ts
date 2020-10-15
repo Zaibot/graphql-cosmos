@@ -31,7 +31,7 @@ const onCosmosQuery = async ({
     Dummies: {
       'SELECT VALUE COUNT(1) FROM c': [3],
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
-      'SELECT r.id, r.embedded FROM r WHERE ARRAY_CONTAINS(@batch, r.id)': [
+      'SELECT c.id, c.embedded FROM c WHERE ARRAY_CONTAINS(@batch, c.id)': [
         { id: `1`, embedded: [{ id: `1b` }] },
         { id: `2`, embedded: [{ id: `2b` }] },
         { id: `3`, embedded: [{ id: `3b` }] },
@@ -56,13 +56,15 @@ describe(`Embedded relations`, () => {
   let dummy: GraphQLSchema
 
   beforeEach(() => {
+    const loader = defaultDataLoader()
+
     context = {
       directives: {
         cosmos: {
           database: null as any,
           client: null as any,
           onQuery: onCosmosQuery,
-          dataloader: defaultDataLoader(onCosmosQuery),
+          dataloader: loader,
         },
       },
     }

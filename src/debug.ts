@@ -8,7 +8,7 @@ export const cosmosRequestToDebugString = ({ query, parameters, init }: GraphQLC
       container: init?.container,
       key,
       resolver: init?.request.resolverDescription,
-      init: init ? pathToString(init.request.graphqlInfo) : null,
+      init: init?.request.graphqlInfo ? pathToString(init.request.graphqlInfo) : null,
     },
     undefined,
     2

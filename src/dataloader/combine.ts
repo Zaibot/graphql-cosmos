@@ -1,21 +1,13 @@
 import { DataLoaderSpec } from './spec'
 
-export type DataLoaderCombineHandler<GraphQLContext> = (
-  left: DataLoaderSpec<GraphQLContext>,
-  right: DataLoaderSpec<GraphQLContext>
-) => DataLoaderSpec<GraphQLContext> | null
+export type DataLoaderCombineHandler = (left: DataLoaderSpec, right: DataLoaderSpec) => DataLoaderSpec | null
 
-export const defaultOnDataLoaderCombine = <GraphQLContext>(
-  left: DataLoaderSpec<GraphQLContext>,
-  right: DataLoaderSpec<GraphQLContext>
-): DataLoaderSpec<GraphQLContext> | null => {
+export const defaultOnDataLoaderCombine = (left: DataLoaderSpec, right: DataLoaderSpec): DataLoaderSpec | null => {
   const sameContext = left.context === right.context
-  const sameDatabase = left.database === right.database
   const sameContainer = left.container === right.container
-  if (sameContext && sameDatabase && sameContainer) {
+  if (sameContext && sameContainer) {
     return {
       context: left.context,
-      database: left.database,
       container: left.container,
       id: unique(left.id, right.id),
       columns: unique(left.columns, right.columns),

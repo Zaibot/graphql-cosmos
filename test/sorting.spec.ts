@@ -2,11 +2,7 @@ import { FeedResponse } from '@azure/cosmos'
 import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
 import { makeExecutableSchema } from 'graphql-tools'
-import {
-  GraphQLCosmosContext,
-
-  GraphQLCosmosRequest
-} from '../src/configuration'
+import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
 import { defaultDataLoader } from '../src/default'
 import { schema } from '../src/graphql/directive/schema'
 
@@ -43,7 +39,7 @@ const onCosmosQuery = async ({
         { id: `1`, name: `A` },
       ],
       'SELECT c.id FROM c ORDER BY c.name DESC, c.id DESC, c.id': [{ id: `3` }, { id: `2` }, { id: `1` }],
-      'SELECT r.id, r.name FROM r WHERE ARRAY_CONTAINS(@batch, r.id)': [
+      'SELECT c.id, c.name FROM c WHERE ARRAY_CONTAINS(@batch, c.id)': [
         { id: `3`, name: `C` },
         { id: `2`, name: `B` },
         { id: `1`, name: `A` },
@@ -68,13 +64,15 @@ describe(`Sorting`, () => {
   let dummy: GraphQLSchema
 
   beforeEach(() => {
+    const loader = defaultDataLoader()
+
     context = {
       directives: {
         cosmos: {
           database: null as any,
           client: null as any,
           onQuery: onCosmosQuery,
-          dataloader: defaultDataLoader(onCosmosQuery),
+          dataloader: loader,
         },
       },
     }

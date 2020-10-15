@@ -12,8 +12,8 @@ export enum SqlOperationList {
   in = 'in',
   nin = 'nin',
 }
-export type SqlOpScalar = string | boolean | number
-export type SqlOpParameter = SqlOpScalar | Array<SqlOpScalar>
+export type SqlOpScalar = string | boolean | number | Array<SqlOpScalar>
+export type SqlOpParameter = { name: string; value: SqlOpScalar }
 export type SqlOp = SqlOperationScalar | SqlOperationList
 export const isSqlOperation = (op: unknown): op is SqlOp =>
   Object.keys(SqlOperationScalar).includes(String(op)) || Object.keys(SqlOperationList).includes(String(op))

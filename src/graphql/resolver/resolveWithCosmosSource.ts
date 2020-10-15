@@ -16,10 +16,8 @@ export const resolveCosmosSource = (container: string | null | undefined, column
       if (id) {
         // Fetch record from cosmos with the field we require
         const dataloader = context.directives.cosmos.dataloader
-        const database = context.directives.cosmos.database
         const cosmosSource: any = await dataloader?.({
           context,
-          database,
           container,
           id: [id],
           columns: [requiresColumn],
@@ -58,10 +56,8 @@ export const resolveWithCosmosSource = (
       if (id) {
         // Fetch record from cosmos with the field we require
         const dataloader = context.directives.cosmos.dataloader
-        const database = context.directives.cosmos.database
         const cosmosSource: any = await dataloader?.({
           context,
-          database,
           container,
           id: [id],
           columns: [requiresColumn],

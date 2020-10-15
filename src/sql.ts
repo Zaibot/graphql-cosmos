@@ -2,11 +2,11 @@ import { SqlParameter } from '@azure/cosmos'
 import { DEFAULT_ID } from './constants'
 import { CosmosRequest } from './intermediate/model'
 import { SqlBuilder } from './sql/builder'
-import { isSqlOperation, sqlOp } from './sql/op'
+import { isSqlOperation, sqlOp, SqlOpParameter, SqlOpScalar } from './sql/op'
 
 export interface ConvertToSql {
   sql: SqlBuilder
-  parameters: SqlParameter[]
+  parameters: Array<SqlOpParameter>
 }
 export function convertToSql({ type, columns: columnNames, where, sort }: CosmosRequest): ConvertToSql {
   const alias = `c`
@@ -14,7 +14,7 @@ export function convertToSql({ type, columns: columnNames, where, sort }: Cosmos
   const expressions = where.map((expr) => {
     if (isSqlOperation(expr.operation)) {
       const sql = sqlOp(alias, expr.property, expr.operation, expr.parameter)
-      const parameter: SqlParameter = {
+      const parameter: SqlOpParameter = {
         name: expr.parameter,
         value: expr.value,
       }
@@ -42,7 +42,7 @@ export function convertToSql({ type, columns: columnNames, where, sort }: Cosmos
 
   if (type === `count`) {
     // Skip ordering when counting
-  } else {
+  } else if (sort) {
     for (const { property, direction } of sort) {
       if (direction === `ASC`) {
         sql.orderBy(`${alias}.${property}`, `ASC`)

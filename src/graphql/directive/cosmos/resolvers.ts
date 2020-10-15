@@ -13,17 +13,17 @@ import { resolveCosmosSource, resolveWithCosmosSource } from '../../resolver/res
 export const resolveRootQuery = (
   container: string,
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
-): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (_s, a, c, _i) => {
+): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (_s, a, context, _i) => {
   const returnTypeCore = GraphQL.getNamedType(fieldType.type)
   const graphquery = argsToCosmosArrayRequest(`resolveRootQuery`, [DEFAULT_ID], a, _i)
-  const result = await cosmosResolve(returnTypeCore.name, graphquery, c, container)
+  const result = await cosmosResolve(returnTypeCore.name, graphquery, context, container)
   return toCosmosTag(
     { source: _s, args: a, container: container },
     {
       ...result,
       async total() {
         const graphquery = argsToCosmosCountRequest(`resolveRootQueryCount`, a, _i)
-        const result = await cosmosResolveCount(graphquery, c, container)
+        const result = await cosmosResolveCount(graphquery, context, container)
         return result
       },
     }
@@ -86,7 +86,7 @@ export const resolveManyTheirs = (
   ours: string | undefined,
   theirs: string,
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
-): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (s, a, c, i) => {
+): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (s, a, context, i) => {
   const returnTypeCore = GraphQL.getNamedType(fieldType.type)
   const ourId = s[ours ?? DEFAULT_ID]
   const whereTheirs = `${theirs}_in`
@@ -94,14 +94,14 @@ export const resolveManyTheirs = (
   const where = { ...a.where, [whereTheirs]: [ourId] }
 
   const graphquery = argsToCosmosArrayRequest(`resolveManyTheirs`, [DEFAULT_ID], { ...a, where }, i)
-  const result = await cosmosResolve(returnTypeCore.name, graphquery, c, container)
+  const result = await cosmosResolve(returnTypeCore.name, graphquery, context, container)
   return toCosmosTag(
     { source: s, args: a, container },
     {
       ...result,
       async total(_source: any) {
         const graphquery = argsToCosmosCountRequest(`resolveManyTheirsCount`, { ...a, where }, i)
-        const result = await cosmosResolveCount(graphquery, c, container)
+        const result = await cosmosResolveCount(graphquery, context, container)
         return result
       },
     }
