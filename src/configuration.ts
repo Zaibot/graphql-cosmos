@@ -1,5 +1,5 @@
 import { CosmosClient, FeedOptions, FeedResponse } from '@azure/cosmos'
-import { GraphQLCosmosDataLoaderResolver } from './dataloader'
+import { DataLoaderHandler } from './dataloader/loader'
 import { CosmosRequest } from './intermediate/model'
 import { SqlBuilder } from './sql/builder'
 
@@ -13,7 +13,7 @@ export interface GraphQLDirectivesContext {
   cosmos: {
     database: string
     client: CosmosClient
-    dataloader?: GraphQLCosmosDataLoaderResolver
+    dataloader?: DataLoaderHandler
     /** default: defaultOnInit */
     onInit?: (request: CosmosRequest, init: GraphQLCosmosInitRequest) => void
     onBeforeQuery?: (request: GraphQLCosmosInitRequest) => void

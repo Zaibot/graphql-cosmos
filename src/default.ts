@@ -1,5 +1,6 @@
 import { CosmosQueryHandler, GraphQLCosmosInitRequest, GraphQLCosmosRequest } from './configuration'
-import { createDataLoader, GraphQLCosmosDataLoaderResolver } from './dataloader'
+import { createDataLoader, DataLoaderHandler } from './dataloader/loader'
+import { defaultOnDataLoaderResolve } from './dataloader/resolver'
 import { CosmosRequest } from './intermediate/model'
 import { convertToSql } from './sql'
 
@@ -14,8 +15,8 @@ export const defaultOnInit = (request: CosmosRequest, init: GraphQLCosmosInitReq
   init.options.continuationToken = request.cursor
 }
 
-export const defaultDataLoader = (onQuery: CosmosQueryHandler): GraphQLCosmosDataLoaderResolver => {
-  const loader = createDataLoader({ onQuery })
+export const defaultDataLoader = (query: CosmosQueryHandler): DataLoaderHandler => {
+  const loader = createDataLoader({ resolve: defaultOnDataLoaderResolve(query) })
   return (spec) => {
     return loader(spec)
   }
