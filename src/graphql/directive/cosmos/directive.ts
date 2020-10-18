@@ -13,16 +13,15 @@ import {
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { DEFAULT_ID } from '../../../constants'
 import { addFieldArgument, createOrGetPageType } from '../../internal/schema'
-import { getCosmosTagContainer } from '../../reference'
 import { SortDirective } from '../sort/directive'
 import { inputSort } from '../sort/input'
 import { WhereDirective } from '../where/directive'
 import { inputWhere } from '../where/input'
 import {
-  findOwnerContainer,
   resolveManyOurs,
   resolveManyTheirs,
   resolveOneOurs,
+  resolveOneOursWithoutContainer,
   resolveOneTheirs,
   resolveRootQuery,
   resolveSourceField,
@@ -185,18 +184,8 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         }
       }
     } else if (ours) {
-      // Overriding without knowing the context: here container is embedded in the resolver - maybe container can be a property of a reference?
-      const old = fieldType.resolve
-      const container = findOwnerContainer(typeFieldToContainer)
-      fieldType.resolve = (s, a, c, i) => {
-        const objectContainer = getCosmosTagContainer(s) ?? container(i.path)
-        return resolveSourceField(
-          objectContainer,
-          DEFAULT_ID,
-          ours ?? fieldType.name,
-          old ?? GraphQL.defaultFieldResolver
-        )(s, a, c, i)
-      }
+      // No container, ours specifies id field to be created as reference
+      fieldType.resolve = resolveOneOursWithoutContainer(typeFieldToContainer, ours, fieldType)
     }
 
     return fieldType

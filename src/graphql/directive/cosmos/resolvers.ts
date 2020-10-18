@@ -16,7 +16,7 @@ export const resolveRootQuery = (
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (_s, a, context, _i) => {
   const returnTypeCore = GraphQL.getNamedType(fieldType.type)
   const graphquery = argsToCosmosArrayRequest(`resolveRootQuery`, [DEFAULT_ID], a, _i)
-  const result = await cosmosResolve(returnTypeCore.name, graphquery, context, container)
+  const result: any = await cosmosResolve(returnTypeCore.name, graphquery, context, container)
   return toCosmosTag(
     { source: _s, args: a, container: container },
     {
@@ -41,7 +41,7 @@ export const resolveManyOurs = (
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (s, a, c, i) => {
   const objectContainer = getCosmosTagContainer(s) ?? findOwnerContainer(typeFieldToContainer)(i.path)
   const returnTypeCore = GraphQL.getNamedType(fieldType.type)
-  const source = await resolveCosmosSource(objectContainer, DEFAULT_ID, ours ?? fieldType.name)(s, c)
+  const source = await resolveCosmosSource(objectContainer, DEFAULT_ID, ours ?? fieldType.name, s, c)
   const args = a
   const context = c
   const list = source[ours ?? fieldType.name]
@@ -59,7 +59,7 @@ export const resolveManyOurs = (
       },
       i
     )
-    const result = await cosmosResolve(returnTypeCore.name, graphquery, context, container)
+    const result: any = await cosmosResolve(returnTypeCore.name, graphquery, context, container)
     const tagged = toCosmosTag(
       { source: source, args: a, container: objectContainer },
       {
@@ -94,7 +94,7 @@ export const resolveManyTheirs = (
   const where = { ...a.where, [whereTheirs]: [ourId] }
 
   const graphquery = argsToCosmosArrayRequest(`resolveManyTheirs`, [DEFAULT_ID], { ...a, where }, i)
-  const result = await cosmosResolve(returnTypeCore.name, graphquery, context, container)
+  const result: any = await cosmosResolve(returnTypeCore.name, graphquery, context, container)
   return toCosmosTag(
     { source: s, args: a, container },
     {
@@ -125,6 +125,18 @@ export const resolveOneOurs = (
       return result
     }
   )(s, a, c, i)
+}
+
+export const resolveOneOursWithoutContainer = (
+  typeFieldToContainer: Map<string, Map<string, string>>,
+  ours: string | undefined,
+  fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
+): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, _context, _info) => {
+  const objectContainer = getCosmosTagContainer(source) ?? findOwnerContainer(typeFieldToContainer)(_info.path)
+  const returnTypeCore = GraphQL.getNamedType(fieldType.type)
+  const sourced = await resolveCosmosSource(objectContainer, DEFAULT_ID, ours ?? fieldType.name, source, _context)
+  const result = toCosmosReference(returnTypeCore.name, objectContainer, sourced[ours ?? fieldType.name])
+  return result
 }
 
 export const resolveOneTheirs = (
