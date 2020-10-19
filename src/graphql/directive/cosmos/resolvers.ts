@@ -9,8 +9,8 @@ export const resolveRootQuery = (
   theirContainer: string,
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, args, context, info) => {
-  const returnTypeCore = GraphQL.getNamedType(fieldType.type)
-  const graphquery = argsToCosmosArrayRequest(`resolveRootQuery`, [DEFAULT_ID], a, _i)
+  const returnPageTypeCore = GraphQL.getNamedType(fieldType.type) as GraphQL.GraphQLObjectType
+  const returnTypeCore = GraphQL.getNamedType(returnPageTypeCore.getFields()['page'].type)
   const graphquery = argsToCosmosRequest(`resolveRootQuery`, [DEFAULT_ID], args, info)
   const result: any = await cosmosResolve(returnTypeCore.name, graphquery, context, theirContainer)
   return toCosmosTag(
@@ -34,8 +34,8 @@ export const resolveManyOurs = (
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, args, context, info) => {
   const sourceContainer = getCosmosTagContainer(source) ?? findOwnerContainer(typeFieldToContainer)(info.path)
-  const returnTypeCore = GraphQL.getNamedType(fieldType.type)
-  const source = await resolveCosmosSource(objectContainer, DEFAULT_ID, ours ?? fieldType.name, s, c)
+  const returnPageTypeCore = GraphQL.getNamedType(fieldType.type) as GraphQL.GraphQLObjectType
+  const returnTypeCore = GraphQL.getNamedType(returnPageTypeCore.getFields()['page'].type)
   const sourced = await resolveCosmosSource(sourceContainer, DEFAULT_ID, ours ?? fieldType.name, source, context)
   const list = sourced[ours ?? fieldType.name]
   if (Array.isArray(list) && list.length > 0) {
@@ -80,8 +80,8 @@ export const resolveManyTheirs = (
   theirs: string,
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, args, context, info) => {
-  const returnTypeCore = GraphQL.getNamedType(fieldType.type)
-  const ourId = s[ours ?? DEFAULT_ID]
+  const returnPageTypeCore = GraphQL.getNamedType(fieldType.type) as GraphQL.GraphQLObjectType
+  const returnTypeCore = GraphQL.getNamedType(returnPageTypeCore.getFields()['page'].type)
   const ourId = source[ours ?? DEFAULT_ID]
   const whereTheirs = `${theirs}_in`
   if (whereTheirs in args) throw Error(`argument contains conflicting filter on ${whereTheirs}`)
