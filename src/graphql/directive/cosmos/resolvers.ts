@@ -156,7 +156,7 @@ export const resolveOneTheirs = (
   )(s, a, c, i)
 }
 
-export const findOwnerContainer = (data: Map<string, Map<string, string>>) => (path: GraphQL.ResponsePath) => {
+const findOwnerContainer = (data: Map<string, Map<string, string>>) => (path: GraphQL.ResponsePath) => {
   return pathList(path)
     .map((p) => typeof p.typename === `string` && typeof p.key === `string` && data.get(p.typename)?.get(p.key))
     .slice(1)

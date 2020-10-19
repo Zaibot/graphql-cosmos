@@ -4,7 +4,7 @@ import { GraphQLCosmosContext, GraphQLCosmosInitRequest, GraphQLCosmosRequest } 
 import { DEFAULT_ID } from '../../constants'
 import { defaultOnInit, defaultOnQuery } from '../../default'
 import { CosmosArgSort, CosmosArgWhere, CosmosRequest } from '../../intermediate/model'
-import { isSqlOperation, SqlOperationList, SqlOperationScalar, SqlOpParameter, SqlOpScalar } from '../../sql/op'
+import { isSqlOperation, SqlOperationList, SqlOperationScalar, SqlOpScalar } from '../../sql/op'
 import { toCosmosReference, ToCosmosReference } from '../reference'
 
 const parseWhere = (where: Record<string, unknown>): Array<CosmosArgWhere> => {

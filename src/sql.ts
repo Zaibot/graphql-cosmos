@@ -1,8 +1,7 @@
-import { SqlParameter } from '@azure/cosmos'
 import { DEFAULT_ID } from './constants'
 import { CosmosRequest } from './intermediate/model'
 import { SqlBuilder } from './sql/builder'
-import { isSqlOperation, sqlOp, SqlOpParameter, SqlOpScalar } from './sql/op'
+import { isSqlOperation, sqlOp, SqlOpParameter } from './sql/op'
 
 export interface ConvertToSql {
   sql: SqlBuilder

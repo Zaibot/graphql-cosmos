@@ -1,4 +1,4 @@
-import { GraphQLCosmosContext, GraphQLCosmosInitRequest, GraphQLCosmosRequest } from './configuration'
+import { GraphQLCosmosInitRequest, GraphQLCosmosRequest } from './configuration'
 import { createDataLoader, DataLoaderHandler } from './dataloader/loader'
 import { defaultOnDataLoaderResolve } from './dataloader/resolver'
 import { CosmosRequest } from './intermediate/model'
