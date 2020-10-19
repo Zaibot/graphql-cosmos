@@ -30,8 +30,6 @@ export const resolveRootQuery = (
   )
 }
 
-export const resolveSourceField = resolveWithCosmosSource
-
 export const resolveManyOurs = (
   typeFieldToContainer: Map<string, Map<string, string>>,
   container: string,

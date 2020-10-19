@@ -39,16 +39,3 @@ export const resolveCosmosSource = async (
     }
   }
 }
-
-export const resolveWithCosmosSource = (
-  container: string | null | undefined,
-  columnId: string,
-  requiresColumn: string,
-  resolver: GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext>
-): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => {
-  return async (source, args, context, info) => {
-    const combinedSource = await resolveCosmosSource(container, columnId, requiresColumn, source, context)
-    const result = resolver(combinedSource, args, context, info)
-    return result
-  }
-}

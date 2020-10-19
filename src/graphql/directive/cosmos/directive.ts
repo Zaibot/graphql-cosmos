@@ -13,6 +13,7 @@ import {
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { DEFAULT_ID } from '../../../constants'
 import { addFieldArgument, createOrGetPageType } from '../../internal/schema'
+import { resolveCosmosSource } from '../../resolver/resolveWithCosmosSource'
 import { SortDirective } from '../sort/directive'
 import { inputSort } from '../sort/input'
 import { WhereDirective } from '../where/directive'
@@ -24,7 +25,6 @@ import {
   resolveOneOursWithoutContainer,
   resolveOneTheirs,
   resolveRootQuery,
-  resolveSourceField,
 } from './resolvers'
 
 export class CosmosDirective extends SchemaDirectiveVisitor {
@@ -173,12 +173,12 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
               field.resolve ??= GraphQL.defaultFieldResolver
             } else {
               const ours = CosmosDirective.getOurs(`cosmos`, this.schema, field.astNode ?? {})
-              field.resolve ??= resolveSourceField(
-                theirContainer,
-                DEFAULT_ID,
-                ours ?? field.name,
-                field.resolve ?? GraphQL.defaultFieldResolver
-              )
+              const nextResolver = field.resolve ?? GraphQL.defaultFieldResolver
+              field.resolve ??= async (s, a, c, i) => {
+                const sourced = await resolveCosmosSource(theirContainer, DEFAULT_ID, ours ?? field.name, s, c)
+                const result = await nextResolver(sourced, a, c, i)
+                return result
+              }
             }
           }
         }
