@@ -185,7 +185,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
       }
     } else if (ours) {
       // No container, ours specifies id field to be created as reference
-      fieldType.resolve = resolveOneOursWithoutContainer(typeFieldToContainer, ours, fieldType)
+      fieldType.resolve = resolveOneOursWithoutContainer(ours, fieldType)
     }
 
     return fieldType

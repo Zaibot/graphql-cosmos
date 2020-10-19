@@ -128,15 +128,20 @@ export const resolveOneOurs = (
 }
 
 export const resolveOneOursWithoutContainer = (
-  typeFieldToContainer: Map<string, Map<string, string>>,
   ours: string | undefined,
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
-): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, _context, _info) => {
-  const objectContainer = getCosmosTagContainer(source) ?? findOwnerContainer(typeFieldToContainer)(_info.path)
-  const returnTypeCore = GraphQL.getNamedType(fieldType.type)
-  const sourced = await resolveCosmosSource(objectContainer, DEFAULT_ID, ours ?? fieldType.name, source, _context)
-  const result = toCosmosReference(returnTypeCore.name, objectContainer, sourced[ours ?? fieldType.name])
-  return result
+): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, context, _info) => {
+  const sourceContainer = getCosmosTagContainer(source)
+  if (sourceContainer) {
+    const returnTypeCore = GraphQL.getNamedType(fieldType.type)
+    const sourced = await resolveCosmosSource(sourceContainer, DEFAULT_ID, ours ?? fieldType.name, source, context)
+    const result = toTypename(returnTypeCore.name, sourced[ours ?? fieldType.name])
+    return result
+  } else {
+    const returnTypeCore = GraphQL.getNamedType(fieldType.type)
+    const result = toTypename(returnTypeCore.name, source[ours ?? fieldType.name])
+    return result
+  }
 }
 
 export const resolveOneTheirs = (

@@ -44,9 +44,15 @@ export const withCosmosReference = <TypeName extends string, T extends {}>(
   return withCosmosTag({ container }, withTypename(typename)(input))
 }
 
-const withTypename = <TypeName extends string>(typename: TypeName) => <T>(input: T): T & { __typename: TypeName } => ({
+export const withTypename = <TypeName extends string>(typename: TypeName) => <T>(
+  input: T
+): T & { __typename: TypeName } => ({
   ...input,
   __typename: typename,
 })
+export const toTypename = <TypeName extends string, ID extends SqlOpScalar>(
+  typename: TypeName,
+  id: ID | null | undefined
+) => (notNullOrUndefined(id) ? withTypename(typename)({ [DEFAULT_ID]: id }) : null)
 
 const notNullOrUndefined = <T>(a: T | null | undefined): a is T => a !== null && a !== undefined
