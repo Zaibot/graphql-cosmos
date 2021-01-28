@@ -2,13 +2,14 @@
   "name": "@zaibot/graphql-cosmos",
   "version": "0.0.30",
   "description": "GraphQL Cosmos directives",
-  "main": "lib/index.js",
-  "typings": "lib/index.d.ts",
+  "main": "lib/cjs/index.js",
+  "module": "lib/esm/index.js",
+  "typings": "lib/esm/index.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "npm run build:types && npm run build:js",
-    "build:types": "tsc --emitDeclarationOnly",
-    "build:js": "babel --out-dir lib --extensions \".ts\" src"
+    "build": "npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc",
+    "build:cjs": "babel --out-dir lib/cjs --extensions \".ts\" src"
   },
   "files": [
     "lib",

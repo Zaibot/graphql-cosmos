@@ -1,15 +1,15 @@
 {
-    "compilerOptions": {
-        "outDir": "lib",
-        "target": "ESNext",
-        "module": "ESNext",
-        "moduleResolution": "node",
-        "lib": ["ESNext"],
-        "declaration": true,
-        "strict": true,
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true
-    },
-    "include": ["src/**/*", "src/.ts"],
-    "exclude": ["node_modules", "**/*.spec.ts"]
+  "compilerOptions": {
+    "outDir": "lib/esm",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "lib": ["ESNext"],
+    "declaration": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*", "src/.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }

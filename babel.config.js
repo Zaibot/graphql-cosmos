@@ -1,4 +1,4 @@
 module.exports = {
-    presets: [`@babel/preset-typescript`, [`@babel/preset-env`, { targets: { node: `current` } }]],
-    plugins: [`@babel/plugin-transform-runtime`],
-};
+  presets: [`@babel/preset-typescript`, [`@babel/preset-env`, { targets: { node: `10` } }]],
+  plugins: [`@babel/plugin-transform-runtime`],
+}
