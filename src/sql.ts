@@ -1,57 +1,61 @@
-export class SqlBuilder {
-    readonly selects: string[] = [];
-    readonly wheres: string[] = [];
-    readonly orderBys: string[] = [];
-    from: string = ``;
-    _distinct = false;
-    offset?: number;
-    limit?: number;
+import { DEFAULT } from './constants'
+import { CosmosRequest } from './intermediate/model'
+import { SqlBuilder } from './sql/builder'
+import { isSqlOperation, sqlOp, SqlOpParameter } from './sql/op'
 
-    constructor(from: string) {
-        this.from = from;
-    }
-
-    distinct(on = true) {
-        this._distinct = on;
-        return this;
-    }
-
-    where(condition: string) {
-        this.wheres.push(condition);
-        return this;
-    }
-
-    orderBy(property: string, direction: 'ASC' | 'DESC') {
-        if (direction === `ASC`) {
-            this.orderBys.push(`${property}`);
-        } else {
-            this.orderBys.push(`${property} ${direction}`);
-        }
-        return this;
-    }
-
-    select(column: string) {
-        this.selects.push(column);
-        return this;
-    }
-
-    offsetLimit(offset: number, limit: number) {
-        this.offset = offset;
-        this.limit = limit;
-    }
-
-    toSql() {
-        const distinct = this._distinct ? ` DISTINCT` : ``;
-        const select = this.selects.length ? `SELECT${distinct} ${this.selects.join(`, `)}` : `SELECT *`;
-        const from = ` FROM ${this.from}`;
-        const where = this.wheres.length ? ` WHERE ${this.wheres.join(` AND `)}` : ``;
-        const orderBy = this.orderBys.length ? ` ORDER BY ${this.orderBys.join(`, `)}` : ``;
-        const offsetLimit = typeof this.offset === `number` && typeof this.limit === `number` ? ` OFFSET ${this.offset} LIMIT ${this.limit}` : ``;
-        return `${select}${from}${where}${orderBy}${offsetLimit}`;
-    }
+export interface ConvertToSql {
+  sql: SqlBuilder
+  parameters: Array<SqlOpParameter>
 }
+export function convertToSql({ type, columns: columnNames, where, sort }: CosmosRequest): ConvertToSql {
+  const alias = `c`
 
-export interface SqlParameter {
-    name: string;
-    value: unknown;
+  const expressions = where.map((expr) => {
+    if (isSqlOperation(expr.operation)) {
+      const sql = sqlOp(alias, expr.property, expr.operation, expr.parameter)
+      const parameter: SqlOpParameter = {
+        name: expr.parameter,
+        value: expr.value,
+      }
+      return { sql, parameter }
+    } else {
+      throw Error(`unknown operation in ${JSON.stringify(expr)}`)
+    }
+  })
+
+  const sql = new SqlBuilder(alias)
+
+  if (type === `count`) {
+    sql.value().select(`COUNT(1)`)
+  } else {
+    for (const columnName of columnNames) {
+      sql.select(`${alias}.${columnName}`)
+    }
+  }
+
+  for (const expr of expressions) {
+    if (expr) {
+      sql.where(expr.sql)
+    }
+  }
+
+  if (type === `count`) {
+    // Skip ordering when counting
+  } else if (sort) {
+    for (const { property, direction } of sort) {
+      if (direction === `ASC`) {
+        sql.orderBy(`${alias}.${property}`, `ASC`)
+      } else if (direction === `DESC`) {
+        sql.orderBy(`${alias}.${property}`, `DESC`)
+      } else {
+        throw Error(`sort direction of ${property} must be ASC or DESC`)
+      }
+    }
+
+    sql.orderBy(`${alias}.${DEFAULT.ID}`, `ASC`)
+  }
+
+  const parameters = expressions.map((x) => x.parameter)
+
+  return { sql, parameters }
 }
