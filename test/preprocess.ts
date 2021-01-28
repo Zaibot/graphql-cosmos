@@ -1,8 +1,9 @@
-import { GraphQLSchema, printSchema, validateSchema } from 'graphql'
+import { buildASTSchema, buildSchema, concatAST, GraphQLSchema, printSchema, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools'
+import { makeExecutableSchema, mergeSchemas, SchemaDirectiveVisitor } from 'graphql-tools'
 import { GraphQLCosmosSchema } from '../src/graphql/directive/schema'
 
+import { preprocessSchema } from '../src/process-directives'
 const dummyTypeDefs = gql`
   type Query {
     dummies: [Dummy!]! @cosmos(container: "Dummies")
@@ -30,12 +31,7 @@ describe(`Processed schema`, () => {
   let dummy: GraphQLSchema
 
   beforeEach(() => {
-    dummy = makeExecutableSchema({
-      typeDefs: [GraphQLCosmosSchema.typeDefs, dummyTypeDefs],
-      schemaDirectives: GraphQLCosmosSchema.schemaDirectives,
-    })
-
-    SchemaDirectiveVisitor.visitSchemaDirectives(dummy, {})
+    dummy = preprocessSchema(buildASTSchema(concatAST([dummyTypeDefs, GraphQLCosmosSchema.typeDefs])))
     expect(validateSchema(dummy)).toHaveLength(0)
 
     output = printSchema(dummy, { commentDescriptions: false })
@@ -45,12 +41,6 @@ describe(`Processed schema`, () => {
   it(`should match expected`, () => {
     expect(normalize(output)).toBe(
       normalize(`
-                directive @cosmos(container: String, ours: String, theirs: String) on FIELD_DEFINITION
-
-                directive @where(op: String, ours: String) on FIELD_DEFINITION
-            
-                directive @sort(ours: String) on FIELD_DEFINITION
-            
                 type Query {
                     dummies(where: DummyWhere, cursor: String): DummyPage!
                 }

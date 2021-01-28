@@ -4,7 +4,7 @@ import gql from 'graphql-tag'
 import { makeExecutableSchema } from 'graphql-tools'
 import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
 import { defaultDataLoader } from '../src/default'
-import { schema } from '../src/graphql/directive/schema'
+import { GraphQLCosmosSchema } from '../src/graphql/directive/schema'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -90,9 +90,9 @@ describe(`Reference to other container`, () => {
     }
 
     dummy = makeExecutableSchema({
-      typeDefs: [schema.typeDefs, dummyTypeDefs],
+      typeDefs: [GraphQLCosmosSchema.typeDefs, dummyTypeDefs],
       schemaDirectives: {
-        ...schema.schemaDirectives,
+        ...GraphQLCosmosSchema.schemaDirectives,
       },
     })
 

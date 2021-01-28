@@ -5,7 +5,7 @@ import { makeExecutableSchema } from 'graphql-tools'
 import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
 import { defaultDataLoader } from '../src/default'
 import { CosmosDirective } from '../src/graphql/directive/cosmos/directive'
-import { schema } from '../src/graphql/directive/schema'
+import { GraphQLCosmosSchema } from '../src/graphql/directive/schema'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -70,9 +70,9 @@ describe(`Embedded relations`, () => {
     }
 
     dummy = makeExecutableSchema({
-      typeDefs: [schema.typeDefs, dummyTypeDefs],
+      typeDefs: [GraphQLCosmosSchema.typeDefs, dummyTypeDefs],
       schemaDirectives: {
-        ...schema.schemaDirectives,
+        ...GraphQLCosmosSchema.schemaDirectives,
       },
     })
 

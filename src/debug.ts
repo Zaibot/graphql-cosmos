@@ -1,5 +1,6 @@
+import { FieldNode } from 'graphql'
 import { GraphQLResolveInfo, ResponsePath } from 'graphql/type'
-import { GraphQLCosmosRequest } from './configuration'
+import { GraphQLCosmosInitRequest, GraphQLCosmosRequest } from './configuration'
 
 export const cosmosRequestToDebugString = ({ query, parameters, init }: GraphQLCosmosRequest) => {
   const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query
@@ -9,6 +10,39 @@ export const cosmosRequestToDebugString = ({ query, parameters, init }: GraphQLC
       key,
       resolver: init?.request.resolverDescription,
       init: init?.request.graphqlInfo ? pathToString(init.request.graphqlInfo) : null,
+    },
+    undefined,
+    2
+  )
+}
+
+export const cosmosInitRequestToDebugString = ({ query, parameters, request, container }: GraphQLCosmosInitRequest) => {
+  const key = parameters?.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query
+  return JSON.stringify(
+    {
+      container: container,
+      key,
+      resolver: request.resolverDescription,
+      init: request.graphqlInfo ? pathToString(request.graphqlInfo) : null,
+    },
+    undefined,
+    2
+  )
+}
+
+export const resolveInfoToDebugString = (info: GraphQLResolveInfo) => {
+  return JSON.stringify(
+    {
+      operationName: info.operation.name?.value ?? `-`,
+      path: pathToString(info),
+      rootValue: info.rootValue ?? null,
+      fragments: Object.keys(info.fragments),
+      fieldNodes: Object.fromEntries(
+        info.fieldNodes.map((x) => [
+          x.name.value,
+          x.selectionSet?.selections.map((y) => (y as Partial<FieldNode>).name?.value),
+        ])
+      ),
     },
     undefined,
     2
