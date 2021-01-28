@@ -1,6 +1,6 @@
 import * as GraphQL from 'graphql'
 import { GraphQLCosmosContext } from '../../../configuration'
-import { DEFAULT_ID } from '../../../constants'
+import { DEFAULT } from '../../../constants'
 import { getCosmosTagContainer, toCosmosReference, toCosmosTag, toTypename, withTypename } from '../../reference'
 import { argsToCosmosCountRequest, argsToCosmosRequest, cosmosResolve, cosmosResolveCount } from '../../resolver/common'
 import { resolveCosmosSource } from '../../resolver/resolveWithCosmosSource'
@@ -11,7 +11,7 @@ export const resolveRootQuery = (
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, args, context, info) => {
   const returnPageTypeCore = GraphQL.getNamedType(fieldType.type) as GraphQL.GraphQLObjectType
   const returnTypeCore = GraphQL.getNamedType(returnPageTypeCore.getFields()['page'].type)
-  const graphquery = argsToCosmosRequest(`resolveRootQuery`, [DEFAULT_ID], args, info)
+  const graphquery = argsToCosmosRequest(`resolveRootQuery`, [DEFAULT.ID], args, info)
   const result: any = await cosmosResolve(returnTypeCore.name, graphquery, context, theirContainer)
   return toCosmosTag(
     { source, args, container: theirContainer },
@@ -36,16 +36,16 @@ export const resolveManyOurs = (
   const sourceContainer = getCosmosTagContainer(source) ?? findOwnerContainer(typeFieldToContainer)(info.path)
   const returnPageTypeCore = GraphQL.getNamedType(fieldType.type) as GraphQL.GraphQLObjectType
   const returnTypeCore = GraphQL.getNamedType(returnPageTypeCore.getFields()['page'].type)
-  const sourced = await resolveCosmosSource(sourceContainer, DEFAULT_ID, ours ?? fieldType.name, source, context)
+  const sourced = await resolveCosmosSource(sourceContainer, DEFAULT.ID, ours ?? fieldType.name, source, context)
   const list = sourced[ours ?? fieldType.name]
   if (Array.isArray(list) && list.length > 0) {
-    const whereOurs = `${theirs ?? DEFAULT_ID}_in`
+    const whereOurs = `${theirs ?? DEFAULT.ID}_in`
     if (whereOurs in args) throw Error(`argument contains conflicting filter on ${whereOurs}`)
     const where = { ...args.where, [whereOurs]: list }
 
     const graphquery = argsToCosmosRequest(
       `resolveManyOurs`,
-      [DEFAULT_ID],
+      [DEFAULT.ID],
       {
         ...args,
         where,
@@ -82,12 +82,12 @@ export const resolveManyTheirs = (
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, args, context, info) => {
   const returnPageTypeCore = GraphQL.getNamedType(fieldType.type) as GraphQL.GraphQLObjectType
   const returnTypeCore = GraphQL.getNamedType(returnPageTypeCore.getFields()['page'].type)
-  const ourId = source[ours ?? DEFAULT_ID]
+  const ourId = source[ours ?? DEFAULT.ID]
   const whereTheirs = `${theirs}_in`
   if (whereTheirs in args) throw Error(`argument contains conflicting filter on ${whereTheirs}`)
   const where = { ...args.where, [whereTheirs]: [ourId] }
 
-  const graphquery = argsToCosmosRequest(`resolveManyTheirs`, [DEFAULT_ID], { ...args, where }, info)
+  const graphquery = argsToCosmosRequest(`resolveManyTheirs`, [DEFAULT.ID], { ...args, where }, info)
   const result: any = await cosmosResolve(returnTypeCore.name, graphquery, context, container)
   return toCosmosTag(
     { source, args, container },
@@ -110,7 +110,7 @@ export const resolveOneOurs = (
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, context, info) => {
   const sourceContainer = getCosmosTagContainer(source) ?? findOwnerContainer(typeFieldToContainer)(info.path)
   const returnTypeCore = GraphQL.getNamedType(fieldType.type)
-  const sourced = await resolveCosmosSource(sourceContainer, DEFAULT_ID, ours ?? fieldType.name, source, context)
+  const sourced = await resolveCosmosSource(sourceContainer, DEFAULT.ID, ours ?? fieldType.name, source, context)
   const result = toCosmosReference(returnTypeCore.name, container, sourced[ours ?? fieldType.name])
   return result
 }
@@ -122,7 +122,7 @@ export const resolveOneOursWithoutContainer = (
   const sourceContainer = getCosmosTagContainer(source)
   if (sourceContainer) {
     const returnTypeCore = GraphQL.getNamedType(fieldType.type)
-    const sourced = await resolveCosmosSource(sourceContainer, DEFAULT_ID, ours ?? fieldType.name, source, context)
+    const sourced = await resolveCosmosSource(sourceContainer, DEFAULT.ID, ours ?? fieldType.name, source, context)
     const result = toTypename(returnTypeCore.name, sourced[ours ?? fieldType.name])
     return result
   } else {
@@ -138,7 +138,7 @@ export const resolveOneTheirs = (
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, context, info) => {
   const returnTypeCore = GraphQL.getNamedType(fieldType.type)
-  const sourced = await resolveCosmosSource(container, DEFAULT_ID, ours ?? fieldType.name, source, context)
+  const sourced = await resolveCosmosSource(container, DEFAULT.ID, ours ?? fieldType.name, source, context)
   const result = toCosmosReference(returnTypeCore.name, container, sourced[ours ?? info.fieldName])
   return result
 }

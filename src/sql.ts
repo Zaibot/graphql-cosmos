@@ -1,4 +1,4 @@
-import { DEFAULT_ID } from './constants'
+import { DEFAULT } from './constants'
 import { CosmosRequest } from './intermediate/model'
 import { SqlBuilder } from './sql/builder'
 import { isSqlOperation, sqlOp, SqlOpParameter } from './sql/op'
@@ -52,7 +52,7 @@ export function convertToSql({ type, columns: columnNames, where, sort }: Cosmos
       }
     }
 
-    sql.orderBy(`${alias}.${DEFAULT_ID}`, `ASC`)
+    sql.orderBy(`${alias}.${DEFAULT.ID}`, `ASC`)
   }
 
   const parameters = expressions.map((x) => x.parameter)

@@ -64,5 +64,6 @@ export const addFieldArgument = (field: GraphQLField<any, any, any>, name: strin
     extensions: undefined,
     description: undefined,
     defaultValue: undefined,
+    deprecationReason: undefined,
   })
 }

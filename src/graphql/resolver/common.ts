@@ -1,7 +1,7 @@
 import { assert } from 'console'
 import { GraphQLResolveInfo } from 'graphql'
 import { GraphQLCosmosContext, GraphQLCosmosInitRequest, GraphQLCosmosRequest } from '../../configuration'
-import { DEFAULT_ID } from '../../constants'
+import { DEFAULT } from '../../constants'
 import { defaultOnInit, defaultOnQuery } from '../../default'
 import { CosmosArgSort, CosmosArgWhere, CosmosRequest } from '../../intermediate/model'
 import { isSqlOperation, SqlOperationList, SqlOperationScalar, SqlOpScalar } from '../../sql/op'
@@ -131,7 +131,7 @@ export const cosmosResolve = async (
   } else {
     //
     // When looking for a single `id` value, attempt to use data loader
-    const byId = graphquery.where.find((x) => x.property === DEFAULT_ID)
+    const byId = graphquery.where.find((x) => x.property === DEFAULT.ID)
 
     const singleExpression = graphquery.where.length === 1
     if (hasDataloader && singleExpression && byId?.operation === SqlOperationScalar.eq && !Array.isArray(byId.value)) {

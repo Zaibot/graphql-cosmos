@@ -1,4 +1,4 @@
-import { DEFAULT_ID } from '../constants'
+import { DEFAULT } from '../constants'
 import { SqlOpScalar } from '../sql/op'
 
 export interface CosmosTag {
@@ -35,7 +35,7 @@ export const toCosmosReference = <TypeName extends string, ID extends SqlOpScala
   typename: TypeName,
   container: string,
   id: ID | null | undefined
-) => (notNullOrUndefined(id) ? withCosmosReference(typename, container, { [DEFAULT_ID]: id }) : null)
+) => (notNullOrUndefined(id) ? withCosmosReference(typename, container, { [DEFAULT.ID]: id }) : null)
 export const withCosmosReference = <TypeName extends string, T extends {}>(
   typename: TypeName,
   container: string,
@@ -53,6 +53,6 @@ export const withTypename = <TypeName extends string>(typename: TypeName) => <T>
 export const toTypename = <TypeName extends string, ID extends SqlOpScalar>(
   typename: TypeName,
   id: ID | null | undefined
-) => (notNullOrUndefined(id) ? withTypename(typename)({ [DEFAULT_ID]: id }) : null)
+) => (notNullOrUndefined(id) ? withTypename(typename)({ [DEFAULT.ID]: id }) : null)
 
 const notNullOrUndefined = <T>(a: T | null | undefined): a is T => a !== null && a !== undefined

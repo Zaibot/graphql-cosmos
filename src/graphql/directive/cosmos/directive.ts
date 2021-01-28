@@ -11,7 +11,7 @@ import {
   isScalarType,
 } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
-import { DEFAULT_ID } from '../../../constants'
+import { DEFAULT } from '../../../constants'
 import { addFieldArgument, createOrGetPageType } from '../../internal/schema'
 import { resolveCosmosSource } from '../../resolver/resolveWithCosmosSource'
 import { SortDirective } from '../sort/directive'
@@ -169,13 +169,13 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         if (returnTypeCore) {
           // Overriding without knowing the context: here container is embedded in the resolver - maybe container can be a property of a reference?
           for (const [fieldName, field] of Object.entries(returnTypeCore.getFields())) {
-            if (fieldName === DEFAULT_ID) {
+            if (fieldName === DEFAULT.ID) {
               field.resolve ??= GraphQL.defaultFieldResolver
             } else {
               const ours = CosmosDirective.getOurs(`cosmos`, this.schema, field.astNode ?? {})
               const nextResolver = field.resolve ?? GraphQL.defaultFieldResolver
               field.resolve ??= async (s, a, c, i) => {
-                const sourced = await resolveCosmosSource(theirContainer, DEFAULT_ID, ours ?? field.name, s, c)
+                const sourced = await resolveCosmosSource(theirContainer, DEFAULT.ID, ours ?? field.name, s, c)
                 const result = await nextResolver(sourced, a, c, i)
                 return result
               }

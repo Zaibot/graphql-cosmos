@@ -1,1 +1,3 @@
-export const DEFAULT_ID: string = `id`
+export enum DEFAULT {
+  ID = `id`,
+}
