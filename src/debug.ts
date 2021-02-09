@@ -69,7 +69,7 @@ const pathList = (path?: ResponsePath) => {
 }
 
 export interface DebugHooks {
-  onResolverSet(args: {
+  onResolverSet?: (args: {
     resolver: string
     objectType: GraphQLObjectType<any, any>
     fieldType: GraphQLField<
@@ -79,8 +79,8 @@ export interface DebugHooks {
         [key: string]: any
       }
     >
-  }): void
-  onFieldResolved(args: {
+  }) => void
+  onFieldResolved?: (args: {
     fieldType: GraphQLField<any, GraphQLCosmosContext>
     sourceContainer?: string
     theirsContainer?: string
@@ -90,7 +90,7 @@ export interface DebugHooks {
     source: any
     sourced?: any
     result: any
-  }): void
+  }) => void
 }
 
-export let debugHooks: DebugHooks | null = null
+export let debugHooks: DebugHooks = {}

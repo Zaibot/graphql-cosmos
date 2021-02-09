@@ -12,7 +12,7 @@ import {
 } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { DEFAULT } from '../../../constants'
-import { debugHooks } from '../../../debug'
+import { debugHooks as debugHook } from '../../../debug'
 import { addFieldArgument, createOrGetPageType } from '../../internal/schema'
 import { resolveCosmosSource } from '../../resolver/resolveWithCosmosSource'
 import { SortDirective } from '../sort/directive'
@@ -154,7 +154,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         //
         // Override resolvers per relation type
         if (returnTypeMany && theirs) {
-          debugHooks?.onResolverSet({
+          debugHook?.onResolverSet?.({
             resolver: `resolveManyTheirs`,
             objectType: details.objectType,
             fieldType,
@@ -163,7 +163,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema))
           fieldType.resolve = resolveManyTheirs(theirContainer, ours, theirs, fieldType)
         } else if (returnTypeMany && ours) {
-          debugHooks?.onResolverSet({
+          debugHook?.onResolverSet?.({
             resolver: `resolveManyOurs`,
             objectType: details.objectType,
             fieldType,
@@ -172,7 +172,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema))
           fieldType.resolve = resolveManyOurs(typeFieldToContainer, theirContainer, ours, theirs, fieldType)
         } else if (returnTypeMany) {
-          debugHooks?.onResolverSet({
+          debugHook?.onResolverSet?.({
             resolver: `resolveRootQuery`,
             objectType: details.objectType,
             fieldType,
@@ -181,14 +181,14 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema))
           fieldType.resolve = resolveRootQuery(theirContainer, fieldType)
         } else if (ours) {
-          debugHooks?.onResolverSet({
+          debugHook?.onResolverSet?.({
             resolver: `resolveOneOurs`,
             objectType: details.objectType,
             fieldType,
           })
           fieldType.resolve = resolveOneOurs(typeFieldToContainer, ours, theirContainer, fieldType)
         } else if (theirs) {
-          debugHooks?.onResolverSet({
+          debugHook?.onResolverSet?.({
             resolver: `resolveOneTheirs`,
             objectType: details.objectType,
             fieldType,
@@ -202,14 +202,14 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           // Overriding without knowing the context: here container is embedded in the resolver - maybe container can be a property of a reference?
           for (const [fieldName, field] of Object.entries(returnTypeCore.getFields())) {
             if (fieldName === DEFAULT.ID) {
-              debugHooks?.onResolverSet({
+              debugHook?.onResolverSet?.({
                 resolver: `defaultFieldResolver`,
                 objectType: details.objectType,
                 fieldType,
               })
               field.resolve ??= GraphQL.defaultFieldResolver
             } else {
-              debugHooks?.onResolverSet({
+              debugHook?.onResolverSet?.({
                 resolver: `resolveCosmosSource`,
                 objectType: details.objectType,
                 fieldType,
@@ -228,7 +228,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
     } else if (ours) {
       if (returnTypeMany) {
         // No container, ours specifies id field to be created as reference
-        debugHooks?.onResolverSet({
+        debugHook?.onResolverSet?.({
           resolver: `resolveManyOursWithoutContainer`,
           objectType: details.objectType,
           fieldType,
@@ -236,7 +236,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         fieldType.resolve = resolveManyOursWithoutContainer(ours, fieldType)
       } else {
         // No container, ours specifies id field to be created as reference
-        debugHooks?.onResolverSet({
+        debugHook?.onResolverSet?.({
           resolver: `resolveOneOursWithoutContainer`,
           objectType: details.objectType,
           fieldType,
