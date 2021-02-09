@@ -40,7 +40,10 @@ export const resolveManyOurs = (
   theirs: string | undefined,
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, args, context, info) => {
-  const sourceContainer = getCosmosTagContainer(source) ?? findOwnerContainer(typeFieldToContainer)(info.path)
+  const sourceContainer =
+    getCosmosTagContainer(source) ??
+    findOwnerContainer(typeFieldToContainer)(info.path) ??
+    fail(`container not specified for ${pathToArray(info.path).join(`/`)}`)
   const returnPageTypeCore = GraphQL.getNamedType(fieldType.type) as GraphQL.GraphQLObjectType
   const returnTypeCore = GraphQL.getNamedType(returnPageTypeCore.getFields()['page'].type)
   const sourced = await resolveCosmosSource(sourceContainer, DEFAULT.ID, ours ?? fieldType.name, source, context)
@@ -149,7 +152,10 @@ export const resolveOneOurs = (
   container: string,
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, context, info) => {
-  const sourceContainer = getCosmosTagContainer(source) ?? findOwnerContainer(typeFieldToContainer)(info.path)
+  const sourceContainer =
+    getCosmosTagContainer(source) ??
+    findOwnerContainer(typeFieldToContainer)(info.path) ??
+    fail(`container not specified for ${pathToArray(info.path).join(`/`)}`)
   const returnTypeCore = GraphQL.getNamedType(fieldType.type)
   const sourced = await resolveCosmosSource(sourceContainer, DEFAULT.ID, ours ?? fieldType.name, source, context)
   const result = toCosmosReference(returnTypeCore.name, container, sourced[ours ?? fieldType.name])
@@ -166,11 +172,14 @@ export const resolveOneOurs = (
 }
 
 export const resolveOneOursWithoutContainer = (
+  typeFieldToContainer: Map<string, Map<string, string>>,
   ours: string | undefined,
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
-): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, context, _info) => {
+): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, context, info) => {
   const sourceContainer =
-    getCosmosTagContainer(source) ?? fail(`container not specified for ${pathToArray(_info.path).join(`/`)}`)
+    getCosmosTagContainer(source) ??
+    findOwnerContainer(typeFieldToContainer)(info.path) ??
+    fail(`container not specified for ${pathToArray(info.path).join(`/`)}`)
   const returnTypeCore = GraphQL.getNamedType(fieldType.type)
   const sourced = await resolveCosmosSource(sourceContainer, DEFAULT.ID, ours ?? fieldType.name, source, context)
   const result = toTypename(returnTypeCore.name, sourced[ours ?? fieldType.name])
@@ -186,11 +195,14 @@ export const resolveOneOursWithoutContainer = (
 }
 
 export const resolveManyOursWithoutContainer = (
+  typeFieldToContainer: Map<string, Map<string, string>>,
   ours: string | undefined,
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
-): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, context, _info) => {
+): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, context, info) => {
   const sourceContainer =
-    getCosmosTagContainer(source) ?? fail(`container not specified for ${pathToArray(_info.path).join(`/`)}`)
+    getCosmosTagContainer(source) ??
+    findOwnerContainer(typeFieldToContainer)(info.path) ??
+    fail(`container not specified for ${pathToArray(info.path).join(`/`)}`)
   const returnTypeCore = GraphQL.getNamedType(fieldType.type)
   const sourced = await resolveCosmosSource(sourceContainer, DEFAULT.ID, ours ?? fieldType.name, source, context)
   // TODO: sourced[ours] type validation

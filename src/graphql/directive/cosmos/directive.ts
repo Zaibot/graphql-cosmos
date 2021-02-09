@@ -233,7 +233,8 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           objectType: details.objectType,
           fieldType,
         })
-        fieldType.resolve = resolveManyOursWithoutContainer(ours, fieldType)
+
+        fieldType.resolve = resolveManyOursWithoutContainer(typeFieldToContainer, ours, fieldType)
       } else {
         // No container, ours specifies id field to be created as reference
         debugHook?.onResolverSet?.({
@@ -241,7 +242,8 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           objectType: details.objectType,
           fieldType,
         })
-        fieldType.resolve = resolveOneOursWithoutContainer(ours, fieldType)
+
+        fieldType.resolve = resolveOneOursWithoutContainer(typeFieldToContainer, ours, fieldType)
       }
     }
 
