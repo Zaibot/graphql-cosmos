@@ -1,7 +1,9 @@
 import * as GraphQL from 'graphql'
+import { pathToArray } from 'graphql/jsutils/Path'
 import { GraphQLCosmosContext } from '../../../configuration'
 import { DEFAULT } from '../../../constants'
-import { getCosmosTagContainer, toCosmosReference, toCosmosTag, toTypename, withTypename } from '../../reference'
+import { debugHooks } from '../../../debug'
+import { getCosmosTagContainer, toCosmosReference, toCosmosTag, toTypename } from '../../reference'
 import { argsToCosmosCountRequest, argsToCosmosRequest, cosmosResolve, cosmosResolveCount } from '../../resolver/common'
 import { resolveCosmosSource } from '../../resolver/resolveWithCosmosSource'
 
@@ -13,6 +15,11 @@ export const resolveRootQuery = (
   const returnTypeCore = GraphQL.getNamedType(returnPageTypeCore.getFields()['page'].type)
   const graphquery = argsToCosmosRequest(`resolveRootQuery`, [DEFAULT.ID], args, info)
   const result: any = await cosmosResolve(returnTypeCore.name, graphquery, context, theirContainer)
+  debugHooks?.onFieldResolved({
+    fieldType,
+    source,
+    result,
+  })
   return toCosmosTag(
     { source, args, container: theirContainer },
     {
@@ -64,12 +71,30 @@ export const resolveManyOurs = (
         },
       }
     )
+    debugHooks?.onFieldResolved({
+      fieldType,
+      sourceContainer,
+      ours,
+      theirs,
+      source,
+      sourced,
+      result: tagged,
+    })
     return tagged
   } else {
     const tagged = toCosmosTag(
       { source: sourced, args, container: sourceContainer },
       { nextCursor: null, page: [], total: 0 }
     )
+    debugHooks?.onFieldResolved({
+      fieldType,
+      sourceContainer,
+      ours,
+      theirs,
+      source,
+      sourced,
+      result: tagged,
+    })
     return tagged
   }
 }
@@ -89,6 +114,22 @@ export const resolveManyTheirs = (
 
   const graphquery = argsToCosmosRequest(`resolveManyTheirs`, [DEFAULT.ID], { ...args, where }, info)
   const result: any = await cosmosResolve(returnTypeCore.name, graphquery, context, container)
+  debugHooks?.onFieldResolved({
+    fieldType,
+    source,
+    result,
+    container,
+    ours,
+    theirs,
+  })
+  debugHooks?.onFieldResolved({
+    fieldType,
+    container,
+    ours,
+    theirs,
+    source,
+    result,
+  })
   return toCosmosTag(
     { source, args, container },
     {
@@ -112,6 +153,15 @@ export const resolveOneOurs = (
   const returnTypeCore = GraphQL.getNamedType(fieldType.type)
   const sourced = await resolveCosmosSource(sourceContainer, DEFAULT.ID, ours ?? fieldType.name, source, context)
   const result = toCosmosReference(returnTypeCore.name, container, sourced[ours ?? fieldType.name])
+  debugHooks?.onFieldResolved({
+    sourceContainer,
+    fieldType,
+    source,
+    sourced,
+    result,
+    container,
+    ours,
+  })
   return result
 }
 
@@ -119,17 +169,45 @@ export const resolveOneOursWithoutContainer = (
   ours: string | undefined,
   fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
 ): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, context, _info) => {
-  const sourceContainer = getCosmosTagContainer(source)
-  if (sourceContainer) {
-    const returnTypeCore = GraphQL.getNamedType(fieldType.type)
-    const sourced = await resolveCosmosSource(sourceContainer, DEFAULT.ID, ours ?? fieldType.name, source, context)
-    const result = toTypename(returnTypeCore.name, sourced[ours ?? fieldType.name])
-    return result
-  } else {
-    const returnTypeCore = GraphQL.getNamedType(fieldType.type)
-    const result = toTypename(returnTypeCore.name, source[ours ?? fieldType.name])
-    return result
-  }
+  const sourceContainer =
+    getCosmosTagContainer(source) ?? fail(`container not specified for ${pathToArray(_info.path).join(`/`)}`)
+  const returnTypeCore = GraphQL.getNamedType(fieldType.type)
+  const sourced = await resolveCosmosSource(sourceContainer, DEFAULT.ID, ours ?? fieldType.name, source, context)
+  const result = toTypename(returnTypeCore.name, sourced[ours ?? fieldType.name])
+  debugHooks?.onFieldResolved({
+    sourceContainer,
+    fieldType,
+    source,
+    sourced,
+    result,
+    ours,
+  })
+  return result
+}
+
+export const resolveManyOursWithoutContainer = (
+  ours: string | undefined,
+  fieldType: GraphQL.GraphQLField<any, GraphQLCosmosContext>
+): GraphQL.GraphQLFieldResolver<any, GraphQLCosmosContext> => async (source, _args, context, _info) => {
+  const sourceContainer =
+    getCosmosTagContainer(source) ?? fail(`container not specified for ${pathToArray(_info.path).join(`/`)}`)
+  const returnTypeCore = GraphQL.getNamedType(fieldType.type)
+  const sourced = await resolveCosmosSource(sourceContainer, DEFAULT.ID, ours ?? fieldType.name, source, context)
+  // TODO: sourced[ours] type validation
+  const result = sourced[ours ?? fieldType.name]?.map((id: unknown) => toTypename(returnTypeCore.name, String(id)))
+  debugHooks?.onFieldResolved({
+    sourceContainer,
+    fieldType,
+    source,
+    sourced,
+    result,
+    ours,
+  })
+  return result
+}
+
+function fail(message: string) {
+  throw Error(message)
 }
 
 export const resolveOneTheirs = (
@@ -140,6 +218,14 @@ export const resolveOneTheirs = (
   const returnTypeCore = GraphQL.getNamedType(fieldType.type)
   const sourced = await resolveCosmosSource(container, DEFAULT.ID, ours ?? fieldType.name, source, context)
   const result = toCosmosReference(returnTypeCore.name, container, sourced[ours ?? info.fieldName])
+  debugHooks?.onFieldResolved({
+    fieldType,
+    source,
+    sourced,
+    result,
+    container,
+    ours,
+  })
   return result
 }
 

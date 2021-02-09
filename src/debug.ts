@@ -1,6 +1,6 @@
 import { FieldNode } from 'graphql'
-import { GraphQLResolveInfo, ResponsePath } from 'graphql/type'
-import { GraphQLCosmosInitRequest, GraphQLCosmosRequest } from './configuration'
+import { GraphQLField, GraphQLObjectType, GraphQLResolveInfo, ResponsePath } from 'graphql/type'
+import { GraphQLCosmosContext, GraphQLCosmosInitRequest, GraphQLCosmosRequest } from './configuration'
 
 export const cosmosRequestToDebugString = ({ query, parameters, init }: GraphQLCosmosRequest) => {
   const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query
@@ -67,3 +67,30 @@ const pathList = (path?: ResponsePath) => {
   }
   return entries
 }
+
+export interface DebugHooks {
+  onResolverSet(args: {
+    resolver: string
+    objectType: GraphQLObjectType<any, any>
+    fieldType: GraphQLField<
+      any,
+      any,
+      {
+        [key: string]: any
+      }
+    >
+  }): void
+  onFieldResolved(args: {
+    fieldType: GraphQLField<any, GraphQLCosmosContext>
+    sourceContainer?: string
+    theirsContainer?: string
+    container?: string
+    ours?: string
+    theirs?: string
+    source: any
+    sourced?: any
+    result: any
+  }): void
+}
+
+export let debugHooks: DebugHooks | null = null

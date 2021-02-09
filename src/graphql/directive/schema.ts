@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { CosmosDirective } from './cosmos/directive'
-import { WhereDirective } from './where/directive'
 import { SortDirective } from './sort/directive'
+import { WhereDirective } from './where/directive'
 
 export const GraphQLCosmosSchema = {
   typeDefs: gql`

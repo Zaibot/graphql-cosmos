@@ -12,6 +12,7 @@ import {
 } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { DEFAULT } from '../../../constants'
+import { debugHooks } from '../../../debug'
 import { addFieldArgument, createOrGetPageType } from '../../internal/schema'
 import { resolveCosmosSource } from '../../resolver/resolveWithCosmosSource'
 import { SortDirective } from '../sort/directive'
@@ -20,6 +21,7 @@ import { WhereDirective } from '../where/directive'
 import { inputWhere } from '../where/input'
 import {
   resolveManyOurs,
+  resolveManyOursWithoutContainer,
   resolveManyTheirs,
   resolveOneOurs,
   resolveOneOursWithoutContainer,
@@ -85,10 +87,14 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
 
   visitFieldDefinition(
     fieldType: GraphQL.GraphQLField<any, any>,
-    _details: {
+    details: {
       objectType: GraphQL.GraphQLObjectType | GraphQL.GraphQLInterfaceType
     }
   ): GraphQL.GraphQLField<any, any> | void | null {
+    if (!GraphQL.isObjectType(details.objectType)) {
+      throw Error(`must be an ObjectType: ${details.objectType.name}`)
+    }
+
     const directiveNameCosmos = `cosmos`
     const directiveNameWhere = `where`
     const directiveNameSort = `sort`
@@ -112,10 +118,11 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
       ])
     const typeFieldToContainer = new Map(typeFieldToContainerValues.map(([name, f]) => [name, new Map(f)]))
 
+    const returnType = fieldType.type
+    const returnTypeCore = getNamedType(returnType)
+    const returnTypeMany = isListType(getNullableType(returnType)) ? returnType : undefined
+
     if (theirContainer) {
-      const returnType = fieldType.type
-      const returnTypeCore = getNamedType(returnType)
-      const returnTypeMany = isListType(getNullableType(returnType)) ? returnType : undefined
       if (isObjectType(returnTypeCore)) {
         const filterableScalar = Object.entries(returnTypeCore.getFields())
           .map(([name, field]) => ({ name, field, scalar: getNullableType(field.type) as GraphQL.GraphQLScalarType }))
@@ -147,20 +154,45 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         //
         // Override resolvers per relation type
         if (returnTypeMany && theirs) {
+          debugHooks?.onResolverSet({
+            resolver: `resolveManyTheirs`,
+            objectType: details.objectType,
+            fieldType,
+          })
           addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString)
           fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema))
           fieldType.resolve = resolveManyTheirs(theirContainer, ours, theirs, fieldType)
         } else if (returnTypeMany && ours) {
+          debugHooks?.onResolverSet({
+            resolver: `resolveManyOurs`,
+            objectType: details.objectType,
+            fieldType,
+          })
           addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString)
           fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema))
           fieldType.resolve = resolveManyOurs(typeFieldToContainer, theirContainer, ours, theirs, fieldType)
         } else if (returnTypeMany) {
+          debugHooks?.onResolverSet({
+            resolver: `resolveRootQuery`,
+            objectType: details.objectType,
+            fieldType,
+          })
           addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString)
           fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema))
           fieldType.resolve = resolveRootQuery(theirContainer, fieldType)
         } else if (ours) {
+          debugHooks?.onResolverSet({
+            resolver: `resolveOneOurs`,
+            objectType: details.objectType,
+            fieldType,
+          })
           fieldType.resolve = resolveOneOurs(typeFieldToContainer, ours, theirContainer, fieldType)
         } else if (theirs) {
+          debugHooks?.onResolverSet({
+            resolver: `resolveOneTheirs`,
+            objectType: details.objectType,
+            fieldType,
+          })
           fieldType.resolve = resolveOneTheirs(theirContainer, ours, fieldType)
         }
 
@@ -170,8 +202,18 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           // Overriding without knowing the context: here container is embedded in the resolver - maybe container can be a property of a reference?
           for (const [fieldName, field] of Object.entries(returnTypeCore.getFields())) {
             if (fieldName === DEFAULT.ID) {
+              debugHooks?.onResolverSet({
+                resolver: `defaultFieldResolver`,
+                objectType: details.objectType,
+                fieldType,
+              })
               field.resolve ??= GraphQL.defaultFieldResolver
             } else {
+              debugHooks?.onResolverSet({
+                resolver: `resolveCosmosSource`,
+                objectType: details.objectType,
+                fieldType,
+              })
               const ours = CosmosDirective.getOurs(`cosmos`, this.schema, field.astNode ?? {})
               const nextResolver = field.resolve ?? GraphQL.defaultFieldResolver
               field.resolve ??= async (s, a, c, i) => {
@@ -184,8 +226,23 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
         }
       }
     } else if (ours) {
-      // No container, ours specifies id field to be created as reference
-      fieldType.resolve = resolveOneOursWithoutContainer(ours, fieldType)
+      if (returnTypeMany) {
+        // No container, ours specifies id field to be created as reference
+        debugHooks?.onResolverSet({
+          resolver: `resolveManyOursWithoutContainer`,
+          objectType: details.objectType,
+          fieldType,
+        })
+        fieldType.resolve = resolveManyOursWithoutContainer(ours, fieldType)
+      } else {
+        // No container, ours specifies id field to be created as reference
+        debugHooks?.onResolverSet({
+          resolver: `resolveOneOursWithoutContainer`,
+          objectType: details.objectType,
+          fieldType,
+        })
+        fieldType.resolve = resolveOneOursWithoutContainer(ours, fieldType)
+      }
     }
 
     return fieldType
