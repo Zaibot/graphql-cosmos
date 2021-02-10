@@ -136,7 +136,7 @@ export const cosmosResolve = async (
     const singleExpression = graphquery.where.length === 1
     if (hasDataloader && singleExpression && byId?.operation === SqlOperationScalar.eq && !Array.isArray(byId.value)) {
       // Defer to using dataloader
-      return { page: [byId.value].map(ToCosmosReference(typename, container)) }
+      return { page: [byId.value].map((id) => String(id)).map(ToCosmosReference(typename, container)) }
     } else if (
       hasDataloader &&
       singleExpression &&
@@ -144,7 +144,7 @@ export const cosmosResolve = async (
       Array.isArray(byId.value)
     ) {
       // Defer to using dataloader
-      return { page: byId.value.map(ToCosmosReference(typename, container)) }
+      return { page: byId.value.map((id) => String(id)).map(ToCosmosReference(typename, container)) }
     } else {
       //
       // Notify query about to be requested

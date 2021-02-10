@@ -21,7 +21,7 @@ const dummyTypeDefs = gql`
 
   type Embedded {
     prop: String
-    related: Related @cosmos(container: "Related", ours: "relatedId")
+    related: [Related] @cosmos(container: "Related", ours: "relatedId")
   }
 
   type Related {
@@ -42,19 +42,14 @@ const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedRespons
         { id: `1`, prop: `text`, relatedId: null, embedded: [{ prop: `text`, relatedId: null }] },
         { id: `2`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text`, relatedId: undefined }] },
         { id: `3`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text` }] },
-        { id: `4`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text`, relatedId: `5` }] },
-        { id: `5`, prop: `text`, embedded: [{ prop: `text` }] },
-      ],
-      'SELECT c.id, c.relatedId FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=5)': [
-        { id: `1`, prop: `text`, relatedId: null, embedded: [{ prop: `text`, relatedId: null }] },
-        { id: `2`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text`, relatedId: undefined }] },
-        { id: `3`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text` }] },
-        { id: `4`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text`, relatedId: `5` }] },
+        { id: `4`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text`, relatedId: [`5`] }] },
         { id: `5`, prop: `text`, embedded: [{ prop: `text` }] },
       ],
     },
     Related: {
-      'SELECT c.id, c.prop FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=5)': [{ id: `5`, prop: `text` }],
+      'SELECT c.id, c.prop FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=5)': [
+        { id: `5`, prop: `text`, relatedId: `5` },
+      ],
     },
   }
 
@@ -99,9 +94,11 @@ describe(`Nulled relations`, () => {
             embedded {
               prop
               related {
-                __typename
-                id
-                prop
+                page {
+                  __typename
+                  id
+                  prop
+                }
               }
             }
             related {
@@ -129,21 +126,21 @@ describe(`Nulled relations`, () => {
               __typename: 'Dummy',
               id: `1`,
               prop: `text`,
-              embedded: [{ prop: `text`, related: null }],
+              embedded: [{ prop: `text`, related: { page: [] } }],
               related: null,
             },
             {
               __typename: 'Dummy',
               id: `2`,
               prop: `text`,
-              embedded: [{ prop: `text`, related: null }],
+              embedded: [{ prop: `text`, related: { page: [] } }],
               related: null,
             },
             {
               __typename: 'Dummy',
               id: `3`,
               prop: `text`,
-              embedded: [{ prop: `text`, related: null }],
+              embedded: [{ prop: `text`, related: { page: [] } }],
               related: null,
             },
             {
@@ -154,9 +151,13 @@ describe(`Nulled relations`, () => {
                 {
                   prop: `text`,
                   related: {
-                    __typename: 'Related',
-                    id: `5`,
-                    prop: `text`,
+                    page: [
+                      {
+                        __typename: 'Related',
+                        id: `5`,
+                        prop: `text`,
+                      },
+                    ],
                   },
                 },
               ],
@@ -169,7 +170,7 @@ describe(`Nulled relations`, () => {
               embedded: [
                 {
                   prop: `text`,
-                  related: null,
+                  related: { page: [] },
                 },
               ],
               related: null,

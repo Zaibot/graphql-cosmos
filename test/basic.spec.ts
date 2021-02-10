@@ -1,8 +1,9 @@
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
+import { buildASTSchema, execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { makeExecutableSchema } from 'graphql-tools'
 import { GraphQLCosmosContext } from '../src/configuration'
 import { GraphQLCosmosSchema } from '../src/graphql/directive/schema'
+import { buildCosmosASTSchema } from '../src/build'
+import { reportHooks } from './utils'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -43,12 +44,7 @@ describe(`@cosmos`, () => {
       },
     }
 
-    dummy = makeExecutableSchema({
-      typeDefs: [GraphQLCosmosSchema.typeDefs, dummyTypeDefs],
-      schemaDirectives: {
-        ...GraphQLCosmosSchema.schemaDirectives,
-      },
-    })
+    dummy = buildCosmosASTSchema(dummyTypeDefs)
 
     expect(validateSchema(dummy)).toHaveLength(0)
   })

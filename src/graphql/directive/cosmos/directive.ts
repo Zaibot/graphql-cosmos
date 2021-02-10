@@ -11,10 +11,8 @@ import {
   isScalarType,
 } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
-import { DEFAULT } from '../../../constants'
 import { debugHooks as debugHook } from '../../../debug'
 import { addFieldArgument, createOrGetPageType } from '../../internal/schema'
-import { resolveCosmosSource } from '../../resolver/resolveWithCosmosSource'
 import { SortDirective } from '../sort/directive'
 import { inputSort } from '../sort/input'
 import { WhereDirective } from '../where/directive'
@@ -24,7 +22,6 @@ import {
   resolveManyOursWithoutContainer,
   resolveManyTheirs,
   resolveOneOurs,
-  resolveOneOursWithoutContainer,
   resolveOneTheirs,
   resolveRootQuery,
 } from './resolvers'
@@ -95,28 +92,12 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
       throw Error(`must be an ObjectType: ${details.objectType.name}`)
     }
 
-    const directiveNameCosmos = `cosmos`
     const directiveNameWhere = `where`
     const directiveNameSort = `sort`
 
     const ours = this.argOurs
     const theirs = this.argTheirs
     const theirContainer = this.argContainer
-
-    //
-    // Snapshot of which type.field is stored in a Cosmos container
-    const typeFieldToContainerValues = Object.values(this.schema.getTypeMap())
-      .filter((x): x is GraphQL.GraphQLObjectType => isObjectType(x))
-      .map((owner): [string, Array<[string, string]>] => [
-        owner.name,
-        Object.values(owner.getFields())
-          .map((ownerField) => [
-            ownerField.name,
-            CosmosDirective.getContainer(directiveNameCosmos, this.schema, ownerField.astNode ?? {}),
-          ])
-          .filter((x): x is [string, string] => !!x[0] && !!x[1]),
-      ])
-    const typeFieldToContainer = new Map(typeFieldToContainerValues.map(([name, f]) => [name, new Map(f)]))
 
     const returnType = fieldType.type
     const returnTypeCore = getNamedType(returnType)
@@ -170,7 +151,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           })
           addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString)
           fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema))
-          fieldType.resolve = resolveManyOurs(typeFieldToContainer, theirContainer, ours, theirs, fieldType)
+          fieldType.resolve = resolveManyOurs(theirContainer, ours, theirs, fieldType)
         } else if (returnTypeMany) {
           debugHook?.onResolverSet?.({
             resolver: `resolveRootQuery`,
@@ -186,7 +167,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
             objectType: details.objectType,
             fieldType,
           })
-          fieldType.resolve = resolveOneOurs(typeFieldToContainer, ours, theirContainer, fieldType)
+          fieldType.resolve = resolveOneOurs(ours, fieldType)
         } else if (theirs) {
           debugHook?.onResolverSet?.({
             resolver: `resolveOneTheirs`,
@@ -194,35 +175,6 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
             fieldType,
           })
           fieldType.resolve = resolveOneTheirs(theirContainer, ours, fieldType)
-        }
-
-        //
-        // Fields should be resolved when unavailable in source of a request
-        if (returnTypeCore) {
-          // Overriding without knowing the context: here container is embedded in the resolver - maybe container can be a property of a reference?
-          for (const [fieldName, field] of Object.entries(returnTypeCore.getFields())) {
-            if (fieldName === DEFAULT.ID) {
-              debugHook?.onResolverSet?.({
-                resolver: `defaultFieldResolver`,
-                objectType: details.objectType,
-                fieldType,
-              })
-              field.resolve ??= GraphQL.defaultFieldResolver
-            } else {
-              debugHook?.onResolverSet?.({
-                resolver: `resolveCosmosSource`,
-                objectType: details.objectType,
-                fieldType,
-              })
-              const ours = CosmosDirective.getOurs(`cosmos`, this.schema, field.astNode ?? {})
-              const nextResolver = field.resolve ?? GraphQL.defaultFieldResolver
-              field.resolve ??= async (s, a, c, i) => {
-                const sourced = await resolveCosmosSource(theirContainer, DEFAULT.ID, ours ?? field.name, s, c)
-                const result = await nextResolver(sourced, a, c, i)
-                return result
-              }
-            }
-          }
         }
       }
     } else if (ours) {
@@ -233,17 +185,15 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           objectType: details.objectType,
           fieldType,
         })
-
-        fieldType.resolve = resolveManyOursWithoutContainer(typeFieldToContainer, ours, fieldType)
+        fieldType.resolve = resolveManyOursWithoutContainer(ours, fieldType)
       } else {
         // No container, ours specifies id field to be created as reference
         debugHook?.onResolverSet?.({
-          resolver: `resolveOneOursWithoutContainer`,
+          resolver: `resolveOneOurs`,
           objectType: details.objectType,
           fieldType,
         })
-
-        fieldType.resolve = resolveOneOursWithoutContainer(typeFieldToContainer, ours, fieldType)
+        fieldType.resolve = resolveOneOurs(ours, fieldType)
       }
     }
 

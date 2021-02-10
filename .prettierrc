@@ -3,5 +3,13 @@
   "useTabs": false,
   "singleQuote": true,
   "semi": false,
-  "printWidth": 120
+  "printWidth": 120,
+  "overrides": [
+    {
+      "files": ["reference.ts"],
+      "options": {
+        "printWidth": 240
+      }
+    }
+  ]
 }

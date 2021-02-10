@@ -1,10 +1,11 @@
 import { FeedResponse } from '@azure/cosmos'
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
+import { buildASTSchema, execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { makeExecutableSchema } from 'graphql-tools'
 import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
 import { defaultDataLoader } from '../src/default'
 import { GraphQLCosmosSchema } from '../src/graphql/directive/schema'
+import { buildCosmosASTSchema } from '../src/build'
+import { reportHooks } from './utils'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -77,12 +78,7 @@ describe(`Sorting`, () => {
       },
     }
 
-    dummy = makeExecutableSchema({
-      typeDefs: [GraphQLCosmosSchema.typeDefs, dummyTypeDefs],
-      schemaDirectives: {
-        ...GraphQLCosmosSchema.schemaDirectives,
-      },
-    })
+    dummy = buildCosmosASTSchema(dummyTypeDefs)
 
     expect(validateSchema(dummy)).toHaveLength(0)
   })

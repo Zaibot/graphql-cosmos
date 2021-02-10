@@ -1,12 +1,12 @@
 import { FeedResponse } from '@azure/cosmos'
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
+import { buildASTSchema, execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { makeExecutableSchema } from 'graphql-tools'
 import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
 import { defaultDataLoader } from '../src/default'
-import { CosmosDirective } from '../src/graphql/directive/cosmos/directive'
 import { GraphQLCosmosSchema } from '../src/graphql/directive/schema'
+import { buildCosmosASTSchema } from '../src/build'
 import { SqlOpScalar } from '../src/sql/op'
+import { reportHooks } from './utils'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -24,38 +24,36 @@ const dummyTypeDefs = gql`
   }
 `
 
-const onCosmosQuery = async ({
-  container,
-  query,
-  parameters,
-}: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
-  const queryResult: Record<string, Record<string, unknown[]>> = {
+const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
+  const { container, query, parameters } = request
+  const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query
+
+  const responses: Record<string, Record<string, unknown[]>> = {
     Dummies: {
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
-      'SELECT c.id, c.relatedIds FROM c WHERE ARRAY_CONTAINS(@batch, c.id)': [
+      'SELECT c.id, c.relatedIds FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=1,2,3)': [
         { id: `1`, relatedIds: [`1a`, `1b`] },
         { id: `2`, relatedIds: [`2a`, `2b`] },
         { id: `3`, relatedIds: [`3a`, `3b`] },
       ],
     },
     Relations: {
-      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@batch, c.id)': [
-        { id: `1b`, text: null },
+      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=1a,1b,2a,2b,3a,3b)': [
+        { id: `1a`, text: `1` },
+        { id: `1b`, text: `1` },
+        { id: `2a`, text: `2` },
         { id: `2b`, text: null },
+        { id: `3a`, text: null },
         { id: `3b`, text: null },
       ],
     },
   }
+  const result = responses[container]?.[key]
 
-  const result = queryResult[container]?.[query]
   if (result) {
     return { resources: result } as any
   } else {
-    throw Error(
-      `Unhandled: ${container} ${query} (${
-        parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`
-      })`
-    )
+    throw Error(`Unhandled: ${container} ${key}`)
   }
 }
 
@@ -84,12 +82,7 @@ describe(`Data Loader`, () => {
       },
     }
 
-    dummy = makeExecutableSchema({
-      typeDefs: [GraphQLCosmosSchema.typeDefs, dummyTypeDefs],
-      schemaDirectives: {
-        ...GraphQLCosmosSchema.schemaDirectives,
-      },
-    })
+    dummy = buildCosmosASTSchema(dummyTypeDefs)
 
     dataloader = []
 
@@ -108,15 +101,15 @@ describe(`Data Loader`, () => {
             {
               related: {
                 page: [
-                  { id: `1a`, text: null },
-                  { id: `1b`, text: null },
+                  { id: `1a`, text: `1` },
+                  { id: `1b`, text: `1` },
                 ],
               },
             },
             {
               related: {
                 page: [
-                  { id: `2a`, text: null },
+                  { id: `2a`, text: `2` },
                   { id: `2b`, text: null },
                 ],
               },

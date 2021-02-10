@@ -1,8 +1,6 @@
-import { buildASTSchema, GraphQLSchema, printSchema, validateSchema } from 'graphql'
+import { GraphQLSchema, printSchema, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { GraphQLCosmosSchema } from '../src/graphql/directive/schema'
 import { buildCosmosASTSchema } from '../src/build'
-import { reportHooks } from './utils'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -26,18 +24,18 @@ const dummyTypeDefs = gql`
   }
 `
 
-describe(`Processed schema`, () => {
+describe(`Build Cosmos AST Schema`, () => {
   let output: string
   let dummy: GraphQLSchema
 
   beforeEach(() => {
     dummy = buildCosmosASTSchema(dummyTypeDefs)
-
     expect(validateSchema(dummy)).toHaveLength(0)
+
+    output = printSchema(dummy, { commentDescriptions: false })
   })
 
   it(`should match expected`, () => {
-    output = printSchema(dummy, { commentDescriptions: false })
     expect(output).toMatchSnapshot()
   })
 })
