@@ -3,9 +3,10 @@ import { GraphQLResolveInfo } from 'graphql'
 import { GraphQLCosmosContext, GraphQLCosmosInitRequest, GraphQLCosmosRequest } from '../../configuration'
 import { DEFAULT } from '../../constants'
 import { defaultOnInit, defaultOnQuery } from '../../default'
+import { getId, getTypename } from '../../object-type-id'
 import { CosmosArgSort, CosmosArgWhere, CosmosRequest } from '../../intermediate/model'
 import { isSqlOperation, SqlOperationList, SqlOperationScalar, SqlOpScalar } from '../../sql/op'
-import { toCosmosReference, ToCosmosReference } from '../reference'
+import { toCosmosReference } from '../reference'
 
 const parseWhere = (where: Record<string, unknown>): Array<CosmosArgWhere> => {
   return Object.entries(where).map(([whereField, value]) => {
@@ -136,7 +137,8 @@ export const cosmosResolve = async (
     const singleExpression = graphquery.where.length === 1
     if (hasDataloader && singleExpression && byId?.operation === SqlOperationScalar.eq && !Array.isArray(byId.value)) {
       // Defer to using dataloader
-      return { page: [byId.value].map((id) => String(id)).map(ToCosmosReference(typename, container)) }
+      const page = [byId.value].map((x) => toCosmosReference(getTypename(x) ?? typename, container, getId(x)))
+      return { page }
     } else if (
       hasDataloader &&
       singleExpression &&
@@ -144,7 +146,8 @@ export const cosmosResolve = async (
       Array.isArray(byId.value)
     ) {
       // Defer to using dataloader
-      return { page: byId.value.map((id) => String(id)).map(ToCosmosReference(typename, container)) }
+      const page = byId.value.map((x) => toCosmosReference(getTypename(x) ?? typename, container, getId(x)))
+      return { page }
     } else {
       //
       // Notify query about to be requested
@@ -171,7 +174,7 @@ export const cosmosResolve = async (
 
       const response = await onQuery(request)
       const nextCursor = response.continuationToken
-      const page = response.resources.map((item: any) => toCosmosReference(typename, container, item?.id))
+      const page = response.resources.map((x) => toCosmosReference(getTypename(x) ?? typename, container, getId(x)))
       return { response, nextCursor, page }
     }
   }
