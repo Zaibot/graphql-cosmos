@@ -1,5 +1,6 @@
 import { CosmosClient, FeedOptions, FeedResponse } from '@azure/cosmos'
 import { DataLoaderHandler } from './dataloader/loader'
+import { ErrorMiddleware } from './error'
 import { CosmosRequest } from './intermediate/model'
 import { SqlBuilder } from './sql/builder'
 import { SqlOpScalar } from './sql/op'
@@ -9,6 +10,7 @@ export interface GraphQLCosmosContext {
 }
 
 export interface GraphQLDirectivesContext {
+  error?: ErrorMiddleware
   cosmos: {
     database: string
     client: CosmosClient

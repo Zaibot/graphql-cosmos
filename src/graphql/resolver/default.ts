@@ -1,6 +1,7 @@
 import * as GraphQL from 'graphql'
 import { SchemaVisitorMap, visitSchema } from 'graphql-tools'
 import { debugHooks } from '../../debug'
+import { withErrorMiddleware } from '../../error'
 import { cosmosOursByResolveInfo, cosmosTheirsByResolveInfo } from '../directive/ast'
 import { hasCosmosTag } from '../reference'
 import { hasId, requireCosmosColumn } from './requireCosmosColumn'
@@ -15,7 +16,7 @@ export function buildCosmosFieldResolverSchema(schema: GraphQL.GraphQLSchema) {
           fieldType: field,
         })
 
-        field.resolve = DefaultCosmosFieldResolver(field)
+        field.resolve = withErrorMiddleware(`DefaultCosmosFieldResolver`, DefaultCosmosFieldResolver(field))
       }
       return type
     },

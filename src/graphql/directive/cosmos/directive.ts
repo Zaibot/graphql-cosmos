@@ -12,6 +12,7 @@ import {
 } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { debugHooks as debugHook } from '../../../debug'
+import { withErrorMiddleware } from '../../../error'
 import { addFieldArgument, createOrGetPageType } from '../../internal/schema'
 import { SortDirective } from '../sort/directive'
 import { inputSort } from '../sort/input'
@@ -142,7 +143,10 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           })
           addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString)
           fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema))
-          fieldType.resolve = resolveManyTheirs(theirContainer, ours, theirs, fieldType)
+          fieldType.resolve = withErrorMiddleware(
+            `resolveManyTheirs`,
+            resolveManyTheirs(theirContainer, ours, theirs, fieldType)
+          )
         } else if (returnTypeMany && ours) {
           debugHook?.onResolverSet?.({
             resolver: `resolveManyOurs`,
@@ -151,7 +155,10 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           })
           addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString)
           fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema))
-          fieldType.resolve = resolveManyOurs(theirContainer, ours, theirs, fieldType)
+          fieldType.resolve = withErrorMiddleware(
+            `resolveManyOurs`,
+            resolveManyOurs(theirContainer, ours, theirs, fieldType)
+          )
         } else if (returnTypeMany) {
           debugHook?.onResolverSet?.({
             resolver: `resolveRootQuery`,
@@ -160,21 +167,21 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           })
           addFieldArgument(fieldType, `cursor`, GraphQL.GraphQLString)
           fieldType.type = new GraphQL.GraphQLNonNull(wrapOutputWithPagination(fieldType.type, this.schema))
-          fieldType.resolve = resolveRootQuery(theirContainer, fieldType)
+          fieldType.resolve = withErrorMiddleware(`resolveRootQuery`, resolveRootQuery(theirContainer, fieldType))
         } else if (ours) {
           debugHook?.onResolverSet?.({
             resolver: `resolveOneOurs`,
             objectType: details.objectType,
             fieldType,
           })
-          fieldType.resolve = resolveOneOurs(ours, fieldType)
+          fieldType.resolve = withErrorMiddleware(`resolveOneOurs`, resolveOneOurs(ours, fieldType))
         } else if (theirs) {
           debugHook?.onResolverSet?.({
             resolver: `resolveOneTheirs`,
             objectType: details.objectType,
             fieldType,
           })
-          fieldType.resolve = resolveOneTheirs(theirContainer, ours, fieldType)
+          fieldType.resolve = withErrorMiddleware(`resolveOneTheirs`, resolveOneTheirs(theirContainer, ours, fieldType))
         }
       }
     } else if (ours) {
@@ -185,7 +192,10 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           objectType: details.objectType,
           fieldType,
         })
-        fieldType.resolve = resolveManyOursWithoutContainer(ours, fieldType)
+        fieldType.resolve = withErrorMiddleware(
+          `resolveManyOursWithoutContainer`,
+          resolveManyOursWithoutContainer(ours, fieldType)
+        )
       } else {
         // No container, ours specifies id field to be created as reference
         debugHook?.onResolverSet?.({
@@ -193,7 +203,7 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           objectType: details.objectType,
           fieldType,
         })
-        fieldType.resolve = resolveOneOurs(ours, fieldType)
+        fieldType.resolve = withErrorMiddleware(`resolveOneOurs`, resolveOneOurs(ours, fieldType))
       }
     }
 
