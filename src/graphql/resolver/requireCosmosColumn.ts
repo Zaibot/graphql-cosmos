@@ -35,8 +35,10 @@ export const requireCosmosColumn = async <Source extends { id: string; __cosmos_
     if (cosmosSource.length !== 1) {
       throw Error(`expects single dataloader result`)
     }
-    if (typeof cosmosSource[0] !== `object`) {
-      throw Error(`expects single object dataloader result`)
+
+    if (cosmosSource[0] === null || cosmosSource[0] === undefined) {
+      // TODO: does not exist, configure/hook to throw/log?
+      return { ...source, [column]: null }
     }
 
     const value = cosmosSource[0][column] ?? null
