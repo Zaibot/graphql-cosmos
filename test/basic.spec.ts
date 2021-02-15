@@ -1,9 +1,7 @@
-import { buildASTSchema, execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
+import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { GraphQLCosmosContext } from '../src/configuration'
-import { GraphQLCosmosSchema } from '../src/graphql/directive/schema'
 import { buildCosmosASTSchema } from '../src/build'
-import { reportHooks } from './utils'
+import { GraphQLCosmosContext } from '../src/configuration'
 
 const dummyTypeDefs = gql`
   type Query {

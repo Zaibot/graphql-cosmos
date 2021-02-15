@@ -1,12 +1,10 @@
 import { FeedResponse } from '@azure/cosmos'
-import { buildASTSchema, execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
+import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
+import { buildCosmosASTSchema } from '../src/build'
 import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
 import { defaultDataLoader } from '../src/default'
-import { GraphQLCosmosSchema } from '../src/graphql/directive/schema'
-import { buildCosmosASTSchema } from '../src/build'
 import { SqlOpScalar } from '../src/sql/op'
-import { reportHooks } from './utils'
 
 const dummyTypeDefs = gql`
   type Query {
