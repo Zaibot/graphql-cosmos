@@ -17,6 +17,7 @@ type Related {
 }
 
 enum Status {
+  NONE
   OPEN
   CLOSE
 }
@@ -25,6 +26,8 @@ input DummyWhere {
   id_eq: ID
   status_eq: Status
   status_neq: Status
+  status_in: [Status]
+  status_nin: [Status]
 }
 
 type DummyPage {

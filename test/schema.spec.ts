@@ -11,7 +11,7 @@ const dummyTypeDefs = gql`
 
   type Dummy {
     id: ID! @where(op: "eq")
-    status: Status! @where(op: "eq neq")
+    status: Status! @where(op: "eq neq in nin")
     related: [Related!]! @cosmos(container: "Relations", ours: "relatedIds")
   }
 
@@ -21,6 +21,7 @@ const dummyTypeDefs = gql`
   }
 
   enum Status {
+    NONE
     OPEN
     CLOSE
   }

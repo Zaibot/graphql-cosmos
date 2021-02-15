@@ -107,13 +107,19 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
     if (theirContainer) {
       if (isObjectType(returnTypeCore)) {
         const filterableScalar = Object.entries(returnTypeCore.getFields())
-          .map(([name, field]) => ({ name, field, scalar: getNullableType(field.type) as GraphQL.GraphQLScalarType }))
+          .map(([name, field]) => ({
+            name,
+            field,
+            scalar: getNullableType(field.type) as GraphQL.GraphQLScalarType,
+            fieldIsArray: Boolean(isListType(field.type)),
+          }))
           .filter(
             ({ field }) => isScalarType(getNullableType(field.type)) || GraphQL.isEnumType(getNullableType(field.type))
           )
-          .map(({ field, name, scalar }) => ({
+          .map(({ field, name, scalar, fieldIsArray }) => ({
             name,
             scalar,
+            fieldIsArray,
             operations: WhereDirective.getOp(directiveNameWhere, this.schema, field.astNode!) ?? [],
           }))
           .filter((x) => x.operations.length > 0)

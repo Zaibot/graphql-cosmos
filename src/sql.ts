@@ -12,7 +12,7 @@ export function convertToSql({ type, columns: columnNames, where, sort }: Cosmos
 
   const expressions = where.map((expr) => {
     if (isSqlOperation(expr.operation)) {
-      const sql = sqlOp(alias, expr.property, expr.operation, expr.parameter)
+      const sql = sqlOp(alias, expr.property, expr.operation, expr.parameter, Array.isArray(expr.value))
       const parameter: SqlOpParameter = {
         name: expr.parameter,
         value: expr.value,

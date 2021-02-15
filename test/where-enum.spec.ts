@@ -14,10 +14,11 @@ const dummyTypeDefs = gql`
 
   type Entity {
     id: ID!
-    status: Status! @where(op: "eq neq")
+    status: Status! @where(op: "eq neq in nin")
   }
 
   enum Status {
+    NONE
     OPEN
     CLOSE
   }
@@ -42,6 +43,10 @@ const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedRespons
       ],
       'SELECT c.id FROM c WHERE c.status = @status_eq ORDER BY c.id (@status_eq=OPEN)': [{ id: `1` }],
       'SELECT c.id FROM c WHERE c.status != @status_neq ORDER BY c.id (@status_neq=OPEN)': [{ id: `2` }],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@status_in, c.status) ORDER BY c.id (@status_in=OPEN,CLOSE)': [
+        { id: `1` },
+        { id: `2` },
+      ],
     },
   }
 
@@ -151,5 +156,34 @@ describe(`Where`, () => {
     result.errors?.forEach((e) => console.error(e.path.join(`/`), e.stack))
 
     expect(result).toEqual({ data: { entities: { page: [{ __typename: 'Entity', id: `2`, status: `CLOSE` }] } } })
+  })
+
+  it(`should retrieve all open and close`, async () => {
+    const query = gql`
+      query {
+        entities(where: { status_in: [OPEN, CLOSE] }) {
+          page {
+            __typename
+            id
+            status
+          }
+        }
+      }
+    `
+    expect(validate(dummy, query)).toHaveLength(0)
+
+    const result = await execute(dummy, query, undefined, context)
+    result.errors?.forEach((e) => console.error(e.path.join(`/`), e.stack))
+
+    expect(result).toEqual({
+      data: {
+        entities: {
+          page: [
+            { __typename: 'Entity', id: `1`, status: `OPEN` },
+            { __typename: 'Entity', id: `2`, status: `CLOSE` },
+          ],
+        },
+      },
+    })
   })
 })
