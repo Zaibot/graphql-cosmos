@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Where schema 1`] = `
+"type Query {
+  entities(where: EntityWhere, cursor: String): EntityPage!
+}
+
+type Entity {
+  id: ID!
+  related: Related
+}
+
+type Related {
+  id: ID!
+  text: String
+}
+
+input EntityWhere {
+  relatedId_eq: ID
+}
+
+type EntityPage {
+  nextCursor: String
+  total: Int!
+  page: [Entity!]!
+}
+"
+`;

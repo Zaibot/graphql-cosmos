@@ -110,19 +110,22 @@ export class CosmosDirective extends SchemaDirectiveVisitor {
           .map(([name, field]) => ({
             name,
             field,
-            scalar: getNullableType(field.type) as GraphQL.GraphQLScalarType,
+            type: getNullableType(field.type),
+            isScalarType: GraphQL.isScalarType(getNullableType(field.type)),
+            isEnumType: GraphQL.isEnumType(getNullableType(field.type)),
+            isRelation: GraphQL.isObjectType(getNullableType(field.type)) && resolveWhereOurs(field),
+            whereOurs: resolveWhereOurs(field),
             fieldIsArray: Boolean(isListType(field.type)),
-          }))
-          .filter(
-            ({ field }) => isScalarType(getNullableType(field.type)) || GraphQL.isEnumType(getNullableType(field.type))
-          )
-          .map(({ field, name, scalar, fieldIsArray }) => ({
-            name,
-            scalar,
-            fieldIsArray,
             operations: WhereDirective.getOp(directiveNameWhere, this.schema, field.astNode!) ?? [],
           }))
-          .filter((x) => x.operations.length > 0)
+          .filter(({ operations }) => operations.length > 0)
+          .filter(({ isScalarType, isEnumType, isRelation }) => isScalarType || isEnumType || isRelation)
+          .map(({ operations, name, type, isRelation, whereOurs, fieldIsArray }) => ({
+            name: isRelation ? whereOurs ?? name : name,
+            fieldType: isRelation ? GraphQL.GraphQLID : (type as GraphQL.GraphQLScalarType | GraphQL.GraphQLEnumType),
+            fieldIsArray,
+            operations,
+          }))
         if (filterableScalar.length > 0) {
           const filterType = inputWhere(returnTypeCore.name, filterableScalar, this.schema)
           addFieldArgument(fieldType, `where`, filterType)
@@ -228,3 +231,38 @@ const wrapOutputWithPagination = (type: GraphQL.GraphQLOutputType, schema: Graph
     schema
   )
 }
+
+function getCosmosContainer(field: GraphQL.GraphQLField<unknown, unknown>): string | null {
+  const value = field.astNode?.directives
+    ?.filter((x) => x.name.value === `cosmos`)
+    .flatMap((x) => x.arguments)
+    .find((x) => x?.name.value === `container`)?.value
+  return value?.kind === `StringValue` ? value.value : null
+}
+
+function getCosmosOurs(field: GraphQL.GraphQLField<unknown, unknown>): string | null {
+  const value = field.astNode?.directives
+    ?.filter((x) => x.name.value === `cosmos`)
+    .flatMap((x) => x.arguments)
+    .find((x) => x?.name.value === `ours`)?.value
+  return value?.kind === `StringValue` ? value.value : null
+}
+
+function getWhereOurs(field: GraphQL.GraphQLField<unknown, unknown>): string | null {
+  const value = field.astNode?.directives
+    ?.filter((x) => x.name.value === `where`)
+    .flatMap((x) => x.arguments)
+    .find((x) => x?.name.value === `ours`)?.value
+  return value?.kind === `StringValue` ? value.value : null
+}
+
+function getSortOurs(field: GraphQL.GraphQLField<unknown, unknown>): string | null {
+  const value = field.astNode?.directives
+    ?.filter((x) => x.name.value === `sort`)
+    .flatMap((x) => x.arguments)
+    .find((x) => x?.name.value === `ours`)?.value
+  return value?.kind === `StringValue` ? value.value : null
+}
+
+const resolveWhereOurs = (field: GraphQL.GraphQLField<unknown, unknown>) => getWhereOurs(field) ?? getCosmosOurs(field)
+const resolveSortOurs = (field: GraphQL.GraphQLField<unknown, unknown>) => getWhereOurs(field) ?? getCosmosOurs(field)

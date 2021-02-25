@@ -8,6 +8,7 @@ import {
 } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { isSqlOperation } from '../../../sql/op'
+import { CosmosDirective } from '../cosmos/directive'
 
 export class WhereDirective extends SchemaDirectiveVisitor<{
   op?: string
@@ -53,17 +54,8 @@ export class WhereDirective extends SchemaDirectiveVisitor<{
     const directive = WhereDirective.getDirectiveDeclaration(directiveName, schema)
     const values = getDirectiveValues(directive, node)
     const raw = values?.ours as string | undefined
-    return raw
-  }
 
-  get argOp() {
-    const raw = this.args.op as string | undefined
-    const ops = raw?.split(` `).filter(isSqlOperation)
-    return ops
-  }
-
-  get argOurs() {
-    return this.args.ours as string | undefined
+    return raw ?? CosmosDirective.getOurs(`cosmos`, schema, node)
   }
 
   visitFieldDefinition() {

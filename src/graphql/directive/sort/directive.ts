@@ -7,6 +7,7 @@ import {
   GraphQLString,
 } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
+import { CosmosDirective } from '../cosmos/directive'
 
 export class SortDirective extends SchemaDirectiveVisitor<{ ours?: string }> {
   static getDirectiveDeclaration(directiveName: string, schema: GraphQLSchema) {
@@ -39,11 +40,8 @@ export class SortDirective extends SchemaDirectiveVisitor<{ ours?: string }> {
     const directive = SortDirective.getDirectiveDeclaration(directiveName, schema)
     const values = getDirectiveValues(directive, node)
     const raw = values?.ours as string | undefined
-    return raw
-  }
 
-  get argOurs() {
-    return this.args.ours as string | undefined
+    return raw ?? CosmosDirective.getOurs(`cosmos`, schema, node)
   }
 
   visitFieldDefinition() {

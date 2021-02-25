@@ -1,4 +1,4 @@
-import { GraphQLList, GraphQLScalarType, GraphQLSchema } from 'graphql'
+import { GraphQLEnumType, GraphQLList, GraphQLScalarType, GraphQLSchema } from 'graphql'
 import { SqlOp, SqlOperationList } from '../../../sql/op'
 import { createOrGetWhereType } from '../../internal/schema'
 
@@ -7,17 +7,17 @@ export const inputWhere = (
   fields: Array<{
     name: string
     operations: Array<SqlOp>
-    scalar: GraphQLScalarType
+    fieldType: GraphQLScalarType | GraphQLEnumType
     fieldIsArray: boolean
   }>,
   schema: GraphQLSchema
 ) => {
   const allOperations = fields.flatMap((field) => field.operations.map((operation) => ({ ...field, operation })))
   const whereFields = Object.fromEntries(
-    allOperations.map(({ name, operation, scalar, fieldIsArray }) => [
+    allOperations.map(({ name, operation, fieldType, fieldIsArray }) => [
       `${name}_${operation}`,
       {
-        type: isInOrNin(operation) && !fieldIsArray ? new GraphQLList(scalar) : scalar,
+        type: isInOrNin(operation) && !fieldIsArray ? new GraphQLList(fieldType) : fieldType,
         extensions: { __operation: operation },
       },
     ])
