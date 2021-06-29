@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`One to one expects meta schema to remain the same 1`] = `
+Object {
+  "types": Array [
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": "Lefts",
+          "database": "Test",
+          "fieldname": "lefts",
+          "kind": "many-root",
+          "ours": null,
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Left",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Query",
+    },
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "id",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Rights",
+          "database": "Test",
+          "fieldname": "right",
+          "kind": "one-ours",
+          "ours": "rightId",
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "Right",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Left",
+    },
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "id",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Right",
+    },
+  ],
+}
+`;
+
+exports[`One to one expects schema to remain the same 1`] = `
+"schema {
+  query: Query
+}
+type Query {
+  lefts(cursor: String, limit: Int): LeftPage!
+}
+type Left {
+  id: ID!
+  right: Right
+}
+type Right {
+  id: ID!
+}
+type LeftPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Left]!
+}"
+`;

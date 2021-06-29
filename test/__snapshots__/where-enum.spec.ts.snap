@@ -1,0 +1,104 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Where expects meta schema to remain the same 1`] = `
+Object {
+  "types": Array [
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": "Entities",
+          "database": "Test",
+          "fieldname": "entities",
+          "kind": "many-root",
+          "ours": null,
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Entity",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Query",
+    },
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "id",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "status",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "Status",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [
+            "eq",
+            "neq",
+            "in",
+            "nin",
+          ],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Entity",
+    },
+  ],
+}
+`;
+
+exports[`Where expects schema to remain the same 1`] = `
+"schema {
+  query: Query
+}
+type Query {
+  entities(where: EntityWhere, cursor: String, limit: Int): EntityPage!
+}
+type Entity {
+  id: ID!
+  status: Status!
+}
+enum Status {
+  NONE
+  OPEN
+  CLOSE
+}
+type EntityPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Entity]!
+}
+input EntityWhere {
+  and: [EntityWhere!]
+  or: [EntityWhere!]
+  status_eq: Status
+  status_neq: Status
+  status_in: [Status]
+  status_nin: [Status]
+}"
+`;

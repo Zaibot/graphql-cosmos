@@ -1,28 +1,134 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Where schema 1`] = `
-"type Query {
-  entities(where: EntityWhere, cursor: String): EntityPage!
+exports[`Where expects meta schema to remain the same 1`] = `
+Object {
+  "types": Array [
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": "Entities",
+          "database": "Test",
+          "fieldname": "entities",
+          "kind": "many-root",
+          "ours": null,
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Entity",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Query",
+    },
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "id",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Related",
+          "database": "Test",
+          "fieldname": "related",
+          "kind": "one-ours",
+          "ours": "relatedId",
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "Related",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [
+            "eq",
+          ],
+          "whereOurs": "relatedId",
+        },
+      ],
+      "typename": "Entity",
+    },
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "id",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "text",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "String",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Related",
+    },
+  ],
 }
+`;
 
+exports[`Where expects schema to remain the same 1`] = `
+"schema {
+  query: Query
+}
+type Query {
+  entities(where: EntityWhere, cursor: String, limit: Int): EntityPage!
+}
 type Entity {
   id: ID!
   related: Related
 }
-
 type Related {
   id: ID!
   text: String
 }
-
-input EntityWhere {
-  relatedId_eq: ID
-}
-
 type EntityPage {
-  nextCursor: String
   total: Int!
-  page: [Entity!]!
+  cursor: String
+  nextCursor: String
+  page: [Entity]!
 }
-"
+input EntityWhere {
+  and: [EntityWhere!]
+  or: [EntityWhere!]
+  relatedId_eq: String
+}"
 `;

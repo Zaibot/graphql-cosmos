@@ -1,0 +1,133 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Reference to other container expects meta schema to remain the same 1`] = `
+Object {
+  "types": Array [
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": "Dummies",
+          "database": "Test",
+          "fieldname": "dummies",
+          "kind": "many-root",
+          "ours": null,
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Dummy",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Query",
+    },
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "id",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Relations",
+          "database": "Test",
+          "fieldname": "related",
+          "kind": "many-ours",
+          "ours": "relatedIds",
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Related",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Dummy",
+    },
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "id",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Dummies",
+          "database": "Test",
+          "fieldname": "dummies",
+          "kind": "many-theirs",
+          "ours": null,
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Dummy",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": "relatedIds",
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Related",
+    },
+  ],
+}
+`;
+
+exports[`Reference to other container expects schema to remain the same 1`] = `
+"schema {
+  query: Query
+}
+type Query {
+  dummies(cursor: String, limit: Int): DummyPage!
+}
+type Dummy {
+  id: ID!
+  related(cursor: String, limit: Int): RelatedPage!
+}
+type Related {
+  id: ID!
+  dummies(cursor: String, limit: Int): DummyPage!
+}
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
+}
+type RelatedPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Related]!
+}"
+`;

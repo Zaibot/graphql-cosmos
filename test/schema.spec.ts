@@ -1,16 +1,17 @@
-import { GraphQLSchema, printSchema, validateSchema } from 'graphql'
+import { GraphQLSchema, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { buildCosmosASTSchema } from '../src/build'
+import { printSchemaWithDirectives } from 'graphql-tools'
+import { CosmosDefaultCompiler } from '../src/4-resolver-builder/4-default-compiler'
 
 const dummyTypeDefs = gql`
   type Query {
-    dummies: [Dummy!]! @cosmos(container: "Dummies")
+    dummies: [Dummy!]! @cosmos(database: "Test", container: "Dummies")
   }
 
   type Dummy {
     id: ID! @where(op: "eq")
     status: Status! @where(op: "eq neq in nin")
-    related: [Related!]! @cosmos(container: "Relations", ours: "relatedIds")
+    related: [Related!]! @cosmos(database: "Test", container: "Relations", ours: "relatedIds", pagination: "on")
   }
 
   type Related {
@@ -30,13 +31,13 @@ describe(`Processed schema`, () => {
   let dummy: GraphQLSchema
 
   beforeEach(() => {
-    dummy = buildCosmosASTSchema(dummyTypeDefs)
+    dummy = CosmosDefaultCompiler.fromTypeDefs(dummyTypeDefs).schema
 
     expect(validateSchema(dummy)).toHaveLength(0)
   })
 
   it(`should match expected`, () => {
-    output = printSchema(dummy, { commentDescriptions: false })
+    output = printSchemaWithDirectives(dummy)
     expect(output).toMatchSnapshot()
   })
 })

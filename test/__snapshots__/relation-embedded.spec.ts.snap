@@ -1,0 +1,222 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Nulled relations expects meta schema to remain the same 1`] = `
+Object {
+  "types": Array [
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": "Dummies",
+          "database": "Test",
+          "fieldname": "dummies",
+          "kind": "many-root",
+          "ours": null,
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Dummy",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Query",
+    },
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "id",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "prop",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "String",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "embedded",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": true,
+          "returnTypename": "Embedded",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Related",
+          "database": "Test",
+          "fieldname": "related",
+          "kind": "one-ours",
+          "ours": "relatedId",
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "Related",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Dummy",
+    },
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "prop",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "String",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Related",
+          "database": "Test",
+          "fieldname": "related",
+          "kind": "many-ours",
+          "ours": "relatedId",
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Related",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Embedded",
+    },
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "id",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "prop",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "String",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Related",
+          "database": "Test",
+          "fieldname": "related",
+          "kind": "one-ours",
+          "ours": "relatedId",
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "Related",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Related",
+    },
+  ],
+}
+`;
+
+exports[`Nulled relations expects schema to remain the same 1`] = `
+"schema {
+  query: Query
+}
+type Query {
+  dummies(cursor: String, limit: Int): DummyPage!
+}
+type Dummy {
+  id: ID!
+  prop: String
+  embedded: [Embedded]
+  related: Related
+}
+type Embedded {
+  prop: String
+  related(cursor: String, limit: Int): RelatedPage!
+}
+type Related {
+  id: ID!
+  prop: String
+  related: Related
+}
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
+}
+type RelatedPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Related]!
+}"
+`;

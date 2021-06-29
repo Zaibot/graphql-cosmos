@@ -1,54 +1,54 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Processed schema should match expected 1`] = `
-"type Query {
-  dummies(where: DummyWhere, cursor: String): DummyPage!
+"schema {
+  query: Query
 }
-
+type Query {
+  dummies(where: DummyWhere, cursor: String, limit: Int): DummyPage!
+}
 type Dummy {
   id: ID!
   status: Status!
-  related(where: RelatedWhere, sort: RelatedSort, cursor: String): RelatedPage!
+  related(where: RelatedWhere, sort: RelatedSort, cursor: String, limit: Int): RelatedPage!
 }
-
 type Related {
   id: ID!
   name: String!
 }
-
 enum Status {
   NONE
   OPEN
   CLOSE
 }
-
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
+}
+type RelatedPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Related]!
+}
 input DummyWhere {
+  and: [DummyWhere!]
+  or: [DummyWhere!]
   id_eq: ID
   status_eq: Status
   status_neq: Status
   status_in: [Status]
   status_nin: [Status]
 }
-
-type DummyPage {
-  nextCursor: String
-  total: Int!
-  page: [Dummy!]!
-}
-
 input RelatedWhere {
+  and: [RelatedWhere!]
+  or: [RelatedWhere!]
   id_eq: ID
 }
-
 input RelatedSort {
   name_ASC: Int
   name_DESC: Int
-}
-
-type RelatedPage {
-  nextCursor: String
-  total: Int!
-  page: [Related!]!
-}
-"
+}"
 `;

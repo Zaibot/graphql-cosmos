@@ -1,35 +1,28 @@
-import { FeedResponse } from '@azure/cosmos'
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { buildCosmosASTSchema } from '../src/build'
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
-import { defaultDataLoader } from '../src/default'
+import { printSchemaWithDirectives } from 'graphql-tools'
+import { createUnitTestContext } from './utils'
 
-const dummyTypeDefs = gql`
-  type Query {
-    dummies: [Dummy] @cosmos(container: "Dummies")
-  }
+describe(`Embedded relations`, () => {
+  const dummyTypeDefs = gql`
+    type Query {
+      dummies: [Dummy] @cosmos(database: "Test", container: "Dummies")
+    }
 
-  type Dummy {
-    id: ID!
-    embedded: [Embedded]
-  }
+    type Dummy {
+      id: ID!
+      embedded: [Embedded]
+    }
 
-  type Embedded {
-    id: ID!
-  }
-`
+    type Embedded {
+      id: ID!
+    }
+  `
 
-const onCosmosQuery = async ({
-  container,
-  query,
-  parameters,
-}: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
-  const queryResult: Record<string, Record<string, unknown[]>> = {
+  const responses = {
     Dummies: {
       'SELECT VALUE COUNT(1) FROM c': [3],
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
-      'SELECT c.id, c.embedded FROM c WHERE ARRAY_CONTAINS(@batch, c.id)': [
+      'SELECT c.id, c.embedded FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1,2,3)': [
         { id: `1`, embedded: [{ id: `1b` }] },
         { id: `2`, embedded: [{ id: `2b` }] },
         { id: `3`, embedded: [{ id: `3b` }] },
@@ -37,46 +30,21 @@ const onCosmosQuery = async ({
     },
   }
 
-  const result = queryResult[container]?.[query]
-  if (result) {
-    return { resources: result } as any
-  } else {
-    throw Error(
-      `Unhandled: ${container} ${query} (${
-        parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`
-      })`
-    )
-  }
-}
+  const uc = createUnitTestContext(dummyTypeDefs, responses)
 
-describe(`Embedded relations`, () => {
-  let context: GraphQLCosmosContext
-  let dummy: GraphQLSchema
+  it(`expects schema to remain the same`, () => {
+    const output = printSchemaWithDirectives(uc.schema)
+    expect(output).toMatchSnapshot()
+  })
 
-  beforeEach(() => {
-    const loader = defaultDataLoader()
-
-    context = {
-      directives: {
-        cosmos: {
-          database: null as any,
-          client: null as any,
-          onQuery: onCosmosQuery,
-          dataloader: loader,
-        },
-      },
-    }
-
-    dummy = buildCosmosASTSchema(dummyTypeDefs)
-
-    expect(validateSchema(dummy)).toHaveLength(0)
+  it(`expects meta schema to remain the same`, () => {
+    const output = uc.metaSchema
+    expect(output).toMatchSnapshot()
   })
 
   it(`should be retrieve all items`, async () => {
-    const query = parse(`query { dummies { total page { __typename id embedded { __typename id } } } }`)
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(`query { dummies { total page { __typename id embedded { __typename id } } } }`)
 
-    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {

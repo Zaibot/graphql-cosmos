@@ -1,0 +1,117 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Processed schema expects meta schema to remain the same 1`] = `
+Object {
+  "types": Array [
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": "Dummies",
+          "database": "Test",
+          "fieldname": "dummies",
+          "kind": "many-root",
+          "ours": null,
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Dummy",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Query",
+    },
+    Object {
+      "container": null,
+      "database": null,
+      "fields": Array [
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "id",
+          "kind": "embedded",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [
+            "eq",
+            "in",
+          ],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "timestamp",
+          "kind": "one-ours",
+          "ours": "_ts",
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "Int",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [
+            "gte",
+          ],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "database": null,
+          "fieldname": "etag",
+          "kind": "one-ours",
+          "ours": "_etag",
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "String",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [
+            "eq",
+          ],
+          "whereOurs": null,
+        },
+      ],
+      "typename": "Dummy",
+    },
+  ],
+}
+`;
+
+exports[`Processed schema expects schema to remain the same 1`] = `
+"schema {
+  query: Query
+}
+type Query {
+  dummies(where: DummyWhere, cursor: String, limit: Int): DummyPage!
+}
+type Dummy {
+  id: ID!
+  timestamp: Int
+  etag: String
+}
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
+}
+input DummyWhere {
+  and: [DummyWhere!]
+  or: [DummyWhere!]
+  id_eq: ID
+  id_in: [ID]
+  timestamp_gte: Int
+  etag_eq: String
+}"
+`;

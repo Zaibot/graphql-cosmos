@@ -1,43 +1,40 @@
-import { FeedResponse } from '@azure/cosmos'
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { buildCosmosASTSchema } from '../src/build'
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
-import { defaultDataLoader } from '../src/default'
-import { SqlOpScalar } from '../src/sql/op'
+import { printSchemaWithDirectives } from 'graphql-tools'
+import { createUnitTestContext } from './utils'
 
-const dummyTypeDefs = gql`
-  type Query {
-    dummies: [Dummy] @cosmos(container: "Dummies")
-  }
+describe(`Data Loader`, () => {
+  const dummyTypeDefs = gql`
+    type Query {
+      dummies: [Dummy] @cosmos(database: "Test", container: "Dummies")
+    }
 
-  type Dummy {
-    id: ID!
-    related: Related @cosmos(container: "Relations", ours: "relatedId")
-  }
+    type Dummy {
+      id: ID! @where(op: "eq in")
+      related: Related @cosmos(database: "Test", container: "Relations", ours: "relatedId")
+    }
 
-  type Related {
-    id: ID!
-    text: String
-  }
-`
+    type Related {
+      id: ID!
+      text: String
+    }
+  `
 
-const onCosmosQuery = async ({
-  container,
-  query,
-  parameters,
-}: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
-  const queryResult: Record<string, Record<string, unknown[]>> = {
+  const responses = {
     Dummies: {
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
-      'SELECT c.id, c.relatedId FROM c WHERE ARRAY_CONTAINS(@batch, c.id)': [
+      'SELECT c.id, c.relatedId FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1,2,3)': [
         { id: `1`, relatedId: `1b` },
         { id: `2`, relatedId: `2b` },
         { id: `3`, relatedId: `3b` },
       ],
+
+      'SELECT VALUE COUNT(1) FROM c WHERE c.id = @p2 (@p2=missing)': [0],
+      'SELECT c.id FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=missing)': [],
+      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@p2, c.id) (@p2=missing1,missing2)': [0],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=missing1,missing2)': [],
     },
     Relations: {
-      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@batch, c.id)': [
+      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1b,2b,3b)': [
         { id: `1b`, text: null },
         { id: `2b`, text: null },
         { id: `3b`, text: null },
@@ -45,56 +42,36 @@ const onCosmosQuery = async ({
     },
   }
 
-  const result = queryResult[container]?.[query]
-  if (result) {
-    return { resources: result } as any
-  } else {
-    throw Error(
-      `Unhandled: ${container} ${query} (${
-        parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`
-      })`
-    )
-  }
-}
+  const uc = createUnitTestContext(dummyTypeDefs, responses)
 
-describe(`Data Loader`, () => {
-  let context: GraphQLCosmosContext
-  let dummy: GraphQLSchema
-  let dataloader: SqlOpScalar[]
+  let dataloader: string[]
+  const original = uc.context.dataSources.graphqlCosmos.dataloader
 
   beforeEach(() => {
-    const loader = defaultDataLoader()
-
-    context = {
-      directives: {
-        cosmos: {
-          database: null as any,
-          client: null as any,
-          onQuery: onCosmosQuery,
-          dataloader(spec) {
-            if (spec.container === `Relations`) {
-              dataloader.splice(dataloader.length, 0, ...spec.id)
-              return loader(spec)
-            } else {
-              return loader(spec)
-            }
-          },
-        },
-      },
-    }
-
-    dummy = buildCosmosASTSchema(dummyTypeDefs)
-
     dataloader = []
+    uc.context.dataSources.graphqlCosmos.dataloader = (spec) => {
+      if (spec.container === `Relations`) {
+        dataloader.splice(dataloader.length, 0, ...spec.id)
+        return original(spec)
+      } else {
+        return original(spec)
+      }
+    }
+  })
 
-    expect(validateSchema(dummy)).toHaveLength(0)
+  it(`expects schema to remain the same`, () => {
+    const output = printSchemaWithDirectives(uc.schema)
+    expect(output).toMatchSnapshot()
+  })
+
+  it(`expects meta schema to remain the same`, () => {
+    const output = uc.metaSchema
+    expect(output).toMatchSnapshot()
   })
 
   it(`should be retrieve all items`, async () => {
-    const query = parse(`query { dummies { page { related { id text } } } } `)
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(`query { dummies { page { related { id text } } } } `)
 
-    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
@@ -107,5 +84,25 @@ describe(`Data Loader`, () => {
       },
     })
     expect(dataloader).toEqual([`1b`, `2b`, `3b`])
+  })
+
+  it(`should return null on missing single`, async () => {
+    const result = await uc.execute(
+      `query { dummies(where: { id_eq: "missing" }) { total page { id related { id } } } } `
+    )
+
+    expect(result).toEqual({
+      data: { dummies: { total: 0, page: [] } },
+    })
+  })
+
+  it(`should return null on missing many`, async () => {
+    const result = await uc.execute(
+      `query { dummies(where: { id_in: ["missing1", "missing2"] }) { total page { id related { id } } } } `
+    )
+
+    expect(result).toEqual({
+      data: { dummies: { total: 0, page: [] } },
+    })
   })
 })

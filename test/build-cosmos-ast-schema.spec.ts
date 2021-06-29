@@ -1,41 +1,41 @@
-import { GraphQLSchema, printSchema, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { buildCosmosASTSchema } from '../src/build'
-
-const dummyTypeDefs = gql`
-  type Query {
-    dummies: [Dummy!]! @cosmos(container: "Dummies")
-  }
-
-  type Dummy {
-    id: ID! @where(op: "eq")
-    status: Status! @where(op: "eq neq")
-    related: [Related!]! @cosmos(container: "Relations", ours: "relatedIds")
-  }
-
-  type Related {
-    id: ID! @where(op: "eq")
-    name: String! @sort(ours: "test")
-  }
-
-  enum Status {
-    OPEN
-    CLOSE
-  }
-`
+import { printSchemaWithDirectives } from 'graphql-tools'
+import { createUnitTestContext } from './utils'
 
 describe(`Build Cosmos AST Schema`, () => {
-  let output: string
-  let dummy: GraphQLSchema
+  const dummyTypeDefs = gql`
+    type Query {
+      dummies: [Dummy!]! @cosmos(database: "Test", container: "Dummies")
+    }
 
-  beforeEach(() => {
-    dummy = buildCosmosASTSchema(dummyTypeDefs)
-    expect(validateSchema(dummy)).toHaveLength(0)
+    type Dummy {
+      id: ID! @where(op: "eq")
+      status: Status! @where(op: "eq neq")
+      related: [Related!]! @cosmos(database: "Test", container: "Relations", ours: "relatedIds", pagination: "on")
+    }
 
-    output = printSchema(dummy, { commentDescriptions: false })
+    type Related {
+      id: ID! @where(op: "eq")
+      name: String! @sort(ours: "test")
+    }
+
+    enum Status {
+      OPEN
+      CLOSE
+    }
+  `
+
+  const responses = {}
+
+  const uc = createUnitTestContext(dummyTypeDefs, responses)
+
+  it(`expects schema to remain the same`, () => {
+    const output = printSchemaWithDirectives(uc.schema)
+    expect(output).toMatchSnapshot()
   })
 
-  it(`should match expected`, () => {
+  it(`expects meta schema to remain the same`, () => {
+    const output = uc.metaSchema
     expect(output).toMatchSnapshot()
   })
 })

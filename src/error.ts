@@ -1,6 +1,7 @@
 import { GraphQLResolveInfo } from 'graphql'
 import { IFieldResolver } from 'graphql-tools'
-import { GraphQLCosmosContext } from './configuration'
+import { GraphQLCosmosConceptContext } from './6-datasource/1-context'
+import { TraceError } from './x-error/trace-error'
 
 export type ErrorMiddleware = (arg: ErrorDescription) => Promise<unknown> | unknown
 
@@ -9,22 +10,22 @@ export interface ErrorDescription {
   error: Error
   source: unknown
   args: unknown
-  context: GraphQLCosmosContext
+  context: GraphQLCosmosConceptContext
   info: GraphQLResolveInfo
 }
 
-export const withErrorMiddleware = (
+export const withErrorMiddleware = <T extends IFieldResolver<any, GraphQLCosmosConceptContext>>(
   resolver: string,
-  original: IFieldResolver<any, GraphQLCosmosContext>
-): IFieldResolver<any, GraphQLCosmosContext> => {
-  return async (source, args, context, info) => {
-    if (!context.directives.error) {
+  original: T
+): T => {
+  const f: IFieldResolver<any, GraphQLCosmosConceptContext> = async (source, args, context, info) => {
+    if (!context.dataSources.graphqlCosmos.onError) {
       return await original(source, args, context, info)
     } else {
       try {
         return await original(source, args, context, info)
       } catch (error) {
-        return await context.directives.error({
+        return await context.dataSources.graphqlCosmos.onError({
           resolver,
           source,
           args,
@@ -35,6 +36,7 @@ export const withErrorMiddleware = (
       }
     }
   }
+  return f as any
 }
 
 export const traceErrorMiddleware = (args: ErrorDescription) => {
@@ -44,29 +46,4 @@ export const traceErrorMiddleware = (args: ErrorDescription) => {
   const fieldName = args.info.fieldName
   const trace = `during ${resolver} at ${type}(${id}).${fieldName}`
   throw new TraceError(trace, args.error)
-}
-
-class TraceError extends Error {
-  readonly original: Error
-  readonly fullTrace: string
-
-  constructor(trace: string, error: Error) {
-    if (error instanceof TraceError) {
-      const fullTrace = `${error.fullTrace}\n| ${trace}`
-
-      super(TraceError.message(fullTrace, error.original))
-      this.original = error.original
-      this.fullTrace = fullTrace
-    } else {
-      const firstTrace = `${trace}`
-
-      super(TraceError.message(firstTrace, error))
-      this.original = error
-      this.fullTrace = firstTrace
-    }
-  }
-
-  private static message(trace: string, error: Error): string | undefined {
-    return `${trace}\n\n${error.stack ?? error.message}`
-  }
 }

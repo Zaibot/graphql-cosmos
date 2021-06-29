@@ -1,99 +1,61 @@
-import { FeedResponse } from '@azure/cosmos'
-import { execute, GraphQLSchema, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { buildCosmosASTSchema } from '../src/build'
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
-import { defaultDataLoader } from '../src/default'
+import { printSchemaWithDirectives } from 'graphql-tools'
+import { createUnitTestContext } from './utils'
 
-const dummyTypeDefs = gql`
-  type Query {
-    entities: [Entity!]! @cosmos(container: "Entities")
-  }
+describe(`Where`, () => {
+  const dummyTypeDefs = gql`
+    type Query {
+      entities: [Entity!]! @cosmos(database: "Test", container: "Entities")
+    }
 
-  type Entity {
-    id: ID!
-    status: Status! @where(op: "eq neq in nin")
-  }
+    type Entity {
+      id: ID!
+      status: Status! @where(op: "eq neq in nin")
+    }
 
-  enum Status {
-    NONE
-    OPEN
-    CLOSE
-  }
-`
+    enum Status {
+      NONE
+      OPEN
+      CLOSE
+    }
+  `
 
-const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
-  const { container, query, parameters } = request
-  const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query
-
-  const responses: Record<string, Record<string, unknown[]>> = {
+  const responses = {
     Entities: {
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }],
-      'SELECT c.id, c.status FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=1,2)': [
+      'SELECT c.id, c.status FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1,2)': [
         { __typename: 'Entity', id: `1`, status: `OPEN` },
         { __typename: 'Entity', id: `2`, status: `CLOSE` },
       ],
-      'SELECT c.id, c.status FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=1)': [
+      'SELECT c.id, c.status FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1)': [
         { __typename: 'Entity', id: `1`, status: `OPEN` },
       ],
-      'SELECT c.id, c.status FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=2)': [
+      'SELECT c.id, c.status FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=2)': [
         { __typename: 'Entity', id: `2`, status: `CLOSE` },
       ],
-      'SELECT c.id FROM c WHERE c.status = @status_eq ORDER BY c.id (@status_eq=OPEN)': [{ id: `1` }],
-      'SELECT c.id FROM c WHERE c.status != @status_neq ORDER BY c.id (@status_neq=OPEN)': [{ id: `2` }],
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@status_in, c.status) ORDER BY c.id (@status_in=OPEN,CLOSE)': [
+      'SELECT c.id FROM c WHERE c.status = @p2 ORDER BY c.id (@p2=OPEN)': [{ id: `1` }],
+      'SELECT c.id FROM c WHERE c.status != @p2 ORDER BY c.id (@p2=OPEN)': [{ id: `2` }],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.status) ORDER BY c.id (@p2=OPEN,CLOSE)': [
         { id: `1` },
         { id: `2` },
       ],
     },
   }
 
-  const result = responses[container]?.[key]
-  if (result) {
-    return { resources: result } as any
-  } else {
-    throw Error(`Unhandled: ${container} ${key}`)
-  }
-}
+  const uc = createUnitTestContext(dummyTypeDefs, responses)
 
-describe(`Where`, () => {
-  let context: GraphQLCosmosContext
-  let dummy: GraphQLSchema
+  it(`expects schema to remain the same`, () => {
+    const output = printSchemaWithDirectives(uc.schema)
+    expect(output).toMatchSnapshot()
+  })
 
-  beforeEach(() => {
-    const loader = defaultDataLoader()
-
-    context = {
-      directives: {
-        cosmos: {
-          database: null as any,
-          client: null as any,
-          onQuery: onCosmosQuery,
-          dataloader: loader,
-        },
-      },
-    }
-
-    dummy = buildCosmosASTSchema(dummyTypeDefs)
-
-    expect(validateSchema(dummy)).toHaveLength(0)
+  it(`expects meta schema to remain the same`, () => {
+    const output = uc.metaSchema
+    expect(output).toMatchSnapshot()
   })
 
   it(`should retrieve all`, async () => {
-    const query = gql`
-      query {
-        entities {
-          page {
-            __typename
-            id
-            status
-          }
-        }
-      }
-    `
-    expect(validate(dummy, query)).toHaveLength(0)
-
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(`query { entities { page { __typename id status } } }`)
     result.errors?.forEach((e) => console.error(e.path.join(`/`), e.stack))
 
     expect(result).toEqual({
@@ -117,60 +79,23 @@ describe(`Where`, () => {
   })
 
   it(`should retrieve all open`, async () => {
-    const query = gql`
-      query {
-        entities(where: { status_eq: OPEN }) {
-          page {
-            __typename
-            id
-            status
-          }
-        }
-      }
-    `
-    expect(validate(dummy, query)).toHaveLength(0)
-
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(`query { entities(where: { status_eq: OPEN }) { page { __typename id status } } }`)
     result.errors?.forEach((e) => console.error(e.path.join(`/`), e.stack))
 
     expect(result).toEqual({ data: { entities: { page: [{ __typename: 'Entity', id: `1`, status: `OPEN` }] } } })
   })
 
   it(`should retrieve all close`, async () => {
-    const query = gql`
-      query {
-        entities(where: { status_neq: OPEN }) {
-          page {
-            __typename
-            id
-            status
-          }
-        }
-      }
-    `
-    expect(validate(dummy, query)).toHaveLength(0)
-
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(`query { entities(where: { status_neq: OPEN }) { page { __typename id status } } }`)
     result.errors?.forEach((e) => console.error(e.path.join(`/`), e.stack))
 
     expect(result).toEqual({ data: { entities: { page: [{ __typename: 'Entity', id: `2`, status: `CLOSE` }] } } })
   })
 
   it(`should retrieve all open and close`, async () => {
-    const query = gql`
-      query {
-        entities(where: { status_in: [OPEN, CLOSE] }) {
-          page {
-            __typename
-            id
-            status
-          }
-        }
-      }
-    `
-    expect(validate(dummy, query)).toHaveLength(0)
-
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(
+      `query { entities(where: { status_in: [OPEN, CLOSE] }) { page { __typename id status } } }`
+    )
     result.errors?.forEach((e) => console.error(e.path.join(`/`), e.stack))
 
     expect(result).toEqual({

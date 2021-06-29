@@ -1,107 +1,77 @@
-import { FeedResponse } from '@azure/cosmos'
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { buildCosmosASTSchema } from '../src/build'
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
-import { defaultDataLoader } from '../src/default'
+import { printSchemaWithDirectives } from 'graphql-tools'
+import { createUnitTestContext } from './utils'
 
-const dummyTypeDefs = gql`
-  type Query {
-    dummies: [Dummy!]! @cosmos(container: "Dummies")
-  }
+describe(`Reference to other container`, () => {
+  const dummyTypeDefs = gql`
+    type Query {
+      dummies: [Dummy!]! @cosmos(database: "Test", container: "Dummies")
+    }
 
-  type Dummy {
-    id: ID!
-    related: [Related!]! @cosmos(container: "Relations", ours: "relatedIds")
-  }
+    type Dummy {
+      id: ID!
+      related: [Related!]! @cosmos(database: "Test", container: "Relations", ours: "relatedIds", pagination: "on")
+    }
 
-  type Related {
-    id: ID!
-    dummies: [Dummy!]! @cosmos(container: "Dummies", theirs: "relatedIds")
-  }
-`
-
-const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
-  const { container, query, parameters } = request
-  const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query
+    type Related {
+      id: ID!
+      dummies: [Dummy!]! @cosmos(database: "Test", container: "Dummies", theirs: "relatedIds")
+    }
+  `
 
   const responses = {
     Dummies: {
       'SELECT VALUE COUNT(1) FROM c': [3],
-
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
-
-      'SELECT c.id, c.relatedIds FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=1,2,3)': [
+      'SELECT c.id, c.relatedIds FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1,2,3)': [
         { id: `1`, relatedIds: [`1b`] },
         { id: `2`, relatedIds: [`2b`] },
         { id: `3`, relatedIds: [`3b`] },
       ],
 
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@relatedIds_in, c.relatedIds) ORDER BY c.id (@relatedIds_in=1b)': [
-        { id: `1` },
-      ],
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@relatedIds_in, c.relatedIds) ORDER BY c.id (@relatedIds_in=2b)': [
-        { id: `2` },
-      ],
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@relatedIds_in, c.relatedIds) ORDER BY c.id (@relatedIds_in=3b)': [
-        { id: `3` },
-      ],
+      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(c.relatedIds, @p2) (@p2=1b)': [1],
+      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(c.relatedIds, @p2) (@p2=2b)': [1],
+      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(c.relatedIds, @p2) (@p2=3b)': [1],
 
-      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@relatedIds_in, c.relatedIds) (@relatedIds_in=1b)': [1],
-      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@relatedIds_in, c.relatedIds) (@relatedIds_in=2b)': [1],
-      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@relatedIds_in, c.relatedIds) (@relatedIds_in=3b)': [1],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(c.relatedIds, @p2) ORDER BY c.id (@p2=1b)': [{ id: `1` }],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(c.relatedIds, @p2) ORDER BY c.id (@p2=2b)': [{ id: `2` }],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(c.relatedIds, @p2) ORDER BY c.id (@p2=3b)': [{ id: `3` }],
     },
     Relations: {
-      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@id_in, c.id) (@id_in=1b)': [1],
-      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@id_in, c.id) (@id_in=2b)': [1],
-      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@id_in, c.id) (@id_in=3b)': [1],
+      'SELECT c.id, c.dummies FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1b,2b,3b)': [
+        { id: `1b` },
+        { id: `2b` },
+        { id: `3b` },
+      ],
 
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id (@id_in=1b)': [{ id: `1b` }],
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id (@id_in=2b)': [{ id: `2b` }],
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@id_in, c.id) ORDER BY c.id (@id_in=3b)': [{ id: `3b` }],
+      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@p2, c.id) (@p2=1b)': [1],
+      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@p2, c.id) (@p2=2b)': [1],
+      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@p2, c.id) (@p2=3b)': [1],
+
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1b)': [{ id: `1b` }],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=2b)': [{ id: `2b` }],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=3b)': [{ id: `3b` }],
     },
   }
 
-  const result = responses[container]?.[key]
-  if (result) {
-    return { resources: result } as any
-  } else {
-    throw Error(`Unhandled: ${container} ${key}`)
-  }
-}
+  const uc = createUnitTestContext(dummyTypeDefs, responses)
 
-describe(`Reference to other container`, () => {
-  let context: GraphQLCosmosContext
-  let dummy: GraphQLSchema
-
-  beforeAll(() => {
-    dummy = buildCosmosASTSchema(dummyTypeDefs)
-
-    expect(validateSchema(dummy)).toHaveLength(0)
+  it(`expects schema to remain the same`, () => {
+    const output = printSchemaWithDirectives(uc.schema)
+    expect(output).toMatchSnapshot()
   })
-  beforeEach(() => {
-    const loader = defaultDataLoader()
 
-    context = {
-      directives: {
-        cosmos: {
-          database: null as any,
-          client: null as any,
-          onQuery: onCosmosQuery,
-          dataloader: loader,
-        },
-      },
-    }
+  it(`expects meta schema to remain the same`, () => {
+    const output = uc.metaSchema
+    expect(output).toMatchSnapshot()
   })
 
   it(`should be retrieve all items (root)`, async () => {
-    const query = parse(`query { dummies { total page { __typename id } } } `)
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(`query { dummies { total page { __typename id } } } `)
     if (result.errors?.length) {
       result.errors.forEach((e) => console.error(e.path.join(`/`), e.stack))
     }
 
-    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
@@ -117,13 +87,13 @@ describe(`Reference to other container`, () => {
   })
 
   it(`should be retrieve all items (ours)`, async () => {
-    const query = parse(`query { dummies { total page { __typename id related { total page { __typename id } } } } } `)
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(
+      `query { dummies { total page { __typename id related { total page { __typename id } } } } } `
+    )
     if (result.errors?.length) {
       result.errors.forEach((e) => console.error(e.path.join(`/`), e.stack))
     }
 
-    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
@@ -160,15 +130,13 @@ describe(`Reference to other container`, () => {
   })
 
   it(`should be retrieve all items (theirs)`, async () => {
-    const query = parse(
+    const result = await uc.execute(
       `query { dummies { total page { __typename id related { total page { __typename id dummies { total page { __typename id } } } } } } } `
     )
-    const result = await execute(dummy, query, undefined, context)
     if (result.errors?.length) {
       result.errors.forEach((e) => console.error(e.path.join(`/`), e.stack))
     }
 
-    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {

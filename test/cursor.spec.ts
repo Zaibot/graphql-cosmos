@@ -1,69 +1,51 @@
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { buildCosmosASTSchema } from '../src/build'
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
-
-const dummyTypeDefs = gql`
-  type Query {
-    dummies: [Dummy] @cosmos(container: "Dummies")
-  }
-
-  type Dummy {
-    id: ID!
-  }
-`
-
-const onCosmosQuery = async ({ container, query, parameters, options }: GraphQLCosmosRequest) => {
-  const queryResult: Record<string, Record<string, unknown[]>> = {
-    Dummies: {
-      'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }],
-      'SELECT c.id FROM c ORDER BY c.id @1': [{ id: `2` }, { id: `3` }],
-    },
-  }
-  const nextCursor: Record<string, Record<string, string>> = {
-    Dummies: {
-      'SELECT c.id FROM c ORDER BY c.id': `1`,
-    },
-  }
-  const cursor = options?.continuationToken ? ` @${options.continuationToken}` : ``
-  const resources = queryResult[container]?.[`${query}${cursor}`]
-  const continuationToken = nextCursor[container]?.[query]
-  if (resources) {
-    return { resources, continuationToken }
-  } else {
-    throw Error(
-      `Unhandled: ${container} ${query} (${
-        parameters.map((x) => `${x.name}=${x.value}`).toString() || `no parameters`
-      })`
-    )
-  }
-}
+import { printSchemaWithDirectives } from 'graphql-tools'
+import { createUnitTestContext } from './utils'
 
 describe(`Pagination`, () => {
-  let context: GraphQLCosmosContext
-  let dummy: GraphQLSchema
-
-  beforeEach(() => {
-    context = {
-      directives: {
-        cosmos: { onQuery: onCosmosQuery } as any,
-      },
+  const dummyTypeDefs = gql`
+    type Query {
+      dummies: [Dummy] @cosmos(database: "Test", container: "Dummies")
     }
 
-    dummy = buildCosmosASTSchema(dummyTypeDefs)
+    type Dummy {
+      id: ID! @where(op: "eq in")
+      related: Related @cosmos(database: "Test", container: "Relations", ours: "relatedId")
+    }
 
-    expect(validateSchema(dummy)).toHaveLength(0)
+    type Related {
+      id: ID!
+      text: String
+    }
+  `
+
+  const responses = {
+    Dummies: {
+      'SELECT c.id FROM c ORDER BY c.id': [{ continuationToken: `FIRST` }, { id: `1` }],
+      'SELECT c.id FROM c ORDER BY c.id @FIRST': [{ id: `2` }, { id: `3` }],
+    },
+  }
+
+  const uc = createUnitTestContext(dummyTypeDefs, responses)
+
+  it(`expects schema to remain the same`, () => {
+    const output = printSchemaWithDirectives(uc.schema)
+    expect(output).toMatchSnapshot()
+  })
+
+  it(`expects meta schema to remain the same`, () => {
+    const output = uc.metaSchema
+    expect(output).toMatchSnapshot()
   })
 
   it(`returns part one`, async () => {
-    const query = parse(`query { dummies { nextCursor page { __typename id } } } `)
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(`query { dummies { cursor nextCursor page { __typename id } } } `)
 
-    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
-          nextCursor: `1`,
+          cursor: null,
+          nextCursor: `FIRST`,
           page: [{ __typename: 'Dummy', id: `1` }],
         },
       },
@@ -71,13 +53,13 @@ describe(`Pagination`, () => {
   })
 
   it(`returns part two`, async () => {
-    const query = parse(`query { dummies(cursor: "1") { page { __typename id } } } `)
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(`query { dummies(cursor: "FIRST") { cursor nextCursor page { __typename id } } } `)
 
-    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
+          cursor: `FIRST`,
+          nextCursor: null,
           page: [
             { __typename: 'Dummy', id: `2` },
             { __typename: 'Dummy', id: `3` },

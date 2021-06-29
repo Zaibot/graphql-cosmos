@@ -1,57 +1,47 @@
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { buildCosmosASTSchema } from '../src/build'
-import { GraphQLCosmosContext } from '../src/configuration'
-
-const dummyTypeDefs = gql`
-  type Query {
-    dummies: [Dummy] @cosmos(container: "Dummies")
-  }
-
-  type Dummy {
-    id: ID! @where(op: "eq")
-  }
-`
-
-const onCosmosQuery = async ({ query }) => {
-  const c = {
-    'SELECT VALUE COUNT(1) FROM c': { resources: [3] },
-    'SELECT VALUE COUNT(1) FROM c WHERE c.id = @id_eq': { resources: [1] },
-    'SELECT c.id FROM c WHERE c.id = @id_eq ORDER BY c.id': {
-      resources: [{ id: `1` }],
-    },
-    'SELECT c.id FROM c ORDER BY c.id': {
-      resources: [{ id: `1` }, { id: `2` }, { id: `3` }],
-    },
-  }
-  if (c[query]) {
-    return c[query]
-  } else {
-    throw Error(`Unhandled: ${query}`)
-  }
-}
+import { printSchemaWithDirectives } from 'graphql-tools'
+import { createUnitTestContext } from './utils'
 
 describe(`@cosmos`, () => {
-  let context: GraphQLCosmosContext
-  let dummy: GraphQLSchema
-
-  beforeEach(() => {
-    context = {
-      directives: {
-        cosmos: { onQuery: onCosmosQuery } as any,
-      },
+  const dummyTypeDefs = gql`
+    type Query {
+      dummies: [Dummy] @cosmos(database: "Test", container: "Dummies")
     }
 
-    dummy = buildCosmosASTSchema(dummyTypeDefs)
+    type Dummy {
+      id: ID! @where(op: "eq in")
+      text: String
+    }
+  `
 
-    expect(validateSchema(dummy)).toHaveLength(0)
+  const responses = {
+    Dummies: {
+      'SELECT VALUE COUNT(1) FROM c': [3],
+      'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
+      'SELECT VALUE COUNT(1) FROM c WHERE c.id = @p2 (@p2=1)': [1],
+      'SELECT c.id FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=1)': [{ id: `1` }],
+      'SELECT VALUE COUNT(1) FROM c WHERE c.id = @p2 (@p2=missing)': [0],
+      'SELECT c.id FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=missing)': [],
+      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@p2, c.id) (@p2=missing1,missing2)': [0],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=missing1,missing2)': [],
+    },
+  }
+
+  const uc = createUnitTestContext(dummyTypeDefs, responses)
+
+  it(`expects schema to remain the same`, () => {
+    const output = printSchemaWithDirectives(uc.schema)
+    expect(output).toMatchSnapshot()
+  })
+
+  it(`expects meta schema to remain the same`, () => {
+    const output = uc.metaSchema
+    expect(output).toMatchSnapshot()
   })
 
   it(`should be retrieve all items`, async () => {
-    const query = parse(`query { dummies { total page { id } } } `)
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(`query { dummies { total page { id } } } `)
 
-    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: { total: 3, page: [{ id: `1` }, { id: `2` }, { id: `3` }] },
@@ -60,22 +50,32 @@ describe(`@cosmos`, () => {
   })
 
   it(`should be able to filter on id`, async () => {
-    const query = parse(`query { dummies(where: { id_eq: "1" }) { total page { id } } } `)
-    const result = await execute(dummy, query, undefined, context)
-
-    expect(validate(dummy, query)).toHaveLength(0)
+    const result = await uc.execute(`query { dummies(where: { id_eq: "1" }) { total page { id } } } `)
     expect(result).toEqual({
       data: { dummies: { total: 1, page: [{ id: `1` }] } },
     })
   })
 
   it(`should be able to filter on id`, async () => {
-    const query = parse(`query { dummies(where: { id_eq: "1" }) { total page { id } } } `)
-    const result = await execute(dummy, query, undefined, context)
-
-    expect(validate(dummy, query)).toHaveLength(0)
+    const result = await uc.execute(`query { dummies(where: { id_eq: "1" }) { total page { id } } } `)
     expect(result).toEqual({
       data: { dummies: { total: 1, page: [{ id: `1` }] } },
+    })
+  })
+
+  it(`should return null on missing single`, async () => {
+    const result = await uc.execute(`query { dummies(where: { id_eq: "missing" }) { total page { id text } } } `)
+    expect(result).toEqual({
+      data: { dummies: { total: 0, page: [] } },
+    })
+  })
+
+  it(`should return null on missing many`, async () => {
+    const result = await uc.execute(
+      `query { dummies(where: { id_in: ["missing1", "missing2"] }) { total page { id text } } } `
+    )
+    expect(result).toEqual({
+      data: { dummies: { total: 0, page: [] } },
     })
   })
 })

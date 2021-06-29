@@ -1,42 +1,35 @@
-import { FeedResponse } from '@azure/cosmos'
-import { execute, GraphQLSchema, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { buildCosmosASTSchema } from '../src/build'
-import { GraphQLCosmosContext, GraphQLCosmosRequest } from '../src/configuration'
-import { defaultDataLoader } from '../src/default'
-import { SqlOpScalar } from '../src/sql/op'
+import { printSchemaWithDirectives } from 'graphql-tools'
+import { createUnitTestContext } from './utils'
 
-const dummyTypeDefs = gql`
-  type Query {
-    dummies: [Dummy] @cosmos(container: "Dummies")
-  }
+describe(`Data Loader`, () => {
+  const dummyTypeDefs = gql`
+    type Query {
+      dummies: [Dummy] @cosmos(database: "Test", container: "Dummies")
+    }
 
-  type Dummy {
-    id: ID!
-    related: [Related] @cosmos(container: "Relations", ours: "relatedIds")
-  }
+    type Dummy {
+      id: ID!
+      related: [Related] @cosmos(database: "Test", container: "Relations", ours: "relatedIds", pagination: "on")
+    }
 
-  type Related {
-    id: ID! @where(op: "eq")
-    text: String
-  }
-`
+    type Related {
+      id: ID! @where(op: "eq")
+      text: String
+    }
+  `
 
-const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedResponse<unknown>> => {
-  const { container, query, parameters } = request
-  const key = parameters.length ? `${query} (${parameters.map((x) => `${x.name}=${x.value}`).toString()})` : query
-
-  const responses: Record<string, Record<string, unknown[]>> = {
+  const responses = {
     Dummies: {
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
-      'SELECT c.id, c.relatedIds FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=1,2,3)': [
+      'SELECT c.id, c.relatedIds FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1,2,3)': [
         { id: `1`, relatedIds: [`1a`, `1b`] },
         { id: `2`, relatedIds: [`2a`, `2b`] },
         { id: `3`, relatedIds: [`3a`, `3b`] },
       ],
     },
     Relations: {
-      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@batch, c.id) (@batch=1a,1b,2a,2b,3a,3b)': [
+      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1a,1b,2a,2b,3a,3b)': [
         { id: `1a`, text: `1` },
         { id: `1b`, text: `1` },
         { id: `2a`, text: `2` },
@@ -44,54 +37,50 @@ const onCosmosQuery = async (request: GraphQLCosmosRequest): Promise<FeedRespons
         { id: `3a`, text: null },
         { id: `3b`, text: null },
       ],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1a,1b)': [{ id: `1a` }, { id: `1b` }],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=2a,2b)': [{ id: `2a` }, { id: `2b` }],
+      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=3a,3b)': [{ id: `3a` }, { id: `3b` }],
+      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1a,1b)': [
+        { id: `1a`, text: `1` },
+        { id: `1b`, text: `1` },
+      ],
+      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=2a,2b)': [
+        { id: `2a`, text: `2` },
+        { id: `2b`, text: null },
+      ],
+      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=3a,3b)': [
+        { id: `3a`, text: null },
+        { id: `3b`, text: null },
+      ],
     },
   }
-  const result = responses[container]?.[key]
 
-  if (result) {
-    return { resources: result } as any
-  } else {
-    throw Error(`Unhandled: ${container} ${key}`)
-  }
-}
+  const uc = createUnitTestContext(dummyTypeDefs, responses)
 
-describe(`Data Loader`, () => {
-  let context: GraphQLCosmosContext
-  let dummy: GraphQLSchema
-  let dataloader: SqlOpScalar[]
-
-  beforeEach(() => {
-    const loader = defaultDataLoader()
-    context = {
-      directives: {
-        cosmos: {
-          client: null as any,
-          database: null as any,
-          dataloader(spec) {
-            if (spec.container === `Relations`) {
-              dataloader.splice(dataloader.length, 0, ...spec.id)
-              return loader(spec)
-            } else {
-              return loader(spec)
-            }
-          },
-          onQuery: onCosmosQuery,
-        },
-      },
+  let dataloader: string[] = []
+  const original = uc.context.dataSources.graphqlCosmos.dataloader
+  uc.context.dataSources.graphqlCosmos.dataloader = (spec) => {
+    if (spec.container === `Relations`) {
+      dataloader.splice(dataloader.length, 0, ...spec.id)
+      return original(spec)
+    } else {
+      return original(spec)
     }
+  }
 
-    dummy = buildCosmosASTSchema(dummyTypeDefs)
+  it(`expects schema to remain the same`, () => {
+    const output = printSchemaWithDirectives(uc.schema)
+    expect(output).toMatchSnapshot()
+  })
 
-    dataloader = []
-
-    expect(validateSchema(dummy)).toHaveLength(0)
+  it(`expects meta schema to remain the same`, () => {
+    const output = uc.metaSchema
+    expect(output).toMatchSnapshot()
   })
 
   it(`should be retrieve all items`, async () => {
-    const query = parse(`query { dummies { page { related { page { id text } } } } } `)
-    const result = await execute(dummy, query, undefined, context)
+    const result = await uc.execute(`query { dummies { page { related { page { id text } } } } } `)
 
-    expect(validate(dummy, query)).toHaveLength(0)
     expect(result).toEqual({
       data: {
         dummies: {
