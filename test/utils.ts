@@ -1,6 +1,7 @@
-import { DocumentNode, execute, parse, validate, validateSchema } from 'graphql'
+import { DocumentNode, execute, GraphQLError, parse, validate, validateSchema } from 'graphql'
 import { IResolvers, mergeSchemas, printSchemaWithDirectives } from 'graphql-tools'
 import { defaultDataLoader } from '../src/2-dataloader/default'
+import { MetaIndex } from '../src/2-meta/3-meta-index'
 import { CosmosDefaultCompiler } from '../src/4-resolver-builder/4-default-compiler'
 import { GraphQLCosmosConceptContext } from '../src/6-datasource/1-context'
 import { GraphQLCosmosDataSource } from '../src/6-datasource/2-datasource'
@@ -15,11 +16,18 @@ export interface MockData {
   }
 }
 
+export class UnitTestMissingQuery extends Error {
+  constructor(readonly container: string, readonly key: string) {
+    super(`${container} ${key}`)
+  }
+}
+
 export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData, customResolvers: IResolvers = {}) {
   const compiler = CosmosDefaultCompiler.fromTypeDefs(typedefs)
   const schema = mergeSchemas({ schemas: [compiler.schema], resolvers: customResolvers })
   const resolvers = compiler.resolvers
   const metaSchema = compiler.metaSchema
+  const meta = new MetaIndex(metaSchema)
 
   expect(validateSchema(schema)).toHaveLength(0)
 
@@ -30,8 +38,7 @@ export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData
 
     const response = mockData[container]?.[key]?.slice()
     if (!response) {
-      console.info(`Add following key: ${container} ${key}`)
-      fail(`${container} ${key}`)
+      throw new UnitTestMissingQuery(container, key)
     }
 
     const continuationToken = Object(response[0]).continuationToken ?? null
@@ -65,7 +72,13 @@ export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData
 
     if (logErrors) {
       for (const err of result.errors ?? []) {
-        console.error(err.path.join(`/`), err.originalError)
+        if (Object(err.originalError).original instanceof UnitTestMissingQuery) {
+          console.error(
+            `Add the following key, can't resolve ${err.path.join(`/`)}:\n${Object(err.originalError).original.message}`
+          )
+        } else {
+          console.error(err.path.join(`/`), err.originalError)
+        }
       }
     }
 
@@ -74,6 +87,22 @@ export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData
 
   const printSchemaAndResolvers = () => {
     console.log(printSchemaWithDirectives(schema))
+    console.log(
+      metaSchema.types
+        .map(
+          (x) =>
+            `${x.typename}:\n- ${x.fields
+              .map(
+                (y) =>
+                  `${y.fieldname}: ${y.returnTypename}${y.pagination ? ` PAGE` : ``}${
+                    meta.type(y.returnTypename)?.filterable ? ` WHERE` : ``
+                  }${y.sortable ? ` SORT` : ``}${y.ours ? ` OURS` : ``}${y.theirs ? ` THEIRS` : ``}`
+              )
+              .join(`\n- `)}`
+        )
+        .join(`\n`)
+    )
+    // console.log(JSON.stringify(metaSchema, undefined, 4))
     console.log(resolvers)
   }
 

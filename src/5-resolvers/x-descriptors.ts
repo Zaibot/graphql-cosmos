@@ -10,11 +10,7 @@ export namespace SourceDescriptor {
   }
 
   export function hasDescriptor<T>(embedded: T): embedded is Embedded<T> {
-    return (
-      typeof embedded === `object` &&
-      '__descriptor' in embedded &&
-      typeof (embedded as any).__descriptor.kind === `string`
-    )
+    return typeof embedded === `object` && typeof Object(embedded).__descriptor.kind === `string`
   }
 
   export function getDescriptor<T extends Embedded<unknown>>(embedded: T): Single | List

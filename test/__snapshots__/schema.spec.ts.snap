@@ -21,17 +21,17 @@ enum Status {
   OPEN
   CLOSE
 }
-type DummyPage {
-  total: Int!
-  cursor: String
-  nextCursor: String
-  page: [Dummy]!
-}
 type RelatedPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Related]!
+}
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
 }
 input DummyWhere {
   and: [DummyWhere!]

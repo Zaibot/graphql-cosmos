@@ -1,0 +1,252 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Address Book expects meta schema to remain the same 1`] = `
+Object {
+  "types": Array [
+    Object {
+      "container": "Contacts",
+      "cosmos": true,
+      "database": "AddressBook",
+      "external": false,
+      "fields": Array [
+        Object {
+          "container": null,
+          "cosmos": false,
+          "database": null,
+          "fieldname": "id",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [
+            "eq",
+          ],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Persons",
+          "cosmos": true,
+          "database": "AddressBook",
+          "fieldname": "person",
+          "ours": "personId",
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "Person",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "cosmos": false,
+          "database": null,
+          "fieldname": "phonenumber",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "String",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Persons",
+          "cosmos": true,
+          "database": "AddressBook",
+          "fieldname": "preferredBy",
+          "ours": null,
+          "pagination": false,
+          "returnMany": true,
+          "returnTypename": "Person",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": "preferredContactId",
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "filterable": true,
+      "sortable": false,
+      "typename": "Contact",
+    },
+    Object {
+      "container": "Persons",
+      "cosmos": true,
+      "database": "AddressBook",
+      "external": false,
+      "fields": Array [
+        Object {
+          "container": "Contacts",
+          "cosmos": true,
+          "database": "AddressBook",
+          "fieldname": "contacts",
+          "ours": null,
+          "pagination": false,
+          "returnMany": true,
+          "returnTypename": "Contact",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": "personId",
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "cosmos": false,
+          "database": null,
+          "fieldname": "id",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [
+            "eq",
+          ],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "cosmos": false,
+          "database": null,
+          "fieldname": "name",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "String",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [
+            "contains_lowercase",
+          ],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Contacts",
+          "cosmos": true,
+          "database": "AddressBook",
+          "fieldname": "perferredContact",
+          "ours": "preferredContactId",
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "Contact",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "filterable": true,
+      "sortable": false,
+      "typename": "Person",
+    },
+    Object {
+      "container": null,
+      "cosmos": false,
+      "database": null,
+      "external": false,
+      "fields": Array [
+        Object {
+          "container": "Contacts",
+          "cosmos": true,
+          "database": "AddressBook",
+          "fieldname": "contact",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "Contact",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Persons",
+          "cosmos": true,
+          "database": "AddressBook",
+          "fieldname": "people",
+          "ours": null,
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Person",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Persons",
+          "cosmos": true,
+          "database": "AddressBook",
+          "fieldname": "person",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "Person",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "filterable": false,
+      "sortable": false,
+      "typename": "Query",
+    },
+  ],
+}
+`;
+
+exports[`Address Book expects schema to remain the same 1`] = `
+"schema {
+  query: Query
+}
+type Query {
+  person(where: PersonWhere): Person
+  contact(where: ContactWhere): Contact
+  people(where: PersonWhere, cursor: String, limit: Int): PersonPage!
+}
+type Person {
+  id: ID
+  name: String!
+  contacts(where: ContactWhere): [Contact!]!
+  perferredContact(where: ContactWhere): Contact
+}
+type Contact {
+  id: ID
+  person(where: PersonWhere): Person!
+  preferredBy(where: PersonWhere): [Person!]!
+  phonenumber: String!
+}
+type PersonPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Person]!
+}
+input ContactWhere {
+  and: [ContactWhere!]
+  or: [ContactWhere!]
+  id_eq: ID
+}
+input PersonWhere {
+  and: [PersonWhere!]
+  or: [PersonWhere!]
+  id_eq: ID
+  name_contains_lowercase: String
+}"
+`;

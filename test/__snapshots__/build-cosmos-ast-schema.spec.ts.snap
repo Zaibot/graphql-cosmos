@@ -5,35 +5,15 @@ Object {
   "types": Array [
     Object {
       "container": null,
+      "cosmos": false,
       "database": null,
-      "fields": Array [
-        Object {
-          "container": "Dummies",
-          "database": "Test",
-          "fieldname": "dummies",
-          "kind": "many-root",
-          "ours": null,
-          "pagination": true,
-          "returnMany": true,
-          "returnTypename": "Dummy",
-          "sortOurs": null,
-          "sortable": false,
-          "theirs": null,
-          "whereOps": Array [],
-          "whereOurs": null,
-        },
-      ],
-      "typename": "Query",
-    },
-    Object {
-      "container": null,
-      "database": null,
+      "external": false,
       "fields": Array [
         Object {
           "container": null,
+          "cosmos": false,
           "database": null,
           "fieldname": "id",
-          "kind": "embedded",
           "ours": null,
           "pagination": false,
           "returnMany": false,
@@ -47,10 +27,25 @@ Object {
           "whereOurs": null,
         },
         Object {
+          "container": "Relations",
+          "cosmos": true,
+          "database": "Test",
+          "fieldname": "related",
+          "ours": "relatedIds",
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Related",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
           "container": null,
+          "cosmos": false,
           "database": null,
           "fieldname": "status",
-          "kind": "embedded",
           "ours": null,
           "pagination": false,
           "returnMany": false,
@@ -64,15 +59,26 @@ Object {
           ],
           "whereOurs": null,
         },
+      ],
+      "filterable": true,
+      "sortable": false,
+      "typename": "Dummy",
+    },
+    Object {
+      "container": null,
+      "cosmos": false,
+      "database": null,
+      "external": false,
+      "fields": Array [
         Object {
-          "container": "Relations",
+          "container": "Dummies",
+          "cosmos": true,
           "database": "Test",
-          "fieldname": "related",
-          "kind": "many-ours",
-          "ours": "relatedIds",
+          "fieldname": "dummies",
+          "ours": null,
           "pagination": true,
           "returnMany": true,
-          "returnTypename": "Related",
+          "returnTypename": "Dummy",
           "sortOurs": null,
           "sortable": false,
           "theirs": null,
@@ -80,17 +86,21 @@ Object {
           "whereOurs": null,
         },
       ],
-      "typename": "Dummy",
+      "filterable": false,
+      "sortable": false,
+      "typename": "Query",
     },
     Object {
       "container": null,
+      "cosmos": false,
       "database": null,
+      "external": false,
       "fields": Array [
         Object {
           "container": null,
+          "cosmos": false,
           "database": null,
           "fieldname": "id",
-          "kind": "embedded",
           "ours": null,
           "pagination": false,
           "returnMany": false,
@@ -105,9 +115,9 @@ Object {
         },
         Object {
           "container": null,
+          "cosmos": false,
           "database": null,
           "fieldname": "name",
-          "kind": "embedded",
           "ours": null,
           "pagination": false,
           "returnMany": false,
@@ -119,6 +129,8 @@ Object {
           "whereOurs": null,
         },
       ],
+      "filterable": true,
+      "sortable": true,
       "typename": "Related",
     },
   ],
@@ -145,17 +157,17 @@ enum Status {
   OPEN
   CLOSE
 }
-type DummyPage {
-  total: Int!
-  cursor: String
-  nextCursor: String
-  page: [Dummy]!
-}
 type RelatedPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Related]!
+}
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
 }
 input DummyWhere {
   and: [DummyWhere!]

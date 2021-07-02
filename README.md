@@ -28,19 +28,19 @@ Contact {
 
 ```graphql
 type Query {
-  people: [Person!]! @cosmos(container: "Persons")
+  people: [Person!]! @cosmos
 }
 
-type Person {
+type Person @cosmos(database: "AddressBook", container: "Persons") {
   id: ID
   name: String!
-  contacts: [Contact!]! @cosmos(container: "Contacts", theirs: "personId")
-  perferredContact: Contact @cosmos(container: "Contacts", ours: "preferredContactId")
+  contacts: [Contact!]! @cosmos(theirs: "personId")
+  perferredContact: Contact @cosmos(ours: "preferredContactId")
 }
 
-type Contact {
-  person: Person! @cosmos(container: "Persons", ours: "personId")
-  preferredBy: [Person!]! @cosmos(container: "Persons", theirs: "preferredContactId")
+type Contact @cosmos(database: "AddressBook", container: "Contacts") {
+  person: Person! @cosmos(ours: "personId")
+  preferredBy: [Person!]! @cosmos(theirs: "preferredContactId")
   phonenumber: String!
 }
 ```

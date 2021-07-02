@@ -1,6 +1,11 @@
 import * as GraphQL from 'graphql'
 
 export namespace Directives {
+  export function cosmosDirective(directives?: readonly GraphQL.DirectiveNode[]) {
+    const cosmos = directives?.find((x) => x.name.value === `cosmos`)
+    return !!cosmos
+  }
+
   export function cosmosDatabaseDirective(directives?: readonly GraphQL.DirectiveNode[]) {
     const cosmos = directives?.find((x) => x.name.value === `cosmos`)
     const containerArg = cosmos?.arguments?.find((x) => x.name.value === `database`)

@@ -55,6 +55,9 @@ export class CosmosSchemaTransformer {
       doc = extendSchema(doc, { kind: `Document`, definitions: [sortType] })
     }
 
+    // Cosmos Field
+    doc = mapSchema(doc, this.transformFieldWithCosmos())
+
     // Pageable Field
     doc = mapSchema(doc, this.transformFieldWithPagination())
 
@@ -240,14 +243,17 @@ export class CosmosSchemaTransformer {
   transformFieldWithPagination(): SchemaMapper {
     return {
       'MapperKind.OBJECT_FIELD': (config, fieldName, typeName, schema) => {
-        const meta = this.map.field(typeName, fieldName)
+        const field = this.map.field(typeName, fieldName)
+        if (!field) {
+          return
+        }
 
-        if (meta?.pagination) {
+        if (field.pagination) {
           const args: GraphQLFieldConfigArgumentMap = {}
 
-          const nameWhered = `${meta.returnTypename}Where`
-          const nameSorted = `${meta.returnTypename}Sort`
-          const namePaged = `${meta.returnTypename}Page`
+          const nameWhered = `${field.returnTypename}Where`
+          const nameSorted = `${field.returnTypename}Sort`
+          const namePaged = `${field.returnTypename}Page`
 
           const whereType = (schema.getTypeMap()[nameWhered] ?? null) as GraphQLInputType | null
           const sortType = (schema.getTypeMap()[nameSorted] ?? null) as GraphQLInputType | null
@@ -263,6 +269,36 @@ export class CosmosSchemaTransformer {
           args.limit = { type: GraphQLInt }
 
           return { ...config, args: args, type: new GraphQLNonNull(pageType) }
+        }
+      },
+    }
+  }
+
+  transformFieldWithCosmos(): SchemaMapper {
+    return {
+      'MapperKind.OBJECT_FIELD': (config, fieldName, typeName, schema) => {
+        const field = this.map.field(typeName, fieldName)
+        if (field?.pagination){ 
+          // Will be handled by transformFieldWithPagination
+          return
+        }
+        if (field?.cosmos) {
+          const args: GraphQLFieldConfigArgumentMap = {}
+
+          const nameWhered = `${field.returnTypename}Where`
+          const nameSorted = `${field.returnTypename}Sort`
+
+          const whereType = (schema.getTypeMap()[nameWhered] ?? null) as GraphQLInputType | null
+          const sortType = (schema.getTypeMap()[nameSorted] ?? null) as GraphQLInputType | null
+
+          if (whereType) {
+            args.where = { type: whereType }
+          }
+          if (sortType) {
+            args.sort = { type: sortType }
+          }
+
+          return { ...config, args: args }
         }
       },
     }

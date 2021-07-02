@@ -17,6 +17,7 @@ export interface GraphQLCosmosSchemaFromAst {
 }
 
 export interface GraphQLCosmosTypeFromAst {
+  cosmos: boolean
   external: boolean
   typename: string
   database: string | null
@@ -25,6 +26,7 @@ export interface GraphQLCosmosTypeFromAst {
 }
 
 export interface GraphQLCosmosFieldFromAst {
+  cosmos: boolean
   external: boolean
   fieldname: string
   returnTypename: string
@@ -41,21 +43,29 @@ export interface GraphQLCosmosFieldFromAst {
 }
 
 export function getGraphQLCosmosSchemaFromGraphQL(objectType: DocumentNode): GraphQLCosmosSchemaFromAst {
-  const internalTypes = (objectType.definitions ?? []).filter(isObjectTypeDefinition).map(getGraphQLCosmosTypeFromGraphQL)
-  const externalTypes = (objectType.definitions ?? []).filter(isObjectTypeExtension).map(getGraphQLCosmosTypeFromGraphQL)
+  const internalTypes = (objectType.definitions ?? [])
+    .filter(isObjectTypeDefinition)
+    .map(getGraphQLCosmosTypeFromGraphQL)
+  const externalTypes = (objectType.definitions ?? [])
+    .filter(isObjectTypeExtension)
+    .map(getGraphQLCosmosTypeFromGraphQL)
 
   return {
     types: [...internalTypes, ...externalTypes],
   }
 }
 
-export function getGraphQLCosmosTypeFromGraphQL(objectType: ObjectTypeDefinitionNode | ObjectTypeExtensionNode): GraphQLCosmosTypeFromAst {
+export function getGraphQLCosmosTypeFromGraphQL(
+  objectType: ObjectTypeDefinitionNode | ObjectTypeExtensionNode
+): GraphQLCosmosTypeFromAst {
   const typename = objectType.name.value
+  const cosmos = Directives.cosmosDirective(objectType.directives ?? [])
   const fields = (objectType.fields ?? []).map(getGraphQLCosmosFieldFromGraphQL)
   const database = Directives.cosmosDatabaseDirective(objectType.directives ?? []) ?? null
   const container = Directives.cosmosContainerDirective(objectType.directives ?? []) ?? null
 
   return {
+    cosmos,
     external: objectType.kind === `ObjectTypeExtension`,
     typename: typename,
     database,
@@ -67,6 +77,7 @@ export function getGraphQLCosmosTypeFromGraphQL(objectType: ObjectTypeDefinition
 export function getGraphQLCosmosFieldFromGraphQL(field: FieldDefinitionNode): GraphQLCosmosFieldFromAst {
   const returnTypename = astGetNamedType(field.type).name.value
   const returnMany = isListTypeNode(astGetNullable(field.type))
+  const cosmos = Directives.cosmosDirective(field.directives ?? [])
   const database = Directives.cosmosDatabaseDirective(field.directives ?? []) ?? null
   const container = Directives.cosmosContainerDirective(field.directives ?? []) ?? null
   const pagination = Directives.cosmosPaginationDirective(field.directives ?? []) ?? null
@@ -79,6 +90,7 @@ export function getGraphQLCosmosFieldFromGraphQL(field: FieldDefinitionNode): Gr
   const sortOurs = Directives.sortOursDirective(field.directives ?? []) ?? null
 
   return {
+    cosmos,
     external: false,
     returnTypename,
     returnMany,

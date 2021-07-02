@@ -5,35 +5,15 @@ Object {
   "types": Array [
     Object {
       "container": null,
+      "cosmos": false,
       "database": null,
-      "fields": Array [
-        Object {
-          "container": "Dummies",
-          "database": "Test",
-          "fieldname": "dummies",
-          "kind": "many-root",
-          "ours": null,
-          "pagination": true,
-          "returnMany": true,
-          "returnTypename": "Dummy",
-          "sortOurs": null,
-          "sortable": false,
-          "theirs": null,
-          "whereOps": Array [],
-          "whereOurs": null,
-        },
-      ],
-      "typename": "Query",
-    },
-    Object {
-      "container": null,
-      "database": null,
+      "external": false,
       "fields": Array [
         Object {
           "container": null,
+          "cosmos": false,
           "database": null,
           "fieldname": "id",
-          "kind": "embedded",
           "ours": null,
           "pagination": false,
           "returnMany": false,
@@ -46,9 +26,9 @@ Object {
         },
         Object {
           "container": "Relations",
+          "cosmos": true,
           "database": "Test",
           "fieldname": "related",
-          "kind": "many-ours",
           "ours": "relatedIds",
           "pagination": true,
           "returnMany": true,
@@ -60,17 +40,47 @@ Object {
           "whereOurs": null,
         },
       ],
+      "filterable": false,
+      "sortable": false,
       "typename": "Dummy",
     },
     Object {
       "container": null,
+      "cosmos": false,
       "database": null,
+      "external": false,
+      "fields": Array [
+        Object {
+          "container": "Dummies",
+          "cosmos": true,
+          "database": "Test",
+          "fieldname": "dummies",
+          "ours": null,
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Dummy",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "filterable": false,
+      "sortable": false,
+      "typename": "Query",
+    },
+    Object {
+      "container": null,
+      "cosmos": false,
+      "database": null,
+      "external": false,
       "fields": Array [
         Object {
           "container": null,
+          "cosmos": false,
           "database": null,
           "fieldname": "id",
-          "kind": "embedded",
           "ours": null,
           "pagination": false,
           "returnMany": false,
@@ -85,9 +95,9 @@ Object {
         },
         Object {
           "container": null,
+          "cosmos": false,
           "database": null,
           "fieldname": "text",
-          "kind": "embedded",
           "ours": null,
           "pagination": false,
           "returnMany": false,
@@ -99,6 +109,8 @@ Object {
           "whereOurs": null,
         },
       ],
+      "filterable": true,
+      "sortable": false,
       "typename": "Related",
     },
   ],
@@ -120,17 +132,17 @@ type Related {
   id: ID!
   text: String
 }
-type DummyPage {
-  total: Int!
-  cursor: String
-  nextCursor: String
-  page: [Dummy]!
-}
 type RelatedPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Related]!
+}
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
 }
 input RelatedWhere {
   and: [RelatedWhere!]

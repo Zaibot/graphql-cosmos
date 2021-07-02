@@ -36,6 +36,7 @@ export const withErrorMiddleware = <T extends IFieldResolver<any, GraphQLCosmosC
       }
     }
   }
+  Object.defineProperty(f, `name`, { value: `withErrorMiddleware(${JSON.stringify(resolver)}, ${original.name})` })
   return f as any
 }
 

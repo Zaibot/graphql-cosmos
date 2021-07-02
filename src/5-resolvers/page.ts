@@ -4,6 +4,7 @@ import { pathToArray } from 'graphql/jsutils/Path'
 import { GraphQLCosmosPageInput, GraphQLCosmosPageOutput } from '../4-resolver-builder/3-schema-transformer'
 import { failql, Lazy, lazy } from '../typescript'
 import { parseInputSort, parseInputWhere } from './input-args'
+import { graphqlCosmosPageResponse, wrapSingleSourceDescriptor } from './internals/utils'
 import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
 
@@ -170,50 +171,6 @@ export const defaultCosmosPageFieldResolver: GraphQLCosmosFieldResolver = async 
 
   if (field.theirs && source?.kind === `Single`) {
     if (field.pagination) {
-      const pageArgs = (args ?? {}) as Partial<GraphQLCosmosPageInput>
-      const cursor = pageArgs.cursor ?? null
-      const limit = pageArgs.limit ?? 50
-      const where = parseInputWhere({ and: [pageArgs.where ?? {}, { [`${field.theirs}_in`]: source.id }] })
-      const sort = parseInputSort(pageArgs.sort ?? {})
-
-      const database = field.database ?? returnType.database ?? failql(`requires database`, info)
-      const container = field.container ?? returnType.container ?? failql(`requires container`, info)
-
-      const query = lazy(async () => {
-        const query = context.dataSources.graphqlCosmos.buildQuery({
-          database,
-          container,
-          context,
-          cursor,
-          fields: [`id`],
-          origin: SourceDescriptor.hasDescriptor(parent) ? parent : null,
-          sort,
-          where,
-          typename: returnType.typename,
-          limit,
-        })
-        const result = await context.dataSources.graphqlCosmos.query<{ id: string }>(query)
-        return result
-      })
-
-      const count = lazy(async () => {
-        const query = context.dataSources.graphqlCosmos.buildCountQuery({
-          database,
-          container,
-          context,
-          cursor: null,
-          fields: [],
-          origin: SourceDescriptor.hasDescriptor(parent) ? parent : null,
-          sort: [],
-          where,
-          typename: returnType.typename,
-          limit: null,
-        })
-        const result = await context.dataSources.graphqlCosmos.query<number>(query)
-        return result
-      })
-
-      return graphqlCosmosPageResponse(returnType.typename, database, container, cursor, query, count)
     } else {
       const pageArgs = (args ?? {}) as Partial<GraphQLCosmosPageInput>
       const where = parseInputWhere(pageArgs.where ?? {})
@@ -246,46 +203,56 @@ export const defaultCosmosPageFieldResolver: GraphQLCosmosFieldResolver = async 
   console.error(`fallthrough on ${pathToArray(info.path).join(`/`)}`)
   return defaultFieldResolver(parent, args, context, info)
 }
+// export const defaultCosmosResolvePageByTheirs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
+//   const parentType = context.dataSources.graphqlCosmos.meta.requireType(info.parentType.name)
+//   const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
+//   const returnType = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
+//   const source = SourceDescriptor.getDescriptor(parent)
 
-const emptypage: GraphQLCosmosPageOutput = {
-  page: [],
-  cursor: null,
-  nextCursor: null,
-  total: 0,
-}
+//   if (source?.kind === `Single`) {
+//     const pageArgs = (args ?? {}) as Partial<GraphQLCosmosPageInput>
+//     const cursor = pageArgs.cursor ?? null
+//     const limit = pageArgs.limit ?? 50
+//     const where = parseInputWhere({ and: [pageArgs.where ?? {}, { [`${field.theirs}_in`]: source.id }] })
+//     const sort = parseInputSort(pageArgs.sort ?? {})
 
-function graphqlCosmosPageResponse(
-  typename: string,
-  database: string,
-  container: string,
-  cursor: string | null,
-  query: Lazy<Promise<FeedResponse<{ id: string }>>>,
-  count: Lazy<Promise<FeedResponse<number>>>
-): GraphQLCosmosPageOutput {
-  return {
-    get page() {
-      return query().then((feed) => feed.resources.map(wrapSingleSourceDescriptor(typename, database, container)))
-    },
-    get cursor() {
-      return Promise.resolve(cursor)
-    },
-    get nextCursor() {
-      return query().then((x) => x.continuationToken)
-    },
-    get total() {
-      return count().then((x) => x.resources[0])
-    },
-  }
-}
+//     const database = field.database ?? returnType.database ?? failql(`requires database`, info)
+//     const container = field.container ?? returnType.container ?? failql(`requires container`, info)
 
-function wrapSingleSourceDescriptor(typename: string, database: string, container: string) {
-  // TODO, use refSingle of datasource
-  return (item: { id: string }) =>
-    SourceDescriptor.withDescriptor(item, {
-      kind: `Single`,
-      database,
-      container,
-      typename,
-      id: item.id,
-    })
-}
+//     const query = lazy(async () => {
+//       const query = context.dataSources.graphqlCosmos.buildQuery({
+//         database,
+//         container,
+//         context,
+//         cursor,
+//         fields: [`id`],
+//         origin: SourceDescriptor.hasDescriptor(parent) ? parent : null,
+//         sort,
+//         where,
+//         typename: returnType.typename,
+//         limit,
+//       })
+//       const result = await context.dataSources.graphqlCosmos.query<{ id: string }>(query)
+//       return result
+//     })
+
+//     const count = lazy(async () => {
+//       const query = context.dataSources.graphqlCosmos.buildCountQuery({
+//         database,
+//         container,
+//         context,
+//         cursor: null,
+//         fields: [],
+//         origin: SourceDescriptor.hasDescriptor(parent) ? parent : null,
+//         sort: [],
+//         where,
+//         typename: returnType.typename,
+//         limit: null,
+//       })
+//       const result = await context.dataSources.graphqlCosmos.query<number>(query)
+//       return result
+//     })
+
+//     return graphqlCosmosPageResponse(returnType.typename, database, container, cursor, query, count)
+//   }
+// }

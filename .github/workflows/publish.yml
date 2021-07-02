@@ -1,24 +1,23 @@
 name: Publish
 
 on:
-    release:
-        types: [created]
+  release:
+    types: [created]
 
 jobs:
-    publish:
-        runs-on: ubuntu-latest
-        environment: Publish
-        steps:
-            - uses: actions/checkout@v1
-            - uses: actions/setup-node@v1
-              with:
-                  node-version: 15
-                  registry-url: 'https://registry.npmjs.org'
-            # - run: npm audit
-            - run: npm ci --also=dev
-            - run: npm test
-            - run: npm run build
-            - run: npm publish --public
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
+  publish:
+    runs-on: ubuntu-latest
+    environment: Publish
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15
+          registry-url: 'https://registry.npmjs.org'
+      # - run: npm audit
+      - run: npm ci --also=dev
+      - run: npm test
+      - run: npm run build
+      - run: npm publish --public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

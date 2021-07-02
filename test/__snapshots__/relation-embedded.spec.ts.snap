@@ -5,13 +5,127 @@ Object {
   "types": Array [
     Object {
       "container": null,
+      "cosmos": false,
       "database": null,
+      "external": false,
+      "fields": Array [
+        Object {
+          "container": null,
+          "cosmos": false,
+          "database": null,
+          "fieldname": "embedded",
+          "ours": null,
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Embedded",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "cosmos": false,
+          "database": null,
+          "fieldname": "id",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "ID",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": null,
+          "cosmos": false,
+          "database": null,
+          "fieldname": "prop",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "String",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Related",
+          "cosmos": true,
+          "database": "Test",
+          "fieldname": "related",
+          "ours": "relatedId",
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "Related",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "filterable": false,
+      "sortable": false,
+      "typename": "Dummy",
+    },
+    Object {
+      "container": null,
+      "cosmos": false,
+      "database": null,
+      "external": false,
+      "fields": Array [
+        Object {
+          "container": null,
+          "cosmos": false,
+          "database": null,
+          "fieldname": "prop",
+          "ours": null,
+          "pagination": false,
+          "returnMany": false,
+          "returnTypename": "String",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+        Object {
+          "container": "Related",
+          "cosmos": true,
+          "database": "Test",
+          "fieldname": "related",
+          "ours": "relatedId",
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Related",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": null,
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
+      ],
+      "filterable": false,
+      "sortable": false,
+      "typename": "Embedded",
+    },
+    Object {
+      "container": null,
+      "cosmos": false,
+      "database": null,
+      "external": false,
       "fields": Array [
         Object {
           "container": "Dummies",
+          "cosmos": true,
           "database": "Test",
           "fieldname": "dummies",
-          "kind": "many-root",
           "ours": null,
           "pagination": true,
           "returnMany": true,
@@ -23,17 +137,21 @@ Object {
           "whereOurs": null,
         },
       ],
+      "filterable": false,
+      "sortable": false,
       "typename": "Query",
     },
     Object {
       "container": null,
+      "cosmos": false,
       "database": null,
+      "external": false,
       "fields": Array [
         Object {
           "container": null,
+          "cosmos": false,
           "database": null,
           "fieldname": "id",
-          "kind": "embedded",
           "ours": null,
           "pagination": false,
           "returnMany": false,
@@ -46,61 +164,9 @@ Object {
         },
         Object {
           "container": null,
+          "cosmos": false,
           "database": null,
           "fieldname": "prop",
-          "kind": "embedded",
-          "ours": null,
-          "pagination": false,
-          "returnMany": false,
-          "returnTypename": "String",
-          "sortOurs": null,
-          "sortable": false,
-          "theirs": null,
-          "whereOps": Array [],
-          "whereOurs": null,
-        },
-        Object {
-          "container": null,
-          "database": null,
-          "fieldname": "embedded",
-          "kind": "embedded",
-          "ours": null,
-          "pagination": false,
-          "returnMany": true,
-          "returnTypename": "Embedded",
-          "sortOurs": null,
-          "sortable": false,
-          "theirs": null,
-          "whereOps": Array [],
-          "whereOurs": null,
-        },
-        Object {
-          "container": "Related",
-          "database": "Test",
-          "fieldname": "related",
-          "kind": "one-ours",
-          "ours": "relatedId",
-          "pagination": false,
-          "returnMany": false,
-          "returnTypename": "Related",
-          "sortOurs": null,
-          "sortable": false,
-          "theirs": null,
-          "whereOps": Array [],
-          "whereOurs": null,
-        },
-      ],
-      "typename": "Dummy",
-    },
-    Object {
-      "container": null,
-      "database": null,
-      "fields": Array [
-        Object {
-          "container": null,
-          "database": null,
-          "fieldname": "prop",
-          "kind": "embedded",
           "ours": null,
           "pagination": false,
           "returnMany": false,
@@ -113,61 +179,9 @@ Object {
         },
         Object {
           "container": "Related",
+          "cosmos": true,
           "database": "Test",
           "fieldname": "related",
-          "kind": "many-ours",
-          "ours": "relatedId",
-          "pagination": true,
-          "returnMany": true,
-          "returnTypename": "Related",
-          "sortOurs": null,
-          "sortable": false,
-          "theirs": null,
-          "whereOps": Array [],
-          "whereOurs": null,
-        },
-      ],
-      "typename": "Embedded",
-    },
-    Object {
-      "container": null,
-      "database": null,
-      "fields": Array [
-        Object {
-          "container": null,
-          "database": null,
-          "fieldname": "id",
-          "kind": "embedded",
-          "ours": null,
-          "pagination": false,
-          "returnMany": false,
-          "returnTypename": "ID",
-          "sortOurs": null,
-          "sortable": false,
-          "theirs": null,
-          "whereOps": Array [],
-          "whereOurs": null,
-        },
-        Object {
-          "container": null,
-          "database": null,
-          "fieldname": "prop",
-          "kind": "embedded",
-          "ours": null,
-          "pagination": false,
-          "returnMany": false,
-          "returnTypename": "String",
-          "sortOurs": null,
-          "sortable": false,
-          "theirs": null,
-          "whereOps": Array [],
-          "whereOurs": null,
-        },
-        Object {
-          "container": "Related",
-          "database": "Test",
-          "fieldname": "related",
-          "kind": "one-ours",
           "ours": "relatedId",
           "pagination": false,
           "returnMany": false,
@@ -179,6 +193,8 @@ Object {
           "whereOurs": null,
         },
       ],
+      "filterable": false,
+      "sortable": false,
       "typename": "Related",
     },
   ],
@@ -195,7 +211,7 @@ type Query {
 type Dummy {
   id: ID!
   prop: String
-  embedded: [Embedded]
+  embedded(cursor: String, limit: Int): EmbeddedPage!
   related: Related
 }
 type Embedded {
@@ -207,16 +223,22 @@ type Related {
   prop: String
   related: Related
 }
-type DummyPage {
+type EmbeddedPage {
   total: Int!
   cursor: String
   nextCursor: String
-  page: [Dummy]!
+  page: [Embedded]!
 }
 type RelatedPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Related]!
+}
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
 }"
 `;
