@@ -5,10 +5,10 @@ import { createUnitTestContext } from './utils'
 describe(`Where Operations`, () => {
   const dummyTypeDefs = gql`
     type Query {
-      dummies: [Dummy] @cosmos(database: "Test", container: "Dummies")
+      dummies: [Dummy] @cosmos
     }
 
-    type Dummy {
+    type Dummy @cosmos(database: "Test", container: "Dummies") {
       id: ID!
       prop: String @where(op: "eq in")
     }

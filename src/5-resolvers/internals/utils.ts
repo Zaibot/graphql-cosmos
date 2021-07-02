@@ -4,9 +4,9 @@ import { Lazy } from '../../typescript'
 import { SourceDescriptor } from '../x-descriptors'
 
 export const emptyPageResponse: GraphQLCosmosPageOutput = {
-  page: [],
   cursor: null,
   nextCursor: null,
+  page: [],
   total: 0,
 }
 
@@ -19,14 +19,14 @@ export function graphqlCosmosPageResponse(
   count: Lazy<Promise<FeedResponse<number>>>
 ): GraphQLCosmosPageOutput {
   return {
-    get page() {
-      return query().then((feed) => feed.resources.map(wrapSingleSourceDescriptor(typename, database, container)))
-    },
     get cursor() {
       return Promise.resolve(cursor)
     },
     get nextCursor() {
       return query().then((x) => x.continuationToken)
+    },
+    get page() {
+      return query().then((x) => x.resources.map(wrapSingleSourceDescriptor(typename, database, container)))
     },
     get total() {
       return count().then((x) => x.resources[0])

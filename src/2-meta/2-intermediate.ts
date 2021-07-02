@@ -82,7 +82,7 @@ export function getMetaField(
   try {
     const returnType = schema.types.find((x) => x.typename === field.returnTypename) ?? null
 
-    const autoPagination = returnType !== null && field.ours === null && field.returnMany
+    const autoPagination = returnType?.cosmos === true && field.ours === null && field.returnMany
     const pagination = field.pagination === 'on' ? true : field.pagination === 'off' ? false : autoPagination
     return {
       cosmos: field.cosmos,

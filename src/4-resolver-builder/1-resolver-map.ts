@@ -2,20 +2,20 @@ import { IResolvers } from '@graphql-tools/utils'
 import { defaultFieldResolver, getNamedType, GraphQLResolveInfo } from 'graphql'
 import { MetaField, MetaType } from '../2-meta/2-intermediate'
 import { MetaIndex } from '../2-meta/3-meta-index'
-import { defaultCosmosObjectFieldResolver } from '../5-resolvers/object'
+import { defaultCosmosFieldResolver } from '../5-resolvers/default'
 import { defaultCosmosResolveListByOurs } from '../5-resolvers/resolve-list-ours'
 import { defaultCosmosResolveListRoot } from '../5-resolvers/resolve-list-root'
 import { defaultCosmosResolveListByTheirs } from '../5-resolvers/resolve-list-theirs'
+import { defaultCosmosResolveOneOurs } from '../5-resolvers/resolve-one-ours'
 import { defaultCosmosResolveOneRoot } from '../5-resolvers/resolve-one-root'
 import { defaultCosmosResolvePageByOurs } from '../5-resolvers/resolve-page-ours'
 import { defaultCosmosResolvePageRoot } from '../5-resolvers/resolve-page-root'
 import { defaultCosmosResolvePageByTheirs } from '../5-resolvers/resolve-page-theirs'
 import { GraphQLCosmosFieldResolver } from '../5-resolvers/resolver'
-import { defaultCosmosRootFieldResolver } from '../5-resolvers/root'
 import { defaultCosmosScalarFieldResolver } from '../5-resolvers/scalar'
 import { SourceDescriptor } from '../5-resolvers/x-descriptors'
 import { GraphQLCosmosConceptContext } from '../6-datasource/1-context'
-import { withErrorMiddleware } from '../error'
+import { withConsoleTraceMiddleware, withErrorMiddleware } from '../error'
 
 export class CosmosResolverBuilder {
   meta: MetaIndex
@@ -56,54 +56,26 @@ export class CosmosResolverBuilder {
   buildField(field: MetaField, type: MetaType): GraphQLCosmosFieldResolver<unknown, GraphQLCosmosConceptContext> {
     const returnType = this.meta.type(field.returnTypename)
 
-    if (!type.cosmos) {
-      if (field.pagination) {
-        return withErrorMiddleware(`root-page`, defaultCosmosResolvePageRoot)
-      } else if (field.returnMany) {
-        return withErrorMiddleware(`root-many`, defaultCosmosResolveListRoot)
-      } else {
-        return withErrorMiddleware(`root-one`, defaultCosmosResolveOneRoot)
-      }
-    }
-
     if (field.fieldname === `id`) {
-      return withErrorMiddleware(`default`, defaultFieldResolver)
-    } else if (returnType && field.pagination && field.theirs) {
-      return withErrorMiddleware(`page-by-theirs`, defaultCosmosResolvePageByTheirs)
-    } else if (returnType && field.pagination && field.ours) {
-      return withErrorMiddleware(`page-by-ours`, defaultCosmosResolvePageByOurs)
-    } else if (returnType && field.returnMany && field.theirs) {
-      return withErrorMiddleware(`list-by-theirs`, defaultCosmosResolveListByTheirs)
-    } else if (returnType && field.returnMany && field.ours) {
-      return withErrorMiddleware(`list-by-ours`, defaultCosmosResolveListByOurs)
-    } else if (returnType) {
-      return withErrorMiddleware(`one`, defaultCosmosObjectFieldResolver)
+      return /*withConsoleTraceMiddleware*/ withErrorMiddleware(`default`, defaultFieldResolver)
+    } else if (returnType?.cosmos && !type.cosmos && field.pagination && field.ours === null) {
+      return /*withConsoleTraceMiddleware*/ withErrorMiddleware(`root-page`, defaultCosmosResolvePageRoot)
+    } else if (returnType?.cosmos && !type.cosmos && field.returnMany && field.ours === null) {
+      return /*withConsoleTraceMiddleware*/ withErrorMiddleware(`root-many`, defaultCosmosResolveListRoot)
+    } else if (returnType?.cosmos && !type.cosmos && field.ours === null) {
+      return /*withConsoleTraceMiddleware*/ withErrorMiddleware(`root-one`, defaultCosmosResolveOneRoot)
+    } else if (returnType?.cosmos && field.pagination && field.theirs) {
+      return /*withConsoleTraceMiddleware*/ withErrorMiddleware(`page-by-theirs`, defaultCosmosResolvePageByTheirs)
+    } else if (returnType?.cosmos && field.pagination && field.ours) {
+      return /*withConsoleTraceMiddleware*/ withErrorMiddleware(`page-by-ours`, defaultCosmosResolvePageByOurs)
+    } else if (returnType?.cosmos && field.returnMany && field.theirs) {
+      return /*withConsoleTraceMiddleware*/ withErrorMiddleware(`list-by-theirs`, defaultCosmosResolveListByTheirs)
+    } else if (returnType?.cosmos && field.returnMany && field.ours) {
+      return /*withConsoleTraceMiddleware*/ withErrorMiddleware(`list-by-ours`, defaultCosmosResolveListByOurs)
+    } else if (returnType?.cosmos) {
+      return /*withConsoleTraceMiddleware*/ withErrorMiddleware(`one-ours`, defaultCosmosResolveOneOurs)
     } else {
-      return withErrorMiddleware(`scalar`, defaultCosmosScalarFieldResolver)
+      return /*withConsoleTraceMiddleware*/ withErrorMiddleware(`column`, defaultCosmosFieldResolver)
     }
-
-    throw Error(`no return type for: ${type.typename}.${field.fieldname}`)
-
-    // switch (field.kind) {
-    //   case 'embedded':
-    //     return this.meta.type(field.returnTypename)
-    //       ? withErrorMiddleware(`defaultCosmosObjectFieldResolver`, defaultCosmosObjectFieldResolver)
-    //       : withErrorMiddleware(`defaultCosmosScalarFieldResolver`, defaultCosmosScalarFieldResolver)
-    //   case 'many-ours':
-    //     return withErrorMiddleware(`defaultCosmosPageFieldResolver`, defaultCosmosPageFieldResolver)
-    //   case 'many-theirs':
-    //     return withErrorMiddleware(`defaultCosmosPageFieldResolver`, defaultCosmosPageFieldResolver)
-    //   case 'one-ours':
-    //     return this.meta.type(field.returnTypename)
-    //       ? withErrorMiddleware(`defaultCosmosObjectFieldResolver`, defaultCosmosObjectFieldResolver)
-    //       : withErrorMiddleware(`defaultCosmosScalarFieldResolver`, defaultCosmosScalarFieldResolver)
-    //   case 'one-theirs':
-    //     return withErrorMiddleware(`defaultCosmosObjectFieldResolver`, defaultCosmosObjectFieldResolver)
-    //   case 'one-root':
-    //     return withErrorMiddleware(`defaultCosmosRootFieldResolver`, defaultCosmosRootFieldResolver)
-    //   case 'many-root':
-    //     return withErrorMiddleware(`defaultCosmosRootFieldResolver`, defaultCosmosRootFieldResolver)
-    //   default:
-    // }
   }
 }

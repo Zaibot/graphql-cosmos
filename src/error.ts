@@ -40,6 +40,25 @@ export const withErrorMiddleware = <T extends IFieldResolver<any, GraphQLCosmosC
   return f as any
 }
 
+export const withConsoleTraceMiddleware = <T extends IFieldResolver<any, GraphQLCosmosConceptContext>>(
+  original: T
+): T => {
+  const f: IFieldResolver<any, GraphQLCosmosConceptContext> = async (source, args, context, info) => {
+    const result = await original(source, args, context, info)
+    console.info(
+      `${info.parentType.name}.${info.fieldName}`,
+      JSON.stringify(source),
+      `=`,
+      JSON.stringify(await result?.toJSON?.() ?? result)
+    )
+    return result
+  }
+  Object.defineProperty(f, `name`, {
+    value: `withConsoleTraceMiddleware(${original.name})`,
+  })
+  return f as any
+}
+
 export const traceErrorMiddleware = (args: ErrorDescription) => {
   const resolver = args.resolver
   const type = args.info.parentType.name

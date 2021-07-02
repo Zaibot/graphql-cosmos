@@ -15,7 +15,7 @@ Object {
           "database": null,
           "fieldname": "embedded",
           "ours": null,
-          "pagination": true,
+          "pagination": false,
           "returnMany": true,
           "returnTypename": "Embedded",
           "sortOurs": null,
@@ -127,7 +127,7 @@ Object {
           "database": "Test",
           "fieldname": "dummies",
           "ours": null,
-          "pagination": true,
+          "pagination": false,
           "returnMany": true,
           "returnTypename": "Dummy",
           "sortOurs": null,
@@ -206,12 +206,12 @@ exports[`Nulled relations expects schema to remain the same 1`] = `
   query: Query
 }
 type Query {
-  dummies(cursor: String, limit: Int): DummyPage!
+  dummies: [Dummy]
 }
 type Dummy {
   id: ID!
   prop: String
-  embedded(cursor: String, limit: Int): EmbeddedPage!
+  embedded: [Embedded]
   related: Related
 }
 type Embedded {
@@ -222,17 +222,5 @@ type Related {
   id: ID!
   prop: String
   related: Related
-}
-type EmbeddedPage {
-  total: Int!
-  cursor: String
-  nextCursor: String
-  page: [Embedded]!
-}
-type DummyPage {
-  total: Int!
-  cursor: String
-  nextCursor: String
-  page: [Dummy]!
 }"
 `;

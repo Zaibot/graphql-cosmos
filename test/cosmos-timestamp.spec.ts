@@ -1,16 +1,14 @@
-import { GraphQLSchema, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
 import { printSchemaWithDirectives } from 'graphql-tools'
-import { CosmosDefaultCompiler } from '../src/4-resolver-builder/4-default-compiler'
 import { createUnitTestContext } from './utils'
 
 describe(`Processed schema`, () => {
   const dummyTypeDefs = gql`
     type Query {
-      dummies: [Dummy] @cosmos(database: "Test", container: "Dummies")
+      dummies: [Dummy] @cosmos
     }
 
-    type Dummy {
+    type Dummy @cosmos(database: "Test", container: "Dummies") {
       id: ID! @where(op: "eq in")
       timestamp: Int @cosmos(ours: "_ts") @where(op: "gte")
       etag: String @cosmos(ours: "_etag") @where(op: "eq")
@@ -20,14 +18,16 @@ describe(`Processed schema`, () => {
   const responses = {
     Dummies: {
       'SELECT VALUE COUNT(1) FROM c': [1],
-      'SELECT VALUE COUNT(1) FROM c WHERE c._etag = @p2 (@p2=abc)': [{ id: `1` }],
+      'SELECT VALUE COUNT(1) FROM c WHERE c._etag = @p2 (@p2=abc)': [1],
       'SELECT VALUE COUNT(1) FROM c WHERE c._ts >= @p2 (@p2=100)': [1],
 
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }],
       'SELECT c.id FROM c WHERE c._etag = @p2 ORDER BY c.id (@p2=abc)': [{ id: `1` }],
       'SELECT c.id FROM c WHERE c._ts >= @p2 ORDER BY c.id (@p2=100)': [{ id: `1` }],
-      
-      'SELECT c.id, c._ts, c._etag FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1)': [{ id: `1`, _ts: 123, _etag: `abc` },],
+
+      'SELECT c.id, c._ts, c._etag FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1)': [
+        { id: `1`, _ts: 123, _etag: `abc` },
+      ],
     },
   }
 

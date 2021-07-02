@@ -58,7 +58,7 @@ Object {
           "database": "Test",
           "fieldname": "entities",
           "ours": null,
-          "pagination": true,
+          "pagination": false,
           "returnMany": true,
           "returnTypename": "Entity",
           "sortOurs": null,
@@ -122,7 +122,7 @@ exports[`Where expects schema to remain the same 1`] = `
   query: Query
 }
 type Query {
-  entities(where: EntityWhere, cursor: String, limit: Int): EntityPage!
+  entities(where: EntityWhere): [Entity!]!
 }
 type Entity {
   id: ID!
@@ -131,12 +131,6 @@ type Entity {
 type Related {
   id: ID!
   text: String
-}
-type EntityPage {
-  total: Int!
-  cursor: String
-  nextCursor: String
-  page: [Entity]!
 }
 input EntityWhere {
   and: [EntityWhere!]

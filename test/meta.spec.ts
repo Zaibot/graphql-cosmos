@@ -4,10 +4,10 @@ import { getMetaSchema } from '../src/2-meta/2-intermediate'
 
 const dummyTypeDefs = gql`
   type Query {
-    dummies: [Dummy] @cosmos(database: "Test", container: "Dummies")
+    dummies: [Dummy] @cosmos
   }
 
-  type Dummy {
+  type Dummy @cosmos(database: "Test", container: "Dummies") {
     id: ID! @where(op: "eq in")
     text: String
   }

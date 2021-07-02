@@ -5,16 +5,15 @@ import { createUnitTestContext } from './utils'
 describe(`Build Cosmos AST Schema`, () => {
   const dummyTypeDefs = gql`
     type Query {
-      dummies: [Dummy!]! @cosmos(database: "Test", container: "Dummies")
+      dummies: [Dummy!]! @cosmos
     }
-
-    type Dummy {
+    type Dummy @cosmos(database: "Test", container: "Dummies") {
       id: ID! @where(op: "eq")
       status: Status! @where(op: "eq neq")
-      related: [Related!]! @cosmos(database: "Test", container: "Relations", ours: "relatedIds", pagination: "on")
+      related: [Related!]! @cosmos(ours: "relatedIds", pagination: "on")
     }
 
-    type Related {
+    type Related @cosmos(database: "Test", container: "Relations") {
       id: ID! @where(op: "eq")
       name: String! @sort(ours: "test")
     }

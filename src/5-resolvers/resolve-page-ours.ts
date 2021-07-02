@@ -1,7 +1,7 @@
 import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-schema-transformer'
 import { failql, lazy } from '../typescript'
 import { parseInputSort, parseInputWhere } from './input-args'
-import { graphqlCosmosPageResponse } from './internals/utils'
+import { emptyPageResponse, graphqlCosmosPageResponse } from './internals/utils'
 import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
 
@@ -12,14 +12,26 @@ export const defaultCosmosResolvePageByOurs: GraphQLCosmosFieldResolver = async 
 
   const source = SourceDescriptor.getDescriptor(parent)
 
-  if (source?.kind !== `Single`) {
-    failql(`expects source be of type Single`, info)
+  const current =
+    source?.kind === `Single`
+      ? await context.dataSources.graphqlCosmos.load(source, field.ours ?? field.fieldname)
+      : Object(parent)[field.ours ?? field.fieldname] ?? []
+
+  if (current?.length === 0) {
+    return emptyPageResponse
   }
 
   const pageArgs = (args ?? {}) as Partial<GraphQLCosmosPageInput>
   const cursor = pageArgs.cursor ?? null
   const limit = pageArgs.limit ?? 50
-  const where = parseInputWhere({ and: [pageArgs.where ?? {}, { [`${field.theirs ?? `id`}_in`]: current }] })
+  const where = parseInputWhere({
+    and: [
+      pageArgs.where ?? {},
+      Array.isArray(current)
+        ? { [`${field.theirs ?? `id`}_in`]: current }
+        : { [`${field.theirs ?? `id`}_eq`]: current },
+    ],
+  })
   const sort = parseInputSort(pageArgs.sort ?? {})
 
   const database = field.database ?? parentType.database ?? failql(`requires database`, info)

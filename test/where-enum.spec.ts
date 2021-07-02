@@ -5,10 +5,10 @@ import { createUnitTestContext } from './utils'
 describe(`Where`, () => {
   const dummyTypeDefs = gql`
     type Query {
-      entities: [Entity!]! @cosmos(database: "Test", container: "Entities")
+      entities: [Entity!]! @cosmos
     }
 
-    type Entity {
+    type Entity @cosmos(database: "Test", container: "Entities") {
       id: ID!
       status: Status! @where(op: "eq neq in nin")
     }

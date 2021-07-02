@@ -56,7 +56,7 @@ Object {
           "database": "Test",
           "fieldname": "lefts",
           "ours": null,
-          "pagination": true,
+          "pagination": false,
           "returnMany": true,
           "returnTypename": "Left",
           "sortOurs": null,
@@ -105,7 +105,7 @@ exports[`One to one expects schema to remain the same 1`] = `
   query: Query
 }
 type Query {
-  lefts(cursor: String, limit: Int): LeftPage!
+  lefts: [Left]
 }
 type Left {
   id: ID!
@@ -113,11 +113,5 @@ type Left {
 }
 type Right {
   id: ID!
-}
-type LeftPage {
-  total: Int!
-  cursor: String
-  nextCursor: String
-  page: [Left]!
 }"
 `;

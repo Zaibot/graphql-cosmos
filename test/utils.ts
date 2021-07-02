@@ -94,9 +94,11 @@ export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData
             `${x.typename}:\n- ${x.fields
               .map(
                 (y) =>
-                  `${y.fieldname}: ${y.returnTypename}${y.pagination ? ` PAGE` : ``}${
-                    meta.type(y.returnTypename)?.filterable ? ` WHERE` : ``
-                  }${y.sortable ? ` SORT` : ``}${y.ours ? ` OURS` : ``}${y.theirs ? ` THEIRS` : ``}`
+                  `${y.fieldname}: ${y.returnTypename}${y.cosmos ? ` COSMOS` : ``}${
+                    y.pagination ? ` PAGE` : y.returnMany ? ` LIST` : ``
+                  }${meta.type(y.returnTypename)?.filterable ? ` WHERE` : ``}${y.sortable ? ` SORT` : ``}${
+                    y.ours ? ` OURS` : ``
+                  }${y.theirs ? ` THEIRS` : ``}`
               )
               .join(`\n- `)}`
         )

@@ -12,6 +12,7 @@ import { GraphQLCosmosConceptContext } from './1-context'
 import { CosmosHandler } from './5-cosmos'
 import { GraphQLCosmosDataSourcePlugin } from './3-plugin'
 import { DataSourceQuery, DataSourceQueryResponse } from './4-query'
+import { DataLoaderSpec } from '../2-dataloader/spec'
 
 export interface CosmosEntity {
   id: string
@@ -82,20 +83,21 @@ export class GraphQLCosmosDataSource<TContext = unknown> extends ApolloDataSourc
       query: `SELECT VALUE COUNT(1) FROM ${alias}${WHERE}`,
       parameters: params,
     }
-    return { origin: query, sql, limit: 50 }
+    return { origin: query, sql, limit: null }
   }
 
   async load<T>(source: SourceDescriptor.Single, column: string) {
     const context = this.context ?? fail(`requires context for fetching value ${source.typename}.${column}`)
     const dataloader = this.dataloader ?? fail(`requires dataloader for fetching value ${source.typename}.${column}`)
-    const data = await dataloader({
+    const spec: DataLoaderSpec = {
       container: source.container,
       columns: [column],
       id: [source.id],
       context: context,
       database: source.database,
       typename: source.typename,
-    })
+    }
+    const data = await dataloader(spec)
     const value: T = Object(data[0])[column]
     return value
   }

@@ -4,9 +4,9 @@ exports[`Reference to deep container expects meta schema to remain the same 1`] 
 Object {
   "types": Array [
     Object {
-      "container": null,
-      "cosmos": false,
-      "database": null,
+      "container": "Dummies",
+      "cosmos": true,
+      "database": "Test",
       "external": false,
       "fields": Array [
         Object {
@@ -73,9 +73,9 @@ Object {
       "typename": "Query",
     },
     Object {
-      "container": null,
-      "cosmos": false,
-      "database": null,
+      "container": "Relations",
+      "cosmos": true,
+      "database": "Test",
       "external": false,
       "fields": Array [
         Object {

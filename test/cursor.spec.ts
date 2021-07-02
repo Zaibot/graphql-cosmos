@@ -5,15 +5,15 @@ import { createUnitTestContext } from './utils'
 describe(`Pagination`, () => {
   const dummyTypeDefs = gql`
     type Query {
-      dummies: [Dummy] @cosmos(database: "Test", container: "Dummies")
+      dummies: [Dummy] @cosmos
     }
 
-    type Dummy {
+    type Dummy @cosmos(database: "Test", container: "Dummies") {
       id: ID! @where(op: "eq in")
-      related: Related @cosmos(database: "Test", container: "Relations", ours: "relatedId")
+      related: Related @cosmos(ours: "relatedId")
     }
 
-    type Related {
+    type Related @cosmos(database: "Test", container: "Relations") {
       id: ID!
       text: String
     }
