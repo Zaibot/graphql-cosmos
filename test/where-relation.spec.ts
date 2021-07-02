@@ -5,17 +5,15 @@ import { createUnitTestContext } from './utils'
 describe(`Where`, () => {
   const dummyTypeDefs = gql`
     type Query {
-      entities: [Entity!]! @cosmos(database: "Test", container: "Entities")
+      entities: [Entity!]! @cosmos
     }
 
-    type Entity {
+    type Entity @cosmos(database: "Test", container: "Entities") {
       id: ID!
-      related: Related
-        @cosmos(database: "Test", container: "Related", ours: "relatedId")
-        @where(op: "eq", ours: "relatedId")
+      related: Related @cosmos(ours: "relatedId") @where(op: "eq", ours: "relatedId")
     }
 
-    type Related {
+    type Related @cosmos(database: "Test", container: "Related") {
       id: ID!
       text: String
     }

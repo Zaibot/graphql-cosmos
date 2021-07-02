@@ -4,9 +4,9 @@ exports[`Where expects meta schema to remain the same 1`] = `
 Object {
   "types": Array [
     Object {
-      "container": null,
-      "cosmos": false,
-      "database": null,
+      "container": "Entities",
+      "cosmos": true,
+      "database": "Test",
       "external": false,
       "fields": Array [
         Object {
@@ -58,7 +58,7 @@ Object {
           "database": "Test",
           "fieldname": "entities",
           "ours": null,
-          "pagination": false,
+          "pagination": true,
           "returnMany": true,
           "returnTypename": "Entity",
           "sortOurs": null,
@@ -73,9 +73,9 @@ Object {
       "typename": "Query",
     },
     Object {
-      "container": null,
-      "cosmos": false,
-      "database": null,
+      "container": "Related",
+      "cosmos": true,
+      "database": "Test",
       "external": false,
       "fields": Array [
         Object {
@@ -122,7 +122,7 @@ exports[`Where expects schema to remain the same 1`] = `
   query: Query
 }
 type Query {
-  entities(where: EntityWhere): [Entity!]!
+  entities(where: EntityWhere, cursor: String, limit: Int): EntityPage!
 }
 type Entity {
   id: ID!
@@ -131,6 +131,12 @@ type Entity {
 type Related {
   id: ID!
   text: String
+}
+type EntityPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Entity]!
 }
 input EntityWhere {
   and: [EntityWhere!]

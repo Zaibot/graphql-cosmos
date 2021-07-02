@@ -1,12 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Reference to other container expects meta schema to remain the same 1`] = `
+exports[`Reference to other container (root) expects meta schema to remain the same 1`] = `
 Object {
   "types": Array [
     Object {
-      "container": null,
-      "cosmos": false,
-      "database": null,
+      "container": "Dummies",
+      "cosmos": true,
+      "database": "Test",
       "external": false,
       "fields": Array [
         Object {
@@ -56,7 +56,7 @@ Object {
           "database": "Test",
           "fieldname": "dummies",
           "ours": null,
-          "pagination": false,
+          "pagination": true,
           "returnMany": true,
           "returnTypename": "Dummy",
           "sortOurs": null,
@@ -71,9 +71,9 @@ Object {
       "typename": "Query",
     },
     Object {
-      "container": null,
-      "cosmos": false,
-      "database": null,
+      "container": "Relations",
+      "cosmos": true,
+      "database": "Test",
       "external": false,
       "fields": Array [
         Object {
@@ -82,7 +82,7 @@ Object {
           "database": "Test",
           "fieldname": "dummies",
           "ours": null,
-          "pagination": false,
+          "pagination": true,
           "returnMany": true,
           "returnTypename": "Dummy",
           "sortOurs": null,
@@ -115,12 +115,12 @@ Object {
 }
 `;
 
-exports[`Reference to other container expects schema to remain the same 1`] = `
+exports[`Reference to other container (root) expects schema to remain the same 1`] = `
 "schema {
   query: Query
 }
 type Query {
-  dummies: [Dummy!]!
+  dummies(cursor: String, limit: Int): DummyPage!
 }
 type Dummy {
   id: ID!
@@ -128,12 +128,18 @@ type Dummy {
 }
 type Related {
   id: ID!
-  dummies: [Dummy!]!
+  dummies(cursor: String, limit: Int): DummyPage!
 }
 type RelatedPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Related]!
+}
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
 }"
 `;

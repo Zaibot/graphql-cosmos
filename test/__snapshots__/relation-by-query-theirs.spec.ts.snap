@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`One to one expects meta schema to remain the same 1`] = `
+exports[`Reference to other container (theirs) expects meta schema to remain the same 1`] = `
 Object {
   "types": Array [
     Object {
-      "container": "Lefts",
+      "container": "Dummies",
       "cosmos": true,
       "database": "Test",
       "external": false,
@@ -25,14 +25,14 @@ Object {
           "whereOurs": null,
         },
         Object {
-          "container": "Rights",
+          "container": "Relations",
           "cosmos": true,
           "database": "Test",
-          "fieldname": "right",
-          "ours": "rightId",
-          "pagination": false,
-          "returnMany": false,
-          "returnTypename": "Right",
+          "fieldname": "related",
+          "ours": "relatedIds",
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Related",
           "sortOurs": null,
           "sortable": false,
           "theirs": null,
@@ -42,7 +42,7 @@ Object {
       ],
       "filterable": false,
       "sortable": false,
-      "typename": "Left",
+      "typename": "Dummy",
     },
     Object {
       "container": null,
@@ -51,14 +51,14 @@ Object {
       "external": false,
       "fields": Array [
         Object {
-          "container": "Lefts",
+          "container": "Dummies",
           "cosmos": true,
           "database": "Test",
-          "fieldname": "lefts",
+          "fieldname": "dummies",
           "ours": null,
           "pagination": true,
           "returnMany": true,
-          "returnTypename": "Left",
+          "returnTypename": "Dummy",
           "sortOurs": null,
           "sortable": false,
           "theirs": null,
@@ -71,11 +71,26 @@ Object {
       "typename": "Query",
     },
     Object {
-      "container": "Rights",
+      "container": "Relations",
       "cosmos": true,
       "database": "Test",
       "external": false,
       "fields": Array [
+        Object {
+          "container": "Dummies",
+          "cosmos": true,
+          "database": "Test",
+          "fieldname": "dummies",
+          "ours": null,
+          "pagination": true,
+          "returnMany": true,
+          "returnTypename": "Dummy",
+          "sortOurs": null,
+          "sortable": false,
+          "theirs": "relatedIds",
+          "whereOps": Array [],
+          "whereOurs": null,
+        },
         Object {
           "container": null,
           "cosmos": false,
@@ -94,30 +109,37 @@ Object {
       ],
       "filterable": false,
       "sortable": false,
-      "typename": "Right",
+      "typename": "Related",
     },
   ],
 }
 `;
 
-exports[`One to one expects schema to remain the same 1`] = `
+exports[`Reference to other container (theirs) expects schema to remain the same 1`] = `
 "schema {
   query: Query
 }
 type Query {
-  lefts(cursor: String, limit: Int): LeftPage!
+  dummies(cursor: String, limit: Int): DummyPage!
 }
-type Left {
+type Dummy {
   id: ID!
-  right: Right
+  related(cursor: String, limit: Int): RelatedPage!
 }
-type Right {
+type Related {
   id: ID!
+  dummies(cursor: String, limit: Int): DummyPage!
 }
-type LeftPage {
+type RelatedPage {
   total: Int!
   cursor: String
   nextCursor: String
-  page: [Left]!
+  page: [Related]!
+}
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
 }"
 `;

@@ -4,9 +4,9 @@ exports[`Nulled relations expects meta schema to remain the same 1`] = `
 Object {
   "types": Array [
     Object {
-      "container": null,
-      "cosmos": false,
-      "database": null,
+      "container": "Dummies",
+      "cosmos": true,
+      "database": "Test",
       "external": false,
       "fields": Array [
         Object {
@@ -127,7 +127,7 @@ Object {
           "database": "Test",
           "fieldname": "dummies",
           "ours": null,
-          "pagination": false,
+          "pagination": true,
           "returnMany": true,
           "returnTypename": "Dummy",
           "sortOurs": null,
@@ -142,9 +142,9 @@ Object {
       "typename": "Query",
     },
     Object {
-      "container": null,
-      "cosmos": false,
-      "database": null,
+      "container": "Related",
+      "cosmos": true,
+      "database": "Test",
       "external": false,
       "fields": Array [
         Object {
@@ -206,7 +206,7 @@ exports[`Nulled relations expects schema to remain the same 1`] = `
   query: Query
 }
 type Query {
-  dummies: [Dummy]
+  dummies(cursor: String, limit: Int): DummyPage!
 }
 type Dummy {
   id: ID!
@@ -222,5 +222,11 @@ type Related {
   id: ID!
   prop: String
   related: Related
+}
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
 }"
 `;

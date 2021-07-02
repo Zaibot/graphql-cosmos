@@ -4,15 +4,15 @@ import { createUnitTestContext } from './utils'
 describe(`Trace error`, () => {
   const dummyTypeDefs = gql`
     type Query {
-      dummies: [Dummy] @cosmos(database: "Test", container: "Dummies")
+      dummies: [Dummy] @cosmos
     }
 
-    type Dummy {
+    type Dummy @cosmos(database: "Test", container: "Dummies") {
       id: ID
-      related: Related @cosmos(database: "Test", container: "Related", ours: "relatedId")
+      related: Related @cosmos(ours: "relatedId")
     }
 
-    type Related {
+    type Related @cosmos(database: "Test", container: "Related") {
       id: ID
       prop: String
     }
@@ -21,9 +21,6 @@ describe(`Trace error`, () => {
   const responses = {
     Dummies: {
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }],
-      'SELECT c.id, c.relatedId FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1)': [
-        { id: `1`, prop: `text`, relatedId: 1 },
-      ],
     },
   }
 
@@ -47,10 +44,6 @@ describe(`Trace error`, () => {
     `
     const result = await uc.execute(query, false)
     expect(result.errors).toHaveLength(1)
-    expect(result.errors[0].originalError.message.split(`\n`).slice(0, 3)).toEqual([
-      `during defaultCosmosFieldResolver at Related("1").prop`,
-      `| during defaultCosmosScalarFieldResolver at Related("1").prop`,
-      ``,
-    ])
+    expect(result.errors[0].originalError.message).toContain(`during one-ours at Dummy("1").related`)
   })
 })

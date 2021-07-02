@@ -5,10 +5,10 @@ import { createUnitTestContext } from './utils'
 describe(`Sorting`, () => {
   const dummyTypeDefs = gql`
     type Query {
-      dummies: [Dummy] @cosmos(database: "Test", container: "Dummies")
+      dummies: [Dummy] @cosmos
     }
 
-    type Dummy {
+    type Dummy @cosmos(database: "Test", container: "Dummies") {
       id: ID! @sort
       name: String! @sort
     }

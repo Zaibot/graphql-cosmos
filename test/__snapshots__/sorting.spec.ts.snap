@@ -4,9 +4,9 @@ exports[`Sorting expects meta schema to remain the same 1`] = `
 Object {
   "types": Array [
     Object {
-      "container": null,
-      "cosmos": false,
-      "database": null,
+      "container": "Dummies",
+      "cosmos": true,
+      "database": "Test",
       "external": false,
       "fields": Array [
         Object {
@@ -56,7 +56,7 @@ Object {
           "database": "Test",
           "fieldname": "dummies",
           "ours": null,
-          "pagination": false,
+          "pagination": true,
           "returnMany": true,
           "returnTypename": "Dummy",
           "sortOurs": null,
@@ -79,11 +79,17 @@ exports[`Sorting expects schema to remain the same 1`] = `
   query: Query
 }
 type Query {
-  dummies(sort: DummySort): [Dummy]
+  dummies(sort: DummySort, cursor: String, limit: Int): DummyPage!
 }
 type Dummy {
   id: ID!
   name: String!
+}
+type DummyPage {
+  total: Int!
+  cursor: String
+  nextCursor: String
+  page: [Dummy]!
 }
 input DummySort {
   id_ASC: Int

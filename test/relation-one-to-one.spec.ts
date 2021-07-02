@@ -5,15 +5,15 @@ import { createUnitTestContext } from './utils'
 describe(`One to one`, () => {
   const dummyTypeDefs = gql`
     type Query {
-      lefts: [Left] @cosmos(database: "Test", container: "Lefts")
+      lefts: [Left] @cosmos
     }
 
-    type Left {
+    type Left @cosmos(database: "Test", container: "Lefts") {
       id: ID!
-      right: Right @cosmos(database: "Test", container: "Rights", ours: "rightId")
+      right: Right @cosmos(ours: "rightId")
     }
 
-    type Right {
+    type Right @cosmos(database: "Test", container: "Rights", ours: "rightId") {
       id: ID!
     }
   `

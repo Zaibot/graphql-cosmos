@@ -1,5 +1,6 @@
 import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-schema-transformer'
 import { failql, lazy } from '../typescript'
+import { defaultCosmosFieldResolver } from './default'
 import { parseInputSort, parseInputWhere } from './input-args'
 import { emptyPageResponse, graphqlCosmosPageResponse } from './internals/utils'
 import { GraphQLCosmosFieldResolver } from './resolver'
@@ -12,12 +13,9 @@ export const defaultCosmosResolvePageByOurs: GraphQLCosmosFieldResolver = async 
 
   const source = SourceDescriptor.getDescriptor(parent)
 
-  const current =
-    source?.kind === `Single`
-      ? await context.dataSources.graphqlCosmos.load(source, field.ours ?? field.fieldname)
-      : Object(parent)[field.ours ?? field.fieldname] ?? []
+  const current = await defaultCosmosFieldResolver(parent, args, context, info)
 
-  if (current?.length === 0) {
+  if ((current?.length ?? 0) === 0) {
     return emptyPageResponse
   }
 
@@ -33,9 +31,8 @@ export const defaultCosmosResolvePageByOurs: GraphQLCosmosFieldResolver = async 
     ],
   })
   const sort = parseInputSort(pageArgs.sort ?? {})
-
-  const database = field.database ?? parentType.database ?? failql(`requires database`, info)
-  const container = field.container ?? parentType.container ?? failql(`requires container`, info)
+  const database = field.database ?? returnType.database ?? failql(`requires database`, info)
+  const container = field.container ?? returnType.container ?? failql(`requires container`, info)
 
   const query = lazy(async () => {
     const query = context.dataSources.graphqlCosmos.buildQuery({
