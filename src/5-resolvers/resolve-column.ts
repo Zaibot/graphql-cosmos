@@ -9,32 +9,6 @@ export const defaultCosmosResolveColumnOurs: GraphQLCosmosFieldResolver = async 
   if (current !== undefined) {
     return current
   } else if (source?.kind === `Single`) {
-    const value = await context.dataSources.graphqlCosmos.load(source, column)
-    return value
+    return await context.dataSources.graphqlCosmos.load(source, column)
   }
 }
-
-// export const defaultCosmosWhereFieldResolver: GraphQLCosmosFieldResolver = (parent, _args, context, info) => {
-//   const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
-//   const column = field.whereOurs ?? field.ours ?? field.fieldname
-//   const source = SourceDescriptor.getDescriptor(parent)
-//   if (source?.kind === `Single`) {
-//     return context.dataSources.graphqlCosmos.load(source, column)
-//   } else {
-//     const value = Object(parent)[column]
-//     console.log(`EMBEDDED ${info.parentType}.${info.fieldName} = ${value}`)
-//     return value
-//   }
-// }
-
-// export const defaultCosmosSortFieldResolver: GraphQLCosmosFieldResolver = (parent, _args, context, info) => {
-//   const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
-//   const column = field.sortOurs ?? field.ours ?? field.fieldname
-//   const source = SourceDescriptor.getDescriptor(parent)
-//   if (source?.kind === `Single`) {
-//     return context.dataSources.graphqlCosmos.load(source, column)
-//   } else {
-//     const value = Object(parent)[column]
-//     return value
-//   }
-// }

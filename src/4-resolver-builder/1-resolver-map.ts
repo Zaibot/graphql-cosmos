@@ -128,8 +128,8 @@ export class CosmosResolverBuilder {
         const type = dataSources.graphqlCosmos.meta.requireType(getNamedType(info.returnType).name)
         const database = type.database ?? fail(`requires database in meta type`)
         const container = type.container ?? fail(`requires container in meta type`)
-        const id = Object(parent)[`id`] ?? fail(`requires id in parent`)
-        return SourceDescriptor.withDescriptor({ id }, dataSources.graphqlCosmos.refSingle(type.typename, database, container, id))
+        Object(parent)[`id`] ?? fail(`requires id in parent`)
+        return dataSources.graphqlCosmos.single(type.typename, database, container, parent as { id: string })
       }
     }
   }
