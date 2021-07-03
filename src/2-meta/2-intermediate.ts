@@ -33,15 +33,6 @@ export interface MetaField {
   sortOurs: string | null
 }
 
-export type MetaFieldKind =
-  | 'one-root'
-  | 'many-root'
-  | 'one-ours'
-  | 'many-ours'
-  | 'one-theirs'
-  | 'many-theirs'
-  | 'embedded'
-
 export function getMetaSchema(schema: GraphQLCosmosSchemaFromAst): MetaSchema {
   try {
     const types = schema.types

@@ -10,7 +10,7 @@ export const defaultCosmosResolvePageByOurs: GraphQLCosmosFieldResolver = async 
   const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const returnType = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
 
-  const current = valueIfOne(await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? null
+  const current = valueIfOne((await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? []) ?? null
   if (current == null) {
     return emptyPageResponse
   }

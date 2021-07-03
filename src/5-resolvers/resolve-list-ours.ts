@@ -11,14 +11,14 @@ export const defaultCosmosResolveListByOurs: GraphQLCosmosFieldResolver = async 
   const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const returnType = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
 
-  const current = valueIfOne(await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? null
+  const current = valueIfOne((await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? []) ?? null
   if (current == null) {
     return []
   }
 
   const pageArgs = (args ?? {}) as Partial<GraphQLCosmosPageInput>
   const cursor = pageArgs.cursor ?? null
-  const limit = pageArgs.limit ?? 50
+  const limit = pageArgs.limit ?? null
   const where = parseInputWhere({
     and: [
       pageArgs.where ?? {},

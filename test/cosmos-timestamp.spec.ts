@@ -23,7 +23,9 @@ describe(`Processed schema`, () => {
 
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }],
       'SELECT c.id FROM c WHERE c._etag = @p2 ORDER BY c.id (@p2=abc)': [{ id: `1` }],
-      'SELECT c.id FROM c WHERE c._ts >= @p2 ORDER BY c.id (@p2=100)': [{ id: `1` }],
+      'SELECT c.id, c._ts, c._etag FROM c WHERE c._ts >= @p2 ORDER BY c.id (@p2=100)': [
+        { id: `1`, _ts: 123, _etag: `abc` },
+      ],
 
       'SELECT c.id, c._ts, c._etag FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1)': [
         { id: `1`, _ts: 123, _etag: `abc` },

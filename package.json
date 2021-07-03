@@ -1,6 +1,6 @@
 {
   "name": "@zaibot/graphql-cosmos",
-  "version": "0.0.39",
+  "version": "0.0.100",
   "description": "GraphQL Cosmos directives",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
@@ -20,8 +20,13 @@
     "type": "git",
     "url": "git+https://github.com/Zaibot/graphql-cosmos.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "graphql",
+    "azure",
+    "cosmos",
+    "dataloader"
+  ],
+  "author": "tobias@degroen.solutions",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Zaibot/graphql-cosmos/issues"

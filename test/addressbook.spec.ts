@@ -27,17 +27,16 @@ describe(`Address Book`, () => {
 
   const responses = {
     Persons: {
-      'SELECT c.id FROM c ORDER BY c.id': [{ id: `alice` }, { id: `bob` }],
-      'SELECT c.id, c.name FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=alice,bob)': [
+      'SELECT c.id, c.name FROM c ORDER BY c.id': [
         { id: `alice`, name: `Alice` },
         { id: `bob`, name: `Bob` },
       ],
     },
     Contacts: {
-      'SELECT c.id FROM c WHERE c.personId = @p2 ORDER BY c.id (@p2=alice)': [{ id: `alice` }],
-      'SELECT c.id FROM c WHERE c.personId = @p2 ORDER BY c.id (@p2=bob)': [{ id: `bob` }],
-      'SELECT c.id, c.phonenumber FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=alice,bob)': [
+      'SELECT c.id, c.phonenumber FROM c WHERE c.personId = @p2 ORDER BY c.id (@p2=alice)': [
         { id: `alice`, phonenumber: `555-111` },
+      ],
+      'SELECT c.id, c.phonenumber FROM c WHERE c.personId = @p2 ORDER BY c.id (@p2=bob)': [
         { id: `bob`, phonenumber: `555-222` },
       ],
     },

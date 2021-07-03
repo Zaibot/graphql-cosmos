@@ -3,7 +3,7 @@ import { FieldNode, SelectionNode } from 'graphql/language/ast'
 import { GraphQLResolveInfo } from 'graphql/type/definition'
 import { DataLoaderHandler } from '../2-dataloader/loader'
 import { DataLoaderSpec } from '../2-dataloader/spec'
-import { MetaSchema, MetaType } from '../2-meta/2-intermediate'
+import { MetaField, MetaSchema, MetaType } from '../2-meta/2-intermediate'
 import { MetaIndex } from '../2-meta/3-meta-index'
 import { SourceDescriptor } from '../5-resolvers/x-descriptors'
 import { ErrorMiddleware } from '../error'
@@ -28,6 +28,7 @@ export class GraphQLCosmosDataSource<TContext = unknown> extends ApolloDataSourc
   cosmos: CosmosHandler
   context: GraphQLCosmosConceptContext<TContext> | null = null
   plugin: GraphQLCosmosDataSourcePlugin
+  enablePrefetch = true
   onError: ErrorMiddleware
 
   constructor(
@@ -156,43 +157,65 @@ export class GraphQLCosmosDataSource<TContext = unknown> extends ApolloDataSourc
     }
   }
 
+  external<T extends { id: string }>(typename: string, data: T): T
+  external<T extends { id: string }>(typename: string, data: T | null): T | null
+  external<T extends { id: string }>(typename: string, data: T | null): T | null {
+    if (data === null) {
+      return null
+    } else {
+      return { __typename: typename, ...data }
+    }
+  }
+
   prefetchOfSelection(typename: string, selections: readonly SelectionNode[]) {
-    const prefetch = selections
-      .map((x) => (x.kind === `Field` ? x.name.value : null))
-      .filter(defined)
-      .map((x) => this.meta.field(typename, x))
-      .filter(defined)
-      .map((x) => x.ours ?? x.fieldname)
-    return prefetch
+    if (this.enablePrefetch) {
+      const prefetch = selections
+        .map((x) => (x.kind === `Field` ? x.name.value : null))
+        .filter(defined)
+        .map((fieldname) => this.meta.field(typename, fieldname))
+        .filter((x): x is MetaField => !!x && x.theirs === null)
+        .map((x) => x.ours ?? x.fieldname)
+      return prefetch
+    } else {
+      return []
+    }
   }
 
   prefetchOfPage(info: GraphQLResolveInfo) {
-    const field = this.meta.field(info.parentType.name, info.fieldName)
-    if (field) {
-      const fieldNode = info.fieldNodes.find((x) => x.name.value === info.fieldName)
-      const fieldPage = (fieldNode?.selectionSet?.selections ?? []).find(
-        (x): x is FieldNode => x.kind === `Field` && x.name.value === `page`
-      )
-      const selections = fieldPage?.selectionSet?.selections
-      if (selections) {
-        return this.prefetchOfSelection(field.returnTypename, selections)
+    if (this.enablePrefetch) {
+      const field = this.meta.field(info.parentType.name, info.fieldName)
+      if (field) {
+        const fieldNode = info.fieldNodes.find((x) => x.name.value === info.fieldName)
+        const fieldPage = (fieldNode?.selectionSet?.selections ?? []).find(
+          (x): x is FieldNode => x.kind === `Field` && x.name.value === `page`
+        )
+        const selections = fieldPage?.selectionSet?.selections
+        if (selections) {
+          return this.prefetchOfSelection(field.returnTypename, selections)
+        }
       }
+      return []
+    } else {
+      return []
     }
-    return []
   }
 
   prefetchOfObject(info: GraphQLResolveInfo) {
-    const field = this.meta.field(info.parentType.name, info.fieldName)
-    if (field) {
-      const fieldNode = info.fieldNodes.find((x) => x.name.value === info.fieldName)
-      const selections = fieldNode?.selectionSet?.selections
-      if (selections) {
-        return this.prefetchOfSelection(field.returnTypename, selections)
+    if (this.enablePrefetch) {
+      const field = this.meta.field(info.parentType.name, info.fieldName)
+      if (field) {
+        const fieldNode = info.fieldNodes.find((x) => x.name.value === info.fieldName)
+        const selections = fieldNode?.selectionSet?.selections
+        if (selections) {
+          return this.prefetchOfSelection(field.returnTypename, selections)
+        }
       }
+      return []
+    } else {
+      return []
     }
-    return []
   }
-  
+
   // prefetchApply<T>(typename: string, obj: T){
   //   return Object.fromEntries(Object.entries(obj).map(([k,v]) =>  [this.meta.oursField(typename, k)?.fieldname,  ))
   // }

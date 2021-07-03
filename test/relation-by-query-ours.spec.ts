@@ -22,20 +22,19 @@ describe(`Reference to other container (ours)`, () => {
   const responses = {
     Dummies: {
       'SELECT VALUE COUNT(1) FROM c': [3],
-      'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
-      'SELECT c.id, c.relatedIds FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1,2,3)': [
+      'SELECT c.id, c.relatedIds FROM c ORDER BY c.id': [
         { id: `1`, relatedIds: [`1b`] },
         { id: `2`, relatedIds: [`2b`] },
         { id: `3`, relatedIds: [`3b`] },
       ],
     },
     Relations: {
-      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@p2, c.id) (@p2=1b)': [1],
-      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@p2, c.id) (@p2=2b)': [1],
-      'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@p2, c.id) (@p2=3b)': [1],
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1b)': [{ id: `1b` }],
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=2b)': [{ id: `2b` }],
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=3b)': [{ id: `3b` }],
+      'SELECT VALUE COUNT(1) FROM c WHERE c.id = @p2 (@p2=1b)': [1],
+      'SELECT VALUE COUNT(1) FROM c WHERE c.id = @p2 (@p2=2b)': [1],
+      'SELECT VALUE COUNT(1) FROM c WHERE c.id = @p2 (@p2=3b)': [1],
+      'SELECT c.id FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=1b)': [{ id: `1b` }],
+      'SELECT c.id FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=2b)': [{ id: `2b` }],
+      'SELECT c.id FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=3b)': [{ id: `3b` }],
     },
   }
 

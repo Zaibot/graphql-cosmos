@@ -18,12 +18,12 @@ describe(`@cosmos`, () => {
     Dummies: {
       'SELECT VALUE COUNT(1) FROM c': [3],
       'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
-      'SELECT VALUE COUNT(1) FROM c WHERE c.id = @p2 (@p2=1)': [1],
       'SELECT c.id FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=1)': [{ id: `1` }],
+      'SELECT VALUE COUNT(1) FROM c WHERE c.id = @p2 (@p2=1)': [1],
       'SELECT VALUE COUNT(1) FROM c WHERE c.id = @p2 (@p2=missing)': [0],
-      'SELECT c.id FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=missing)': [],
+      'SELECT c.id, c.text FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=missing)': [],
       'SELECT VALUE COUNT(1) FROM c WHERE ARRAY_CONTAINS(@p2, c.id) (@p2=missing1,missing2)': [0],
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=missing1,missing2)': [],
+      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=missing1,missing2)': [],
     },
   }
 

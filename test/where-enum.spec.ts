@@ -22,22 +22,15 @@ describe(`Where`, () => {
 
   const responses = {
     Entities: {
-      'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }],
-      'SELECT c.id, c.status FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1,2)': [
-        { __typename: 'Entity', id: `1`, status: `OPEN` },
-        { __typename: 'Entity', id: `2`, status: `CLOSE` },
+      'SELECT c.id, c.status FROM c ORDER BY c.id': [
+        { id: `1`, status: `OPEN` },
+        { id: `2`, status: `CLOSE` },
       ],
-      'SELECT c.id, c.status FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1)': [
-        { __typename: 'Entity', id: `1`, status: `OPEN` },
-      ],
-      'SELECT c.id, c.status FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=2)': [
-        { __typename: 'Entity', id: `2`, status: `CLOSE` },
-      ],
-      'SELECT c.id FROM c WHERE c.status = @p2 ORDER BY c.id (@p2=OPEN)': [{ id: `1` }],
-      'SELECT c.id FROM c WHERE c.status != @p2 ORDER BY c.id (@p2=OPEN)': [{ id: `2` }],
-      'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.status) ORDER BY c.id (@p2=OPEN,CLOSE)': [
-        { id: `1` },
-        { id: `2` },
+      'SELECT c.id, c.status FROM c WHERE c.status = @p2 ORDER BY c.id (@p2=OPEN)': [{ id: `1`, status: `OPEN` }],
+      'SELECT c.id, c.status FROM c WHERE c.status != @p2 ORDER BY c.id (@p2=OPEN)': [{ id: `2`, status: `CLOSE` }],
+      'SELECT c.id, c.status FROM c WHERE ARRAY_CONTAINS(@p2, c.status) ORDER BY c.id (@p2=OPEN,CLOSE)': [
+        { id: `1`, status: `OPEN` },
+        { id: `2`, status: `CLOSE` },
       ],
     },
   }

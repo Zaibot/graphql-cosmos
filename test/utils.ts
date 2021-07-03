@@ -23,6 +23,10 @@ export class UnitTestMissingQuery extends Error {
 }
 
 export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData, customResolvers: IResolvers = {}) {
+  const mockDataUnused = new Set(
+    Object.entries(mockData).flatMap(([container, v]) => Object.keys(v).map((key) => `${container}.${key}`))
+  )
+
   const compiler = CosmosDefaultCompiler.fromTypeDefs(typedefs)
   const schema = mergeSchemas({ schemas: [compiler.schema], resolvers: customResolvers })
   const resolvers = compiler.resolvers
@@ -35,6 +39,8 @@ export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData
     const asd = _cursor ? ` @${_cursor}` : ``
     const params = sql.parameters.length ? ` (${sql.parameters.map((x) => `${x.name}=${x.value}`).toString()})` : ``
     const key = `${sql.query}${asd}${params}`
+
+    mockDataUnused.delete(`${container}.${key}`)
 
     const response = mockData[container]?.[key]?.slice()
     if (!response) {
@@ -107,6 +113,12 @@ export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData
     // console.log(JSON.stringify(metaSchema, undefined, 4))
     console.log(resolvers)
   }
+
+  afterAll(() => {
+    for (const unused of mockDataUnused) {
+      console.error(`Remove the following key: ${unused}`)
+    }
+  })
 
   return { execute: execute2, resolvers, context, metaSchema, schema, print: printSchemaAndResolvers }
 }

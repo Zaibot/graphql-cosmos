@@ -16,7 +16,7 @@ export const defaultCosmosResolveListByTheirs: GraphQLCosmosFieldResolver = asyn
 
   const pageArgs = (args ?? {}) as Partial<GraphQLCosmosPageInput>
   const cursor = pageArgs.cursor ?? null
-  const limit = pageArgs.limit ?? 50
+  const limit = pageArgs.limit ?? null
   const where = parseInputWhere({
     and: [
       pageArgs.where ?? {},

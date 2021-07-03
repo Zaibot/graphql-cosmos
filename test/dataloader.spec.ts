@@ -43,6 +43,7 @@ describe(`Data Loader`, () => {
   }
 
   const uc = createUnitTestContext(dummyTypeDefs, responses)
+  uc.context.dataSources.graphqlCosmos.enablePrefetch = false
 
   let dataloader: string[]
   const original = uc.context.dataSources.graphqlCosmos.dataloader

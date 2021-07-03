@@ -3,16 +3,17 @@ import { defaultFieldResolver, getNamedType, GraphQLResolveInfo } from 'graphql'
 import { MetaField, MetaType } from '../2-meta/2-intermediate'
 import { MetaIndex } from '../2-meta/3-meta-index'
 import { defaultCosmosResolveColumnOurs } from '../5-resolvers/resolve-column'
+import { defaultCosmosResolveExternalListOurs } from '../5-resolvers/resolve-list-external'
 import { defaultCosmosResolveListByOurs } from '../5-resolvers/resolve-list-ours'
 import { defaultCosmosResolveListRoot } from '../5-resolvers/resolve-list-root'
 import { defaultCosmosResolveListByTheirs } from '../5-resolvers/resolve-list-theirs'
+import { defaultCosmosResolveExternalOneOurs } from '../5-resolvers/resolve-one-external'
 import { defaultCosmosResolveOneOurs } from '../5-resolvers/resolve-one-ours'
 import { defaultCosmosResolveOneRoot } from '../5-resolvers/resolve-one-root'
 import { defaultCosmosResolvePageByOurs } from '../5-resolvers/resolve-page-ours'
 import { defaultCosmosResolvePageRoot } from '../5-resolvers/resolve-page-root'
 import { defaultCosmosResolvePageByTheirs } from '../5-resolvers/resolve-page-theirs'
 import { GraphQLCosmosFieldResolver } from '../5-resolvers/resolver'
-import { SourceDescriptor } from '../5-resolvers/x-descriptors'
 import { GraphQLCosmosConceptContext } from '../6-datasource/1-context'
 import { withErrorMiddleware } from '../error'
 
@@ -27,65 +28,76 @@ export namespace DefaultResolver {
     }
   }
 
-  export const PageRoot: CosmosResolverPlugin = (field, type, meta, next) => {
+  export const PageRoot: CosmosResolverPlugin = (field, type, meta, _next) => {
     const returnType = meta.type(field.returnTypename)
     if (returnType?.cosmos && field.cosmos && !type.cosmos && field.pagination && field.ours === null && field.theirs === null) {
       return withErrorMiddleware(`root-page`, defaultCosmosResolvePageRoot)
     }
   }
 
-  export const ListRoot: CosmosResolverPlugin = (field, type, meta, next) => {
+  export const ListRoot: CosmosResolverPlugin = (field, type, meta, _next) => {
     const returnType = meta.type(field.returnTypename)
     if (returnType?.cosmos && field.cosmos && !type.cosmos && field.returnMany && field.ours === null && field.theirs === null) {
       return withErrorMiddleware(`root-many`, defaultCosmosResolveListRoot)
     }
   }
 
-  export const OneRoot: CosmosResolverPlugin = (field, type, meta, next) => {
+  export const OneRoot: CosmosResolverPlugin = (field, type, meta, _next) => {
     const returnType = meta.type(field.returnTypename)
     if (returnType?.cosmos && field.cosmos && !type.cosmos && field.ours === null && field.theirs === null) {
       return withErrorMiddleware(`root-one`, defaultCosmosResolveOneRoot)
     }
   }
 
-  export const PageByTheirs: CosmosResolverPlugin = (field, type, meta, next) => {
+  export const PageByTheirs: CosmosResolverPlugin = (field, _type, meta, _next) => {
     const returnType = meta.type(field.returnTypename)
     if (returnType?.cosmos && field.cosmos && field.pagination && field.theirs) {
       return withErrorMiddleware(`page-by-theirs`, defaultCosmosResolvePageByTheirs)
     }
   }
 
-  export const PageByOurs: CosmosResolverPlugin = (field, type, meta, next) => {
+  export const PageByOurs: CosmosResolverPlugin = (field, _type, meta, _next) => {
     const returnType = meta.type(field.returnTypename)
     if (returnType?.cosmos && field.cosmos && field.pagination && field.ours) {
       return withErrorMiddleware(`page-by-ours`, defaultCosmosResolvePageByOurs)
     }
   }
 
-  export const ListByTheirs: CosmosResolverPlugin = (field, type, meta, next) => {
+  export const ListByTheirs: CosmosResolverPlugin = (field, _type, meta, _next) => {
     const returnType = meta.type(field.returnTypename)
     if (returnType?.cosmos && field.cosmos && field.returnMany && field.theirs) {
       return withErrorMiddleware(`list-by-theirs`, defaultCosmosResolveListByTheirs)
     }
   }
 
-  export const ListByOurs: CosmosResolverPlugin = (field, type, meta, next) => {
+  export const ListByOurs: CosmosResolverPlugin = (field, _type, meta, _next) => {
     const returnType = meta.type(field.returnTypename)
     if (returnType?.cosmos && field.cosmos && field.returnMany && field.ours) {
       return withErrorMiddleware(`list-by-ours`, defaultCosmosResolveListByOurs)
     }
   }
 
-  export const OneOurs: CosmosResolverPlugin = (field, type, meta, next) => {
+  export const OneOurs: CosmosResolverPlugin = (field, _type, meta, _next) => {
     const returnType = meta.type(field.returnTypename)
     if (returnType?.cosmos && field.cosmos) {
       return withErrorMiddleware(`one-ours`, defaultCosmosResolveOneOurs)
     }
   }
 
-  export const ColumnOurs: CosmosResolverPlugin = (field, type, meta, next) => {
+  export const ColumnOurs: CosmosResolverPlugin = (_field, type, _meta, _next) => {
     if (type.cosmos) {
       return withErrorMiddleware(`column`, defaultCosmosResolveColumnOurs)
+    }
+  }
+
+  export const ExternalType: CosmosResolverPlugin = (field, _type, meta, _next) => {
+    const returnType = meta.type(field.returnTypename)
+    if (returnType?.external) {
+      if (field.returnMany) {
+        return withErrorMiddleware(`column`, defaultCosmosResolveExternalListOurs)
+      } else {
+        return withErrorMiddleware(`column`, defaultCosmosResolveExternalOneOurs)
+      }
     }
   }
 }
@@ -101,6 +113,7 @@ export const CommosResolverDefaults: CosmosResolverPlugin[] = [
   DefaultResolver.ListByOurs,
   DefaultResolver.OneOurs,
   DefaultResolver.ColumnOurs,
+  DefaultResolver.ExternalType,
 ]
 
 export class CosmosResolverBuilder {

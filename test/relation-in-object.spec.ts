@@ -21,8 +21,7 @@ describe(`Embedded relations`, () => {
   const responses = {
     Dummies: {
       'SELECT VALUE COUNT(1) FROM c': [3],
-      'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
-      'SELECT c.id, c.embedded FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1,2,3)': [
+      'SELECT c.id, c.embedded FROM c ORDER BY c.id': [
         { id: `1`, embedded: [{ id: `1b` }] },
         { id: `2`, embedded: [{ id: `2b` }] },
         { id: `3`, embedded: [{ id: `3b` }] },

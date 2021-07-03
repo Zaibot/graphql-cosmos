@@ -40,22 +40,11 @@ describe(`Data Loader`, () => {
       'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1a,1b)': [{ id: `1a` }, { id: `1b` }],
       'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=2a,2b)': [{ id: `2a` }, { id: `2b` }],
       'SELECT c.id FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=3a,3b)': [{ id: `3a` }, { id: `3b` }],
-      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1a,1b)': [
-        { id: `1a`, text: `1` },
-        { id: `1b`, text: `1` },
-      ],
-      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=2a,2b)': [
-        { id: `2a`, text: `2` },
-        { id: `2b`, text: null },
-      ],
-      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=3a,3b)': [
-        { id: `3a`, text: null },
-        { id: `3b`, text: null },
-      ],
     },
   }
 
   const uc = createUnitTestContext(dummyTypeDefs, responses)
+  uc.context.dataSources.graphqlCosmos.enablePrefetch = false
 
   let dataloader: string[] = []
   const original = uc.context.dataSources.graphqlCosmos.dataloader

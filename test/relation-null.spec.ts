@@ -29,25 +29,19 @@ describe(`Nulled relations`, () => {
 
   const responses = {
     Dummies: {
-      'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }, { id: `3` }, { id: `4` }, { id: `5` }],
-      'SELECT c.id, c.prop, c.embedded, c.relatedId FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1,2,3,4,5)':
-        [
-          { id: `1`, prop: `text`, relatedId: null, embedded: [{ prop: `text`, relatedId: null }] },
-          { id: `2`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text`, relatedId: undefined }] },
-          { id: `3`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text` }] },
-          { id: `4`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text`, relatedId: `5` }] },
-          { id: `5`, prop: `text`, embedded: [{ prop: `text` }] },
-        ],
-      'SELECT c.id, c.prop FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=5)': [
+      'SELECT c.id, c.prop, c.embedded, c.relatedId FROM c ORDER BY c.id': [
         { id: `1`, prop: `text`, relatedId: null, embedded: [{ prop: `text`, relatedId: null }] },
         { id: `2`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text`, relatedId: undefined }] },
         { id: `3`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text` }] },
-        { id: `4`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text`, relatedId: `5` }] },
+        { id: `4`, prop: `text`, relatedId: undefined, embedded: [{ prop: `text`, relatedId: `6` }] },
         { id: `5`, prop: `text`, embedded: [{ prop: `text` }] },
+      ],
+      'SELECT c.id, c.relatedId FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=5)': [
+        { id: `5`, relatedId: undefined },
       ],
     },
     Related: {
-      'SELECT c.id, c.prop FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=5)': [{ id: `5`, prop: `text` }],
+      'SELECT c.id, c.prop FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=6)': [{ id: `6`, prop: `text` }],
     },
   }
 
@@ -129,7 +123,7 @@ describe(`Nulled relations`, () => {
                   prop: `text`,
                   related: {
                     __typename: 'Related',
-                    id: `5`,
+                    id: `6`,
                     prop: `text`,
                   },
                 },

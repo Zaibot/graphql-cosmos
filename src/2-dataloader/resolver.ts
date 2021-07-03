@@ -1,4 +1,4 @@
-import { unique } from '../typescript'
+import { unique, valueIfOne } from '../typescript'
 import { DataLoaderSpec } from './spec'
 
 export type DataLoaderResolveHandler = (spec: DataLoaderSpec) => Promise<Array<unknown>>
@@ -6,7 +6,7 @@ export type DataLoaderResolveHandler = (spec: DataLoaderSpec) => Promise<Array<u
 export const defaultOnDataLoaderResolve: DataLoaderResolveHandler = async (
   spec: DataLoaderSpec
 ): Promise<Array<unknown>> => {
-  const whereIds = unique(spec.id)
+  const whereIds = valueIfOne(unique(spec.id))
   const selectColumns = unique([`id`].concat(spec.columns))
 
   if (whereIds.length > 100) {
@@ -23,7 +23,7 @@ export const defaultOnDataLoaderResolve: DataLoaderResolveHandler = async (
     origin: null,
     sort: [],
     typename: spec.typename,
-    where: [{ in: [`id`, whereIds] }],
+    where: Array.isArray(whereIds) ? [{ in: [`id`, whereIds] }] : [{ eq: [`id`, whereIds] }],
   })
 
   const response = await spec.context.dataSources.graphqlCosmos.query(build)
