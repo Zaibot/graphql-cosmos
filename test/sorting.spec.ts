@@ -17,15 +17,17 @@ describe(`Sorting`, () => {
   const responses = {
     Dummies: {
       'SELECT VALUE COUNT(1) FROM c': [3],
-      'SELECT c.id FROM c ORDER BY c.name, c.id': [{ id: `1` }, { id: `2` }, { id: `3` }],
-      'SELECT c.id, c.name FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1,2,3)': [
+      'SELECT c.id, c.name FROM c ORDER BY c.name, c.id': [
         { id: `1`, name: `A` },
         { id: `2`, name: `B` },
         { id: `3`, name: `C` },
       ],
-      'SELECT c.id FROM c ORDER BY c.name DESC, c.id': [{ id: `3` }, { id: `2` }, { id: `1` }],
-      'SELECT c.id FROM c ORDER BY c.name DESC, c.id DESC, c.id': [{ id: `3` }, { id: `2` }, { id: `1` }],
-      'SELECT c.id, c.name FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=3,2,1)': [
+      'SELECT c.id, c.name FROM c ORDER BY c.name DESC, c.id DESC, c.id': [
+        { id: `3`, name: `C` },
+        { id: `2`, name: `B` },
+        { id: `1`, name: `A` },
+      ],
+      'SELECT c.id, c.name FROM c ORDER BY c.name DESC, c.id': [
         { id: `3`, name: `C` },
         { id: `2`, name: `B` },
         { id: `1`, name: `A` },

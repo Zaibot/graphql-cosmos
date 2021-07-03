@@ -20,7 +20,7 @@ describe(`Trace error`, () => {
 
   const responses = {
     Dummies: {
-      'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }],
+      'SELECT c.id, c.relatedId FROM c ORDER BY c.id': [{ id: `1` }],
     },
   }
 

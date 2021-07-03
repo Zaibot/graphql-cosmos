@@ -21,25 +21,19 @@ describe(`Where`, () => {
 
   const responses = {
     Entities: {
-      'SELECT c.id FROM c ORDER BY c.id': [{ id: `1` }, { id: `2` }],
-      'SELECT c.id, c.relatedId FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1,2)': [
-        { __typename: 'Entity', id: `1`, relatedId: `1a` },
-        { __typename: 'Entity', id: `2`, relatedId: `2b` },
+      'SELECT c.id, c.relatedId FROM c ORDER BY c.id': [
+        { id: `1`, relatedId: `1a` },
+        { id: `2`, relatedId: `2b` },
       ],
-      'SELECT c.id FROM c WHERE c.relatedId = @p2 ORDER BY c.id (@p2=1a)': [{ __typename: 'Entity', id: `1` }],
-      'SELECT c.id, c.relatedId FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1)': [
-        { __typename: 'Entity', id: `1`, relatedId: `1a` },
-      ],
+      'SELECT c.id, c.relatedId FROM c WHERE c.relatedId = @p2 ORDER BY c.id (@p2=1a)': [{ id: `1` }],
+      'SELECT c.id, c.relatedId FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=1)': [{ id: `1`, relatedId: `1a` }],
     },
     Related: {
-      'SELECT c.id FROM c ORDER BY c.id': [{ id: `1a` }, { id: `2b` }],
       'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1a,2b)': [
-        { __typename: 'Related', id: `1a`, text: `a` },
-        { __typename: 'Related', id: `2b`, text: `b` },
+        { id: `1a`, text: `a` },
+        { id: `2b`, text: `b` },
       ],
-      'SELECT c.id, c.text FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=1a)': [
-        { __typename: 'Related', id: `1a`, text: `a` },
-      ],
+      'SELECT c.id, c.text FROM c WHERE c.id = @p2 ORDER BY c.id (@p2=1a)': [{ id: `1a`, text: `a` }],
     },
   }
 

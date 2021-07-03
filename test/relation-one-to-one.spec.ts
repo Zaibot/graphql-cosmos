@@ -21,10 +21,7 @@ describe(`One to one`, () => {
   const responses = {
     Lefts: {
       'SELECT VALUE COUNT(1) FROM c': [1],
-      'SELECT c.id FROM c ORDER BY c.id': [{ id: `l` }],
-      'SELECT c.id, c.rightId FROM c WHERE ARRAY_CONTAINS(@p2, c.id) ORDER BY c.id (@p2=l)': [
-        { id: `l`, rightId: `r` },
-      ],
+      'SELECT c.id, c.rightId FROM c ORDER BY c.id': [{ id: `l`, rightId: `r` }],
     },
   }
 
