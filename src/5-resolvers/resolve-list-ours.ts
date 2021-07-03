@@ -1,7 +1,8 @@
 import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-schema-transformer'
-import { failql } from '../typescript'
+import { failql, valueIfOne } from '../typescript'
 import { parseInputSort, parseInputWhere } from './input-args'
 import { wrapSingleSourceDescriptor } from './internals/utils'
+import { defaultCosmosResolveColumnOurs } from './resolve-column'
 import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
 
@@ -10,12 +11,10 @@ export const defaultCosmosResolveListByOurs: GraphQLCosmosFieldResolver = async 
   const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const returnType = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
 
-  const source = SourceDescriptor.getDescriptor(parent)
-
-  const current =
-    source?.kind === `Single`
-      ? await context.dataSources.graphqlCosmos.load(source, field.ours ?? field.fieldname)
-      : Object(parent)[field.ours ?? field.fieldname] ?? []
+  const current = valueIfOne(await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? null
+  if (current == null) {
+    return []
+  }
 
   const pageArgs = (args ?? {}) as Partial<GraphQLCosmosPageInput>
   const cursor = pageArgs.cursor ?? null
@@ -33,12 +32,14 @@ export const defaultCosmosResolveListByOurs: GraphQLCosmosFieldResolver = async 
   const database = field.database ?? parentType.database ?? failql(`requires database`, info)
   const container = field.container ?? parentType.container ?? failql(`requires container`, info)
 
+  const prefetch = context.dataSources.graphqlCosmos.prefetchOfObject(info)
+
   const query = context.dataSources.graphqlCosmos.buildQuery({
     database,
     container,
     context,
     cursor,
-    fields: [`id`],
+    fields: [`id`].concat(prefetch),
     origin: SourceDescriptor.hasDescriptor(parent) ? parent : null,
     sort,
     where,

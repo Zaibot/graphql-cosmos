@@ -1,18 +1,20 @@
 import { FeedResponse, JSONValue, SqlQuerySpec } from '@azure/cosmos'
-import { transformSort } from './x-sort'
-import { indexWhere, transformWhere } from './x-where'
+import { FieldNode, SelectionNode } from 'graphql/language/ast'
+import { GraphQLResolveInfo } from 'graphql/type/definition'
 import { DataLoaderHandler } from '../2-dataloader/loader'
-import { MetaSchema } from '../2-meta/2-intermediate'
+import { DataLoaderSpec } from '../2-dataloader/spec'
+import { MetaSchema, MetaType } from '../2-meta/2-intermediate'
 import { MetaIndex } from '../2-meta/3-meta-index'
 import { SourceDescriptor } from '../5-resolvers/x-descriptors'
 import { ErrorMiddleware } from '../error'
-import { fail } from '../typescript'
-import { ApolloDataSource, ApolloDataSourceConfig } from './x-apollo'
+import { defined, fail } from '../typescript'
 import { GraphQLCosmosConceptContext } from './1-context'
-import { CosmosHandler } from './5-cosmos'
 import { GraphQLCosmosDataSourcePlugin } from './3-plugin'
 import { DataSourceQuery, DataSourceQueryResponse } from './4-query'
-import { DataLoaderSpec } from '../2-dataloader/spec'
+import { CosmosHandler } from './5-cosmos'
+import { ApolloDataSource, ApolloDataSourceConfig } from './x-apollo'
+import { transformSort } from './x-sort'
+import { indexWhere, transformWhere } from './x-where'
 
 export interface CosmosEntity {
   id: string
@@ -87,12 +89,13 @@ export class GraphQLCosmosDataSource<TContext = unknown> extends ApolloDataSourc
   }
 
   async load<T>(source: SourceDescriptor.Single, column: string) {
+    const id = SourceDescriptor.getObjectId(source) ?? fail(`expects source to have an id`)
     const context = this.context ?? fail(`requires context for fetching value ${source.typename}.${column}`)
     const dataloader = this.dataloader ?? fail(`requires dataloader for fetching value ${source.typename}.${column}`)
     const spec: DataLoaderSpec = {
       container: source.container,
       columns: [column],
-      id: [source.id],
+      id: [id],
       context: context,
       database: source.database,
       typename: source.typename,
@@ -146,9 +149,53 @@ export class GraphQLCosmosDataSource<TContext = unknown> extends ApolloDataSourc
     if (data === null) {
       return null
     } else {
-      return SourceDescriptor.withDescriptor(data, { kind: `Single`, typename, database, container, id: data.id })
+      return SourceDescriptor.withDescriptor(
+        { __typename: typename, ...data },
+        { kind: `Single`, typename, database, container, id: data.id }
+      )
     }
   }
+
+  prefetchOfSelection(typename: string, selections: readonly SelectionNode[]) {
+    const prefetch = selections
+      .map((x) => (x.kind === `Field` ? x.name.value : null))
+      .filter(defined)
+      .map((x) => this.meta.field(typename, x))
+      .filter(defined)
+      .map((x) => x.ours ?? x.fieldname)
+    return prefetch
+  }
+
+  prefetchOfPage(info: GraphQLResolveInfo) {
+    const field = this.meta.field(info.parentType.name, info.fieldName)
+    if (field) {
+      const fieldNode = info.fieldNodes.find((x) => x.name.value === info.fieldName)
+      const fieldPage = (fieldNode?.selectionSet?.selections ?? []).find(
+        (x): x is FieldNode => x.kind === `Field` && x.name.value === `page`
+      )
+      const selections = fieldPage?.selectionSet?.selections
+      if (selections) {
+        return this.prefetchOfSelection(field.returnTypename, selections)
+      }
+    }
+    return []
+  }
+
+  prefetchOfObject(info: GraphQLResolveInfo) {
+    const field = this.meta.field(info.parentType.name, info.fieldName)
+    if (field) {
+      const fieldNode = info.fieldNodes.find((x) => x.name.value === info.fieldName)
+      const selections = fieldNode?.selectionSet?.selections
+      if (selections) {
+        return this.prefetchOfSelection(field.returnTypename, selections)
+      }
+    }
+    return []
+  }
+  
+  // prefetchApply<T>(typename: string, obj: T){
+  //   return Object.fromEntries(Object.entries(obj).map(([k,v]) =>  [this.meta.oursField(typename, k)?.fieldname,  ))
+  // }
 }
 
 export interface GraphQLCosmosArgs {

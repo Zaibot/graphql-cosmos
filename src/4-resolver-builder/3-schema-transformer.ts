@@ -12,12 +12,12 @@ import {
   InputValueDefinitionNode,
 } from 'graphql'
 import { SchemaMapper } from 'graphql-tools'
-import { fail, PromiseOrValue } from '../typescript'
-import { SourceDescriptor } from '../5-resolvers/x-descriptors'
 import { MetaType } from '../2-meta/2-intermediate'
 import { MetaIndex } from '../2-meta/3-meta-index'
 import { GraphQLCosmosPageInputSort, GraphQLCosmosPageInputWhere } from '../5-resolvers/input-args'
+import { SourceDescriptor } from '../5-resolvers/x-descriptors'
 import { WhereOps } from '../6-datasource/x-where'
+import { fail, PromiseOrValue } from '../typescript'
 
 export interface GraphQLCosmosPageInput {
   where?: GraphQLCosmosPageInputWhere
@@ -104,23 +104,23 @@ export class CosmosSchemaTransformer {
   generateWhereType(type: MetaType): DefinitionNode {
     const isPlural: Record<WhereOps, boolean> = {
       lt: false,
-      lt_lowercase: false,
+      ltlower: false,
       lte: false,
-      lte_lowercase: false,
+      ltelower: false,
       gt: false,
-      gt_lowercase: false,
+      gtlower: false,
       gte: false,
-      gte_lowercase: false,
+      gtelower: false,
       eq: false,
-      eq_lowercase: false,
+      eqlower: false,
       neq: false,
-      neq_lowercase: false,
+      neqlower: false,
       in: true,
-      in_lowercase: true,
+      inlower: true,
       nin: true,
-      nin_lowercase: true,
+      ninlower: true,
       contains: false,
-      contains_lowercase: false,
+      containslower: false,
       ncontains: false,
     }
 
@@ -248,7 +248,7 @@ export class CosmosSchemaTransformer {
           return
         }
 
-        if (field.pagination) {
+        if (field.cosmos && field.pagination) {
           const args: GraphQLFieldConfigArgumentMap = {}
 
           const nameWhered = `${field.returnTypename}Where`
@@ -277,28 +277,44 @@ export class CosmosSchemaTransformer {
   transformFieldWithCosmos(): SchemaMapper {
     return {
       'MapperKind.OBJECT_FIELD': (config, fieldName, typeName, schema) => {
+        const type = this.map.type(typeName)
         const field = this.map.field(typeName, fieldName)
-        if (field?.pagination){ 
-          // Will be handled by transformFieldWithPagination
-          return
-        }
-        if (field?.cosmos) {
-          const args: GraphQLFieldConfigArgumentMap = {}
+        if (type && field) {
+          if (field.pagination) {
+            // Will be handled by transformFieldWithPagination
+          } else if (type.cosmos && field.cosmos && !field.returnMany) {
+            // Single result field? And parent is from cosmos? No need to use filters.
+          } else if (field.cosmos && field.returnMany) {
+            const args: GraphQLFieldConfigArgumentMap = {}
 
-          const nameWhered = `${field.returnTypename}Where`
-          const nameSorted = `${field.returnTypename}Sort`
+            const nameWhered = `${field.returnTypename}Where`
+            const nameSorted = `${field.returnTypename}Sort`
 
-          const whereType = (schema.getTypeMap()[nameWhered] ?? null) as GraphQLInputType | null
-          const sortType = (schema.getTypeMap()[nameSorted] ?? null) as GraphQLInputType | null
+            const whereType = (schema.getTypeMap()[nameWhered] ?? null) as GraphQLInputType | null
+            const sortType = (schema.getTypeMap()[nameSorted] ?? null) as GraphQLInputType | null
 
-          if (whereType) {
-            args.where = { type: whereType }
+            if (whereType) {
+              args.where = { type: whereType }
+            }
+            if (sortType) {
+              args.sort = { type: sortType }
+            }
+            args.limit = { type: GraphQLInt }
+
+            return { ...config, args: args }
+          } else if (field.cosmos && !field.returnMany) {
+            const args: GraphQLFieldConfigArgumentMap = {}
+
+            const nameWhered = `${field.returnTypename}Where`
+
+            const whereType = (schema.getTypeMap()[nameWhered] ?? null) as GraphQLInputType | null
+
+            if (whereType) {
+              args.where = { type: whereType }
+            }
+
+            return { ...config, args: args }
           }
-          if (sortType) {
-            args.sort = { type: sortType }
-          }
-
-          return { ...config, args: args }
         }
       },
     }

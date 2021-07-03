@@ -1,3 +1,4 @@
+import { unique } from '../typescript'
 import { DataLoaderSpec } from './spec'
 
 export type DataLoaderResolveHandler = (spec: DataLoaderSpec) => Promise<Array<unknown>>
@@ -28,5 +29,3 @@ export const defaultOnDataLoaderResolve: DataLoaderResolveHandler = async (
   const response = await spec.context.dataSources.graphqlCosmos.query(build)
   return response.resources
 }
-
-const unique = <T>(...lists: T[][]) => Array.from(new Set(lists.flat()))

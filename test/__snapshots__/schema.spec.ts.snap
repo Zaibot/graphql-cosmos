@@ -5,7 +5,7 @@ exports[`Processed schema should match expected 1`] = `
   query: Query
 }
 type Query {
-  dummies(where: DummyWhere): [Dummy!]!
+  dummies(where: DummyWhere, limit: Int): [Dummy!]!
 }
 type Dummy {
   id: ID!

@@ -21,12 +21,14 @@ export const defaultCosmosResolveOneRoot: GraphQLCosmosFieldResolver = async (pa
   const database = field.database ?? parentType.database ?? failql(`requires database`, info)
   const container = field.container ?? parentType.container ?? failql(`requires container`, info)
 
+  const prefetch = context.dataSources.graphqlCosmos.prefetchOfObject(info)
+
   const query = context.dataSources.graphqlCosmos.buildQuery({
     database,
     container,
     context,
     cursor: null,
-    fields: [`id`],
+    fields: [`id`].concat(prefetch),
     origin: SourceDescriptor.hasDescriptor(parent) ? parent : null,
     sort: [],
     where,
@@ -39,5 +41,5 @@ export const defaultCosmosResolveOneRoot: GraphQLCosmosFieldResolver = async (pa
     failql(`defaultCosmosResolveOneRoot expects a single result`, info)
   }
 
-  return feed.resources.map(wrapSingleSourceDescriptor(returnType.typename, database, container))
+  return feed.resources.map(wrapSingleSourceDescriptor(returnType.typename, database, container))[0]
 }

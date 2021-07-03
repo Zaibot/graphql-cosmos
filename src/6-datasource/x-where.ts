@@ -5,23 +5,23 @@ export type Binary<T = unknown> = [string, T]
 
 export enum WhereOps {
   lt = 'lt',
-  lt_lowercase = 'lt_lowercase',
+  ltlower = 'ltlower',
   lte = 'lte',
-  lte_lowercase = 'lte_lowercase',
+  ltelower = 'ltelower',
   gt = 'gt',
-  gt_lowercase = 'gt_lowercase',
+  gtlower = 'gtlower',
   gte = 'gte',
-  gte_lowercase = 'gte_lowercase',
+  gtelower = 'gtelower',
   eq = 'eq',
-  eq_lowercase = 'eq_lowercase',
+  eqlower = 'eqlower',
   neq = 'neq',
-  neq_lowercase = 'neq_lowercase',
+  neqlower = 'neqlower',
   in = 'in',
-  in_lowercase = 'in_lowercase',
+  inlower = 'inlower',
   nin = 'nin',
-  nin_lowercase = 'nin_lowercase',
+  ninlower = 'ninlower',
   contains = 'contains',
-  contains_lowercase = 'contains_lowercase',
+  containslower = 'containslower',
   ncontains = 'ncontains',
 }
 
@@ -31,25 +31,25 @@ export const isWhereOp = (input: string | WhereOps): input is WhereOps => {
 
 export interface WhereBinary<T = unknown> {
   lt: Binary<T>
-  lt_lowercase: Binary<T>
+  ltlower: Binary<T>
   lte: Binary<T>
-  lte_lowercase: Binary<T>
+  ltelower: Binary<T>
   gt: Binary<T>
-  gt_lowercase: Binary<T>
+  gtlower: Binary<T>
   gte: Binary<T>
-  gte_lowercase: Binary<T>
+  gtelower: Binary<T>
   eq: Binary<T>
-  eq_lowercase: Binary<T>
+  eqlower: Binary<T>
   neq: Binary<T>
-  neq_lowercase: Binary<T>
+  neqlower: Binary<T>
   in: Binary<T>
-  in_lowercase: Binary<T>
+  inlower: Binary<T>
   nin: Binary<T>
-  nin_lowercase: Binary<T>
+  ninlower: Binary<T>
   contains: Binary<T>
-  contains_lowercase: Binary<T>
+  containslower: Binary<T>
   ncontains: Binary<T>
-  ncontains_lowercase: Binary<T>
+  ncontainslower: Binary<T>
 }
 
 export const WhereOpSet = new Set(Object.values(WhereOps)) as ReadonlySet<string>
@@ -116,34 +116,34 @@ export function transformWhere(
 
 function transformBinary(op: keyof WhereBinary, binary: Binary, secondIsArray: boolean, alias: string) {
   if (op === `contains`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
-  else if (op === `contains_lowercase`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]}, true)`
+  else if (op === `containslower`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]}, true)`
   else if (op === `ncontains`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
-  else if (op === `ncontains_lowercase`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]}, true)`
+  else if (op === `ncontainslower`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]}, true)`
   else if (op === `eq`) return `${alias}.${binary[0]} = ${binary[1]}`
-  else if (op === `eq_lowercase`) return `STRINGEQUALS(${alias}.${binary[0]}, ${binary[1]}, true)`
+  else if (op === `eqlower`) return `STRINGEQUALS(${alias}.${binary[0]}, ${binary[1]}, true)`
   else if (op === `lt`) return `${alias}.${binary[0]} < ${binary[1]}`
-  else if (op === `lt_lowercase`) return `LOWER(${alias}.${binary[0]}) < LOWER(${binary[1]})`
+  else if (op === `ltlower`) return `LOWER(${alias}.${binary[0]}) < LOWER(${binary[1]})`
   else if (op === `lte`) return `${alias}.${binary[0]} <= ${binary[1]}`
-  else if (op === `lte_lowercase`) return `LOWER(${alias}.${binary[0]}) <= LOWER(${binary[1]})`
+  else if (op === `ltelower`) return `LOWER(${alias}.${binary[0]}) <= LOWER(${binary[1]})`
   else if (op === `gt`) return `${alias}.${binary[0]} > ${binary[1]}`
-  else if (op === `gt_lowercase`) return `LOWER(${alias}.${binary[0]}) > LOWER(${binary[1]})`
+  else if (op === `gtlower`) return `LOWER(${alias}.${binary[0]}) > LOWER(${binary[1]})`
   else if (op === `gte`) return `${alias}.${binary[0]} >= ${binary[1]}`
-  else if (op === `gte_lowercase`) return `LOWER(${alias}.${binary[0]}) >= LOWER(${binary[1]})`
+  else if (op === `gtelower`) return `LOWER(${alias}.${binary[0]}) >= LOWER(${binary[1]})`
   else if (op === `in`)
     return secondIsArray
       ? `ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
       : `ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
-  else if (op === `in_lowercase`)
+  else if (op === `inlower`)
     return secondIsArray
       ? `ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
       : `ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
   else if (op === `neq`) return `${alias}.${binary[0]} != ${binary[1]}`
-  else if (op === `neq_lowercase`) return `NOT STRINGEQUALS(${alias}.${binary[0]}, ${binary[1]}, true)`
+  else if (op === `neqlower`) return `NOT STRINGEQUALS(${alias}.${binary[0]}, ${binary[1]}, true)`
   else if (op === `nin`)
     return secondIsArray
       ? `NOT ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
       : `NOT ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
-  else if (op === `nin_lowercase`)
+  else if (op === `ninlower`)
     return secondIsArray
       ? `NOT ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
       : `NOT ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`

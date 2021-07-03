@@ -1,4 +1,4 @@
-import { fail } from '../typescript'
+import { fail, unique } from '../typescript'
 import { MetaField, MetaSchema, MetaType } from './2-intermediate'
 
 export class MetaIndex {
@@ -116,8 +116,4 @@ export class MetaIndex {
   requireField(typename: string, fieldname: string) {
     return this.fieldMap.get(`${typename}.${fieldname}`) ?? fail(`meta field missing: ${typename}.${fieldname}`)
   }
-}
-
-function unique<T>(array: T[]) {
-  return Array.from(new Set(array).values())
 }

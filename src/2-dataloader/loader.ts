@@ -14,7 +14,7 @@ export interface DataLoaderOptions {
 export const createDataLoader = ({
   resolve = defaultOnDataLoaderResolve,
   combine = defaultOnDataLoaderCombine,
-  interval = 0,
+  interval = 10,
   batchSize = 100,
 }: DataLoaderOptions): DataLoaderHandler => {
   const pending = new Set<{ promise: ReturnType<typeof createPromise>; spec: DataLoaderSpec }>()

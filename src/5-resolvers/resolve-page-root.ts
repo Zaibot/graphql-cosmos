@@ -1,5 +1,5 @@
 import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-schema-transformer'
-import { failql, lazy } from '../typescript'
+import { failql, lazy, unique } from '../typescript'
 import { parseInputSort, parseInputWhere } from './input-args'
 import { graphqlCosmosPageResponse } from './internals/utils'
 import { GraphQLCosmosFieldResolver } from './resolver'
@@ -24,13 +24,15 @@ export const defaultCosmosResolvePageRoot: GraphQLCosmosFieldResolver = async (p
   const database = field.database ?? parentType.database ?? failql(`requires database`, info)
   const container = field.container ?? parentType.container ?? failql(`requires container`, info)
 
+  const prefetch = context.dataSources.graphqlCosmos.prefetchOfPage(info)
+
   const query = lazy(async () => {
     const query = context.dataSources.graphqlCosmos.buildQuery({
       database,
       container,
       context,
       cursor,
-      fields: [`id`],
+      fields: [`id`].concat(prefetch),
       origin: SourceDescriptor.hasDescriptor(parent) ? parent : null,
       sort,
       where,

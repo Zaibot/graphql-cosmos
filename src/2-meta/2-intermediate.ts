@@ -31,7 +31,6 @@ export interface MetaField {
   whereOurs: string | null
   sortable: boolean | null
   sortOurs: string | null
-  // kind: MetaFieldKind
 }
 
 export type MetaFieldKind =
@@ -45,7 +44,9 @@ export type MetaFieldKind =
 
 export function getMetaSchema(schema: GraphQLCosmosSchemaFromAst): MetaSchema {
   try {
-    const types = schema.types.map((x) => getMetaType(x, schema)).sort((a, b) => a.typename.localeCompare(b.typename))
+    const types = schema.types
+      .map((type) => getMetaType(type, schema))
+      .sort((a, b) => a.typename.localeCompare(b.typename))
 
     return {
       types,
@@ -64,7 +65,7 @@ export function getMetaType(type: GraphQLCosmosTypeFromAst, schema: GraphQLCosmo
       database: type.database,
       container: type.container,
       fields: (type.fields ?? [])
-        .map((x) => getMetaField(x, type, schema))
+        .map((field) => getMetaField(field, type, schema))
         .sort((a, b) => a.fieldname.localeCompare(b.fieldname)),
       filterable: (type.fields ?? []).some((x) => (x.whereOps ?? []).length > 0),
       sortable: (type.fields ?? []).some((x) => x.sortable),
@@ -98,37 +99,8 @@ export function getMetaField(
       sortable: field.sortable,
       sortOurs: field.sortOurs,
       returnMany: field.returnMany,
-      // kind: toRelationKind(!!field.container, !!field.ours, !!field.theirs, field.returnMany),
     }
   } catch (ex) {
     throw new GraphQLCosmosInitError(`Field: ${field.fieldname}`, ex)
   }
 }
-
-// function toRelationKind(container: boolean, ours: boolean, theirs: boolean, list: boolean): MetaFieldKind {
-//   if (ours && theirs) {
-//     throw Error(`expects ours or theirs not both`)
-//   } else if (ours && list) {
-//     // if (!container) throw Error(`expects container for many-ours`)
-//     return 'many-ours'
-//   } else if (ours) {
-//     // if (!container) throw Error(`expects container for many-ours`)
-//     return 'many-ours'
-//   } else if (theirs && list) {
-//     // if (!container) throw Error(`expects container for many-theirs`)
-//     return 'many-theirs'
-//   } else if (ours) {
-//     // if (!container) throw Error(`expects container for one-ours`)
-//     return 'one-ours'
-//   } else if (theirs) {
-//     // if (!container) throw Error(`expects container for one-theirs`)
-//     return 'one-theirs'
-//   } else if (list && container) {
-//     return 'many-root'
-//   } else {
-//     if (container) throw Error(`expects no container for embedded`)
-//     if (ours) throw Error(`expects no ours for embedded`)
-//     if (theirs) throw Error(`expects no theirs for embedded`)
-//     return 'embedded'
-//   }
-// }

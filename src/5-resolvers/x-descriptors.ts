@@ -19,6 +19,15 @@ export namespace SourceDescriptor {
     return hasDescriptor(embedded) ? embedded.__descriptor : null
   }
 
+  export function getObjectId(obj: unknown): string | null {
+    if (hasDescriptor(obj)) {
+      return obj.__descriptor.id
+    } else {
+      const id = Object(obj).id
+      return typeof id === `string` ? id : null
+    }
+  }
+
   export interface Single {
     kind: `Single`
     typename: string

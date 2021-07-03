@@ -22,12 +22,14 @@ export const defaultCosmosResolveListRoot: GraphQLCosmosFieldResolver = async (p
   const database = field.database ?? parentType.database ?? failql(`requires database`, info)
   const container = field.container ?? parentType.container ?? failql(`requires container`, info)
 
+  const prefetch = context.dataSources.graphqlCosmos.prefetchOfObject(info)
+
   const query = context.dataSources.graphqlCosmos.buildQuery({
     database,
     container,
     context,
     cursor: null,
-    fields: [`id`],
+    fields: [`id`].concat(prefetch),
     origin: SourceDescriptor.hasDescriptor(parent) ? parent : null,
     sort,
     where,

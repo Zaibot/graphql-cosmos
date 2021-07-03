@@ -12,7 +12,7 @@ describe(`Address Book`, () => {
 
     type Person @cosmos(database: "AddressBook", container: "Persons") {
       id: ID @where(op: "eq")
-      name: String! @where(op: "contains_lowercase")
+      name: String! @where(op: "containslower")
       contacts: [Contact!]! @cosmos(theirs: "personId", pagination: "off")
       perferredContact: Contact @cosmos(ours: "preferredContactId")
     }

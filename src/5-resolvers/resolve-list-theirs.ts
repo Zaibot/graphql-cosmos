@@ -6,18 +6,13 @@ import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
 
 export const defaultCosmosResolveListByTheirs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
-  const parentType = context.dataSources.graphqlCosmos.meta.requireType(info.parentType.name)
   const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const returnType = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
   const theirField =
     context.dataSources.graphqlCosmos.meta.oursField(field.returnTypename, field.theirs ?? `id`) ??
     fail(`can't find theirs: ${field.returnTypename}.${field.theirs ?? `id`}`)
 
-  const source = SourceDescriptor.getDescriptor(parent)
-
-  if (source?.kind !== `Single`) {
-    failql(`expects source be of type Single`, info)
-  }
+  const id = SourceDescriptor.getObjectId(parent) ?? failql(`expects parent to have an id`, info)
 
   const pageArgs = (args ?? {}) as Partial<GraphQLCosmosPageInput>
   const cursor = pageArgs.cursor ?? null
@@ -25,7 +20,7 @@ export const defaultCosmosResolveListByTheirs: GraphQLCosmosFieldResolver = asyn
   const where = parseInputWhere({
     and: [
       pageArgs.where ?? {},
-      theirField.returnMany ? { [`${field.theirs}_in`]: source.id } : { [`${field.theirs}_eq`]: source.id },
+      theirField.returnMany ? { [`${field.theirs}_in`]: id } : { [`${field.theirs}_eq`]: id },
     ],
   })
   const sort = parseInputSort(pageArgs.sort ?? {})
@@ -33,12 +28,14 @@ export const defaultCosmosResolveListByTheirs: GraphQLCosmosFieldResolver = asyn
   const database = field.database ?? returnType.database ?? failql(`requires database`, info)
   const container = field.container ?? returnType.container ?? failql(`requires container`, info)
 
+  const prefetch = context.dataSources.graphqlCosmos.prefetchOfObject(info)
+
   const query = context.dataSources.graphqlCosmos.buildQuery({
     database,
     container,
     context,
     cursor,
-    fields: [`id`],
+    fields: [`id`].concat(prefetch),
     origin: SourceDescriptor.hasDescriptor(parent) ? parent : null,
     sort,
     where,

@@ -1,21 +1,17 @@
 import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-schema-transformer'
-import { failql, lazy } from '../typescript'
-import { defaultCosmosFieldResolver } from './default'
+import { failql, lazy, valueIfOne } from '../typescript'
+import { defaultCosmosResolveColumnOurs } from './resolve-column'
 import { parseInputSort, parseInputWhere } from './input-args'
 import { emptyPageResponse, graphqlCosmosPageResponse } from './internals/utils'
 import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
 
 export const defaultCosmosResolvePageByOurs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
-  const parentType = context.dataSources.graphqlCosmos.meta.requireType(info.parentType.name)
   const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const returnType = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
 
-  const source = SourceDescriptor.getDescriptor(parent)
-
-  const current = await defaultCosmosFieldResolver(parent, args, context, info)
-
-  if ((current?.length ?? 0) === 0) {
+  const current = valueIfOne(await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? null
+  if (current == null) {
     return emptyPageResponse
   }
 
@@ -34,13 +30,15 @@ export const defaultCosmosResolvePageByOurs: GraphQLCosmosFieldResolver = async 
   const database = field.database ?? returnType.database ?? failql(`requires database`, info)
   const container = field.container ?? returnType.container ?? failql(`requires container`, info)
 
+  const prefetch = context.dataSources.graphqlCosmos.prefetchOfPage(info)
+
   const query = lazy(async () => {
     const query = context.dataSources.graphqlCosmos.buildQuery({
       database,
       container,
       context,
       cursor,
-      fields: [`id`],
+      fields: [`id`].concat(prefetch),
       origin: SourceDescriptor.hasDescriptor(parent) ? parent : null,
       sort,
       where,

@@ -127,7 +127,7 @@ Object {
           "sortable": false,
           "theirs": null,
           "whereOps": Array [
-            "contains_lowercase",
+            "containslower",
           ],
           "whereOurs": null,
         },
@@ -223,13 +223,13 @@ type Query {
 type Person {
   id: ID
   name: String!
-  contacts(where: ContactWhere): [Contact!]!
-  perferredContact(where: ContactWhere): Contact
+  contacts(where: ContactWhere, limit: Int): [Contact!]!
+  perferredContact: Contact
 }
 type Contact {
   id: ID
-  person(where: PersonWhere): Person!
-  preferredBy(where: PersonWhere): [Person!]!
+  person: Person!
+  preferredBy(where: PersonWhere, limit: Int): [Person!]!
   phonenumber: String!
 }
 type PersonPage {
@@ -247,6 +247,6 @@ input PersonWhere {
   and: [PersonWhere!]
   or: [PersonWhere!]
   id_eq: ID
-  name_contains_lowercase: String
+  name_containslower: String
 }"
 `;

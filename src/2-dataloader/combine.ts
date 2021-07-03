@@ -1,3 +1,4 @@
+import { unique } from '../typescript'
 import { DataLoaderSpec } from './spec'
 
 export type DataLoaderCombineHandler = (left: DataLoaderSpec, right: DataLoaderSpec) => DataLoaderSpec | null
@@ -20,5 +21,3 @@ export const defaultOnDataLoaderCombine = (left: DataLoaderSpec, right: DataLoad
     return null
   }
 }
-
-const unique = <T>(...lists: T[][]) => Array.from(new Set(lists.flat()))

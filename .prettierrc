@@ -10,6 +10,12 @@
       "options": {
         "printWidth": 240
       }
+    },
+    {
+      "files": ["1-resolver-map.ts"],
+      "options": {
+        "printWidth": 240
+      }
     }
   ]
 }
