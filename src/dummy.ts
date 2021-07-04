@@ -1,9 +1,10 @@
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { printSchemaWithDirectives } from '@graphql-tools/utils'
 import { execute, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { makeExecutableSchema, printSchemaWithDirectives } from 'graphql-tools'
 import { performance } from 'perf_hooks'
 import YAML from 'yaml'
-import { CosmosDefaultCompiler } from './4-resolver-builder/4-typedefs-compiler'
+import { CosmosTypeDefsCompiler } from './4-resolver-builder/4-typedefs-compiler'
 import { GraphQLCosmosConceptContext } from './6-datasource/1-context'
 import { GraphQLCosmosDataSource } from './6-datasource/2-datasource'
 import { combineDataSourcePlugins } from './6-datasource/3-plugin'
@@ -56,7 +57,7 @@ async function main() {
   `
 
   const aa = performance.now()
-  const compiler = CosmosDefaultCompiler.fromTypeDefs(typedefs)
+  const compiler = CosmosTypeDefsCompiler.fromTypeDefs(typedefs)
   const schema = makeExecutableSchema(compiler)
   const bb = performance.now()
   console.log(`${(bb - aa).toFixed(2)}ms init`)
@@ -98,7 +99,7 @@ async function main() {
   for (let i = 0; i < 10; i++) {
     const a = performance.now()
     const contextAA = initContext(false)
-    const compiler = CosmosDefaultCompiler.fromTypeDefs(typedefs)
+    const compiler = CosmosTypeDefsCompiler.fromTypeDefs(typedefs)
     const schema = makeExecutableSchema(compiler)
     await execute({
       contextValue: contextAA,
@@ -112,7 +113,7 @@ async function main() {
   console.log(`-`.repeat(100))
   for (let i = 0; i < 10; i++) {
     const contextAA = initContext(false)
-    const compiler = CosmosDefaultCompiler.fromTypeDefs(typedefs)
+    const compiler = CosmosTypeDefsCompiler.fromTypeDefs(typedefs)
     const schema = makeExecutableSchema(compiler)
     const a = performance.now()
     await execute({

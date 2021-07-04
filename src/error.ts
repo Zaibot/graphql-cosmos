@@ -1,5 +1,5 @@
 import { GraphQLResolveInfo } from 'graphql'
-import { IFieldResolver } from 'graphql-tools'
+import { IFieldResolver } from '@graphql-tools/utils'
 import { GraphQLCosmosConceptContext } from './6-datasource/1-context'
 import { TraceError } from './x-error/trace-error'
 
@@ -49,7 +49,7 @@ export const withConsoleTraceMiddleware = <T extends IFieldResolver<any, GraphQL
       `${info.parentType.name}.${info.fieldName}`,
       JSON.stringify(source),
       `=`,
-      JSON.stringify(await result?.toJSON?.() ?? result)
+      JSON.stringify((await result?.toJSON?.()) ?? result)
     )
     return result
   }

@@ -11,7 +11,7 @@ import {
   GraphQLString,
   InputValueDefinitionNode,
 } from 'graphql'
-import { SchemaMapper } from 'graphql-tools'
+import { SchemaMapper } from '@graphql-tools/utils'
 import { MetaType } from '../2-meta/2-intermediate'
 import { MetaIndex } from '../2-meta/3-meta-index'
 import { WhereOps } from '../6-datasource/x-where'
