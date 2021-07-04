@@ -1,5 +1,5 @@
 import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-typedefs-transformer'
-import { failql, lazy, unique } from '../typescript'
+import { failql, lazy } from '../typescript'
 import { parseInputSort, parseInputWhere } from './input-args'
 import { graphqlCosmosPageResponse } from './internals/utils'
 import { GraphQLCosmosFieldResolver } from './resolver'
@@ -10,7 +10,7 @@ export const defaultCosmosResolvePageByTheirs: GraphQLCosmosFieldResolver = asyn
   const returnType = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
   const theirField =
     context.dataSources.graphqlCosmos.meta.oursField(field.returnTypename, field.theirs ?? `id`) ??
-    fail(`can't find theirs: ${field.returnTypename}.${field.theirs ?? `id`}`)
+    failql(`can't find theirs: ${field.returnTypename}.${field.theirs ?? `id`}`, info)
 
   const id = SourceDescriptor.getObjectId(parent) ?? failql(`expects parent to have an id`, info)
 

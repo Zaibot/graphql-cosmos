@@ -1,4 +1,4 @@
-import { unique, valueIfOne } from '../typescript'
+import { fail, unique, valueIfOne } from '../typescript'
 import { DataLoaderSpec } from './spec'
 
 export type DataLoaderResolveHandler = (spec: DataLoaderSpec) => Promise<Array<unknown>>

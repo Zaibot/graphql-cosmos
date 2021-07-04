@@ -5,7 +5,7 @@ import { GraphQLCosmosFieldResolver } from './resolver'
 export const defaultCosmosResolveExternalListOurs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
   const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const type = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
-  const current = await defaultCosmosResolveColumnOurs(parent, args, context, info)
+  const current = (await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? null
 
   return (current ?? []).map((item: any) =>
     typeof item === `string`

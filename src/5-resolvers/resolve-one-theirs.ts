@@ -1,11 +1,11 @@
 import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-typedefs-transformer'
-import { fail, failql } from '../typescript'
+import { failql } from '../typescript'
 import { parseInputSort, parseInputWhere } from './input-args'
 import { wrapSingleSourceDescriptor } from './internals/utils'
 import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
 
-export const defaultCosmosResolveListByTheirs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
+export const defaultCosmosResolveOneByTheirs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
   const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const returnType = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
   const theirField =
@@ -16,7 +16,7 @@ export const defaultCosmosResolveListByTheirs: GraphQLCosmosFieldResolver = asyn
 
   const pageArgs = (args ?? {}) as Partial<GraphQLCosmosPageInput>
   const cursor = pageArgs.cursor ?? null
-  const limit = pageArgs.limit ?? null
+  const limit = pageArgs.limit ?? 50
   const where = parseInputWhere({
     and: [
       pageArgs.where ?? {},
@@ -28,7 +28,7 @@ export const defaultCosmosResolveListByTheirs: GraphQLCosmosFieldResolver = asyn
   const database = field.database ?? returnType.database ?? failql(`requires database`, info)
   const container = field.container ?? returnType.container ?? failql(`requires container`, info)
 
-  const prefetch = context.dataSources.graphqlCosmos.prefetchOfObject(info)
+  const prefetch = context.dataSources.graphqlCosmos.prefetchOfPage(info)
 
   const query = context.dataSources.graphqlCosmos.buildQuery({
     database,
@@ -44,5 +44,9 @@ export const defaultCosmosResolveListByTheirs: GraphQLCosmosFieldResolver = asyn
   })
 
   const feed = await context.dataSources.graphqlCosmos.query<{ id: string }>(query)
-  return feed.resources.map(wrapSingleSourceDescriptor(returnType.typename, database, container))
+  if (feed.resources.length > 1) {
+    failql(`defaultCosmosResolveOneByTheirs expects a single result`, info)
+  }
+
+  return feed.resources.map(wrapSingleSourceDescriptor(returnType.typename, database, container))[0]
 }

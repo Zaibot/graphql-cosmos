@@ -1,10 +1,7 @@
-import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-typedefs-transformer'
+import { getObjectId } from '../object-id'
 import { failql } from '../typescript'
-import { parseInputWhere } from './input-args'
-import { wrapSingleSourceDescriptor } from './internals/utils'
 import { defaultCosmosResolveColumnOurs } from './resolve-column'
 import { GraphQLCosmosFieldResolver } from './resolver'
-import { SourceDescriptor } from './x-descriptors'
 
 export const defaultCosmosResolveOneOurs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
   // const parentType = context.dataSources.graphqlCosmos.meta.requireType(info.parentType.name)
@@ -53,19 +50,23 @@ export const defaultCosmosResolveOneOurs: GraphQLCosmosFieldResolver = async (pa
 
   const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const type = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
-  const current = await defaultCosmosResolveColumnOurs(parent, args, context, info)
+  const current = (await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? null
 
   if (field.returnMany) {
     const container = field.container ?? type.container ?? failql(`requires container`, info)
     const database = field.database ?? type.database ?? failql(`requires database`, info)
-    return current
-      ?.filter(Boolean)
-      .map((id: any) => context.dataSources.graphqlCosmos.single(type.typename, database, container, { id }))
+    return current?.filter(Boolean).map((obj: any) =>
+      context.dataSources.graphqlCosmos.single(type.typename, database, container, {
+        id: getObjectId(obj) ?? failql(`one or more results is missing an id value`, info),
+      })
+    )
   } else {
     if (current) {
       const container = field.container ?? type.container ?? failql(`requires container`, info)
       const database = field.database ?? type.database ?? failql(`requires database`, info)
-      return context.dataSources.graphqlCosmos.single(type.typename, database, container, { id: current })
+      return context.dataSources.graphqlCosmos.single(type.typename, database, container, {
+        id: getObjectId(current) ?? failql(`one or more results is missing an id value`, info),
+      })
     }
   }
 }

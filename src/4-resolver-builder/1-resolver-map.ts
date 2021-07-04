@@ -10,12 +10,14 @@ import { defaultCosmosResolveListByTheirs } from '../5-resolvers/resolve-list-th
 import { defaultCosmosResolveExternalOneOurs } from '../5-resolvers/resolve-one-external'
 import { defaultCosmosResolveOneOurs } from '../5-resolvers/resolve-one-ours'
 import { defaultCosmosResolveOneRoot } from '../5-resolvers/resolve-one-root'
+import { defaultCosmosResolveOneByTheirs } from '../5-resolvers/resolve-one-theirs'
 import { defaultCosmosResolvePageByOurs } from '../5-resolvers/resolve-page-ours'
 import { defaultCosmosResolvePageRoot } from '../5-resolvers/resolve-page-root'
 import { defaultCosmosResolvePageByTheirs } from '../5-resolvers/resolve-page-theirs'
 import { GraphQLCosmosFieldResolver } from '../5-resolvers/resolver'
 import { GraphQLCosmosConceptContext } from '../6-datasource/1-context'
 import { withErrorMiddleware } from '../error'
+import { failql } from '../typescript'
 
 export interface CosmosResolverPlugin {
   (field: MetaField, type: MetaType, meta: MetaIndex, next: () => GraphQLCosmosFieldResolver<unknown, GraphQLCosmosConceptContext> | null): GraphQLCosmosFieldResolver<unknown, GraphQLCosmosConceptContext> | null | undefined
@@ -79,30 +81,50 @@ export namespace DefaultResolver {
 
   export const OneOurs: CosmosResolverPlugin = (field, _type, meta, _next) => {
     const returnType = meta.type(field.returnTypename)
-    if (returnType?.cosmos && field.cosmos) {
+    if (returnType?.cosmos && field.cosmos && !field.returnMany && field.theirs === null) {
       return withErrorMiddleware(`one-ours`, defaultCosmosResolveOneOurs)
+    }
+  }
+
+  export const OneTheirs: CosmosResolverPlugin = (field, _type, meta, _next) => {
+    const returnType = meta.type(field.returnTypename)
+    if (returnType?.cosmos && field.cosmos && !field.returnMany && field.theirs !== null) {
+      return withErrorMiddleware(`one-ours`, defaultCosmosResolveOneByTheirs)
     }
   }
 
   export const ColumnOurs: CosmosResolverPlugin = (_field, type, _meta, _next) => {
     if (type.cosmos) {
-      return withErrorMiddleware(`column`, defaultCosmosResolveColumnOurs)
+      return withErrorMiddleware(`column-ours`, defaultCosmosResolveColumnOurs)
     }
   }
 
-  export const ExternalType: CosmosResolverPlugin = (field, _type, meta, _next) => {
+  export const ExternalTypeTheirs: CosmosResolverPlugin = (field, _type, meta, _next) => {
     const returnType = meta.type(field.returnTypename)
-    if (returnType?.external) {
+    if (returnType?.external && field.theirs !== null) {
       if (field.returnMany) {
-        return withErrorMiddleware(`column`, defaultCosmosResolveExternalListOurs)
+        return withErrorMiddleware(`external-list-by-theirs`, defaultCosmosResolveExternalListOurs)
       } else {
-        return withErrorMiddleware(`column`, defaultCosmosResolveExternalOneOurs)
+        return withErrorMiddleware(`external-one-by-theirs`, defaultCosmosResolveExternalOneOurs)
+      }
+    }
+  }
+
+  export const ExternalTypeOurs: CosmosResolverPlugin = (field, _type, meta, _next) => {
+    const returnType = meta.type(field.returnTypename)
+    if (returnType?.external && field.theirs === null) {
+      if (field.returnMany) {
+        return withErrorMiddleware(`external-list-by-ours`, defaultCosmosResolveExternalListOurs)
+      } else {
+        return withErrorMiddleware(`external-one-by-ours`, defaultCosmosResolveExternalOneOurs)
       }
     }
   }
 }
 
 export const CommosResolverDefaults: CosmosResolverPlugin[] = [
+  DefaultResolver.ExternalTypeOurs,
+  DefaultResolver.ExternalTypeTheirs,
   DefaultResolver.ColumnId,
   DefaultResolver.PageRoot,
   DefaultResolver.ListRoot,
@@ -112,8 +134,8 @@ export const CommosResolverDefaults: CosmosResolverPlugin[] = [
   DefaultResolver.ListByTheirs,
   DefaultResolver.ListByOurs,
   DefaultResolver.OneOurs,
+  DefaultResolver.OneTheirs,
   DefaultResolver.ColumnOurs,
-  DefaultResolver.ExternalType,
 ]
 
 export class CosmosResolverBuilder {
@@ -138,10 +160,9 @@ export class CosmosResolverBuilder {
   buildResolveReference(type: MetaType) {
     if (type.database || type.container) {
       return function __resolveReference(parent: Record<string, unknown>, { dataSources }: GraphQLCosmosConceptContext, info: GraphQLResolveInfo) {
-        const type = dataSources.graphqlCosmos.meta.requireType(getNamedType(info.returnType).name)
-        const database = type.database ?? fail(`requires database in meta type`)
-        const container = type.container ?? fail(`requires container in meta type`)
-        Object(parent)[`id`] ?? fail(`requires id in parent`)
+        const database = type.database ?? failql(`requires database in meta type`, info)
+        const container = type.container ?? failql(`requires container in meta type`, info)
+        Object(parent)[`id`] ?? failql(`requires id in parent`, info)
         return dataSources.graphqlCosmos.single(type.typename, database, container, parent as { id: string })
       }
     }
