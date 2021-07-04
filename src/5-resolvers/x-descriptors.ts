@@ -1,11 +1,11 @@
 export namespace SourceDescriptor {
-  export type Embedded<T> = T & { __descriptor: Single | List }
+  export type Embedded<T> = T & { __descriptor: Single }
 
-  export function withDescriptor<T>(values: T, descriptor: Single | List): Embedded<T> {
+  export function withDescriptor<T>(values: T, descriptor: Single): Embedded<T> {
     return { ...values, __descriptor: descriptor }
   }
 
-  export function WithDescriptor<T>(descriptor: Single | List): (values: T) => Embedded<T> {
+  export function WithDescriptor<T>(descriptor: Single): (values: T) => Embedded<T> {
     return (values) => ({ ...values, __descriptor: descriptor })
   }
 
@@ -13,9 +13,9 @@ export namespace SourceDescriptor {
     return typeof embedded === `object` && typeof Object(embedded).__descriptor?.kind === `string`
   }
 
-  export function getDescriptor<T extends Embedded<unknown>>(embedded: T): Single | List
-  export function getDescriptor<T>(embedded: T): Single | List | null
-  export function getDescriptor<T>(embedded: T): Single | List | null {
+  export function getDescriptor<T extends Embedded<unknown>>(embedded: T): Single
+  export function getDescriptor<T>(embedded: T): Single | null
+  export function getDescriptor<T>(embedded: T): Single | null {
     return hasDescriptor(embedded) ? embedded.__descriptor : null
   }
 
@@ -30,14 +30,6 @@ export namespace SourceDescriptor {
 
   export interface Single {
     kind: `Single`
-    typename: string
-    database: string
-    container: string
-    id: string
-  }
-
-  export interface List {
-    kind: `List`
     typename: string
     database: string
     container: string

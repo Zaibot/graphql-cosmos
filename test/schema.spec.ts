@@ -1,6 +1,6 @@
 import { GraphQLSchema, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { printSchemaWithDirectives } from 'graphql-tools'
+import { makeExecutableSchema, printSchemaWithDirectives } from 'graphql-tools'
 import { CosmosDefaultCompiler } from '../src/4-resolver-builder/4-default-compiler'
 
 const dummyTypeDefs = gql`
@@ -31,7 +31,7 @@ describe(`Processed schema`, () => {
   let dummy: GraphQLSchema
 
   beforeEach(() => {
-    dummy = CosmosDefaultCompiler.fromTypeDefs(dummyTypeDefs).schema
+    dummy = makeExecutableSchema(CosmosDefaultCompiler.fromTypeDefs(dummyTypeDefs))
 
     expect(validateSchema(dummy)).toHaveLength(0)
   })

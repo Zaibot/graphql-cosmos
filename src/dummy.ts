@@ -1,6 +1,6 @@
 import { execute, parse, validate, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { printSchemaWithDirectives } from 'graphql-tools'
+import { makeExecutableSchema, printSchemaWithDirectives } from 'graphql-tools'
 import { performance } from 'perf_hooks'
 import YAML from 'yaml'
 import { CosmosDefaultCompiler } from './4-resolver-builder/4-default-compiler'
@@ -57,14 +57,15 @@ async function main() {
 
   const aa = performance.now()
   const compiler = CosmosDefaultCompiler.fromTypeDefs(typedefs)
+  const schema = makeExecutableSchema(compiler)
   const bb = performance.now()
   console.log(`${(bb - aa).toFixed(2)}ms init`)
 
   console.log(`-`.repeat(100))
-  console.log(`printSchemaWithDirectives:\n`, printSchemaWithDirectives(compiler.schema))
+  console.log(`printSchemaWithDirectives:\n`, printSchemaWithDirectives(schema))
 
   console.log(`-`.repeat(100))
-  console.log(`validateSchema:\n`, validateSchema(compiler.schema))
+  console.log(`validateSchema:\n`, validateSchema(schema))
 
   const context: GraphQLCosmosConceptContext<unknown> = initContext()
 
@@ -73,11 +74,11 @@ async function main() {
   )
 
   console.log(`-`.repeat(100))
-  console.log(`validate:\n`, YAML.stringify(validate(compiler.schema, query)))
+  console.log(`validate:\n`, YAML.stringify(validate(schema, query)))
 
   const result = await execute({
     contextValue: context,
-    schema: compiler.schema,
+    schema: schema,
     document: query,
   })
 
@@ -98,9 +99,10 @@ async function main() {
     const a = performance.now()
     const contextAA = initContext(false)
     const compiler = CosmosDefaultCompiler.fromTypeDefs(typedefs)
+    const schema = makeExecutableSchema(compiler)
     await execute({
       contextValue: contextAA,
-      schema: compiler.schema,
+      schema: schema,
       document: query,
     })
     const b = performance.now()
@@ -111,10 +113,11 @@ async function main() {
   for (let i = 0; i < 10; i++) {
     const contextAA = initContext(false)
     const compiler = CosmosDefaultCompiler.fromTypeDefs(typedefs)
+    const schema = makeExecutableSchema(compiler)
     const a = performance.now()
     await execute({
       contextValue: contextAA,
-      schema: compiler.schema,
+      schema: schema,
       document: query,
     })
     const b = performance.now()

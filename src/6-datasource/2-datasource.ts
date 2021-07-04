@@ -89,17 +89,19 @@ export class GraphQLCosmosDataSource<TContext = unknown> extends ApolloDataSourc
     return { origin: query, sql, limit: null }
   }
 
-  async load<T>(source: SourceDescriptor.Single, column: string) {
-    const id = SourceDescriptor.getObjectId(source) ?? fail(`expects source to have an id`)
-    const context = this.context ?? fail(`requires context for fetching value ${source.typename}.${column}`)
-    const dataloader = this.dataloader ?? fail(`requires dataloader for fetching value ${source.typename}.${column}`)
+  async load<T>(source: SourceDescriptor.Embedded<{ id: string }> | SourceDescriptor.Single, column: string) {
+    const descriptor = SourceDescriptor.hasDescriptor(source) ? source.__descriptor : source
+
+    const id = SourceDescriptor.getObjectId(descriptor) ?? fail(`expects source to have an id`)
+    const context = this.context ?? fail(`requires context for fetching value ${descriptor.typename}.${column}`)
+    const dataloader = this.dataloader ?? fail(`requires dataloader for fetching value ${descriptor.typename}.${column}`)
     const spec: DataLoaderSpec = {
-      container: source.container,
+      container: descriptor.container,
       columns: [column],
       id: [id],
       context: context,
-      database: source.database,
-      typename: source.typename,
+      database: descriptor.database,
+      typename: descriptor.typename,
     }
     const data = await dataloader(spec)
     const value: T = Object(data[0])[column]

@@ -1,5 +1,5 @@
 import { IResolvers } from '@graphql-tools/utils'
-import { DocumentNode, GraphQLSchema } from 'graphql'
+import { buildASTSchema, DocumentNode, GraphQLSchema } from 'graphql'
 import { mergeSchemas } from 'graphql-tools'
 import { getGraphQLCosmosSchemaFromGraphQL } from '../2-meta/1-ast'
 import { getMetaSchema, MetaSchema } from '../2-meta/2-intermediate'
@@ -9,9 +9,9 @@ import { CosmosSchemaDirectivesBuilder } from './2-schema-with-directives'
 import { CosmosSchemaTransformer } from './3-schema-transformer'
 
 export class CosmosDefaultCompiler {
-  resolvers!: IResolvers
-  schema!: GraphQLSchema
   metaSchema!: MetaSchema
+  typeDefs!: DocumentNode
+  resolvers!: IResolvers
 
   static fromTypeDefs(typedefs: DocumentNode, configureMetaTypes: (meta: MetaSchema) => void = () => {}) {
     // Extract meta schema
@@ -28,19 +28,16 @@ export class CosmosDefaultCompiler {
 
     // 2-CosmosSchemaDirectivesBuilder
     const schemaBuilder = new CosmosSchemaDirectivesBuilder()
-    const schemaWithDirectives = schemaBuilder.buildASTSchema(typedefs)
+    const schemaWithDirectives = schemaBuilder.mergeTypedefs(typedefs)
 
     // 3-CosmosSchemaTransformer
     const schemaTranformer = new CosmosSchemaTransformer(meta)
     const compiledSchema = schemaTranformer.transform(schemaWithDirectives)
 
-    // Merge schema with resolvers
-    const executableSchema = mergeSchemas({ schemas: [compiledSchema], resolvers })
-
     const r = new CosmosDefaultCompiler()
-    r.resolvers = resolvers
-    r.schema = executableSchema
     r.metaSchema = metaSchema
+    r.typeDefs = compiledSchema
+    r.resolvers = resolvers
     return r
   }
 }

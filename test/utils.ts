@@ -1,5 +1,5 @@
 import { DocumentNode, execute, GraphQLError, parse, validate, validateSchema } from 'graphql'
-import { IResolvers, mergeSchemas, printSchemaWithDirectives } from 'graphql-tools'
+import { IResolvers, makeExecutableSchema, mergeSchemas, printSchemaWithDirectives } from 'graphql-tools'
 import { defaultDataLoader } from '../src/2-dataloader/default'
 import { MetaIndex } from '../src/2-meta/3-meta-index'
 import { CosmosDefaultCompiler } from '../src/4-resolver-builder/4-default-compiler'
@@ -28,7 +28,7 @@ export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData
   )
 
   const compiler = CosmosDefaultCompiler.fromTypeDefs(typedefs)
-  const schema = mergeSchemas({ schemas: [compiler.schema], resolvers: customResolvers })
+  const schema = mergeSchemas({ schemas: [makeExecutableSchema(compiler)], resolvers: customResolvers })
   const resolvers = compiler.resolvers
   const metaSchema = compiler.metaSchema
   const meta = new MetaIndex(metaSchema)

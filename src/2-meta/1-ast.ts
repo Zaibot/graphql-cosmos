@@ -43,11 +43,15 @@ export interface GraphQLCosmosFieldFromAst {
 }
 
 export function getGraphQLCosmosSchemaFromGraphQL(objectType: DocumentNode): GraphQLCosmosSchemaFromAst {
+  const ignoreBuildIn = (x: ObjectTypeDefinitionNode | ObjectTypeExtensionNode): boolean =>
+    !x.name.value.startsWith(`_`)
   const internalTypes = (objectType.definitions ?? [])
     .filter(isObjectTypeDefinition)
+    .filter(ignoreBuildIn)
     .map(getGraphQLCosmosTypeFromGraphQL)
   const externalTypes = (objectType.definitions ?? [])
     .filter(isObjectTypeExtension)
+    .filter(ignoreBuildIn)
     .map(getGraphQLCosmosTypeFromGraphQL)
 
   return {
@@ -58,9 +62,10 @@ export function getGraphQLCosmosSchemaFromGraphQL(objectType: DocumentNode): Gra
 export function getGraphQLCosmosTypeFromGraphQL(
   objectType: ObjectTypeDefinitionNode | ObjectTypeExtensionNode
 ): GraphQLCosmosTypeFromAst {
+  const ignoreBuildIn = (x: FieldDefinitionNode): boolean => !x.name.value.startsWith(`_`)
   const typename = objectType.name.value
   const cosmos = Directives.cosmosDirective(objectType.directives ?? [])
-  const fields = (objectType.fields ?? []).map(getGraphQLCosmosFieldFromGraphQL)
+  const fields = (objectType.fields ?? []).filter(ignoreBuildIn).map(getGraphQLCosmosFieldFromGraphQL)
   const database = Directives.cosmosDatabaseDirective(objectType.directives ?? []) ?? null
   const container = Directives.cosmosContainerDirective(objectType.directives ?? []) ?? null
 
