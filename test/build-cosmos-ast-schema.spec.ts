@@ -1,5 +1,5 @@
 import gql from 'graphql-tag'
-import { printSchemaWithDirectives } from 'graphql-tools'
+import { printSchemaWithDirectives } from '@graphql-tools/utils'
 import { createUnitTestContext } from './utils'
 
 describe(`Build Cosmos AST Schema`, () => {

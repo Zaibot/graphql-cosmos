@@ -1,14 +1,15 @@
-import { DocumentNode, execute, GraphQLError, parse, validate, validateSchema } from 'graphql'
-import { IResolvers, makeExecutableSchema, mergeSchemas, printSchemaWithDirectives } from 'graphql-tools'
+import { mergeSchemas } from '@graphql-tools/merge'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { IResolvers, printSchemaWithDirectives } from '@graphql-tools/utils'
+import { DocumentNode, execute, parse, validate, validateSchema } from 'graphql'
 import { defaultDataLoader } from '../src/2-dataloader/default'
 import { MetaIndex } from '../src/2-meta/3-meta-index'
-import { CosmosDefaultCompiler } from '../src/4-resolver-builder/4-default-compiler'
+import { CosmosTypeDefsCompiler } from '../src/4-resolver-builder/4-typedefs-compiler'
 import { GraphQLCosmosConceptContext } from '../src/6-datasource/1-context'
 import { GraphQLCosmosDataSource } from '../src/6-datasource/2-datasource'
 import { combineDataSourcePlugins } from '../src/6-datasource/3-plugin'
 import { CosmosHandler } from '../src/6-datasource/5-cosmos'
 import { traceErrorMiddleware } from '../src/error'
-import { fail } from '../src/typescript'
 
 export interface MockData {
   [container: string]: {
@@ -27,7 +28,7 @@ export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData
     Object.entries(mockData).flatMap(([container, v]) => Object.keys(v).map((key) => `${container}.${key}`))
   )
 
-  const compiler = CosmosDefaultCompiler.fromTypeDefs(typedefs)
+  const compiler = CosmosTypeDefsCompiler.fromTypeDefs(typedefs)
   const schema = mergeSchemas({ schemas: [makeExecutableSchema(compiler)], resolvers: customResolvers })
   const resolvers = compiler.resolvers
   const metaSchema = compiler.metaSchema

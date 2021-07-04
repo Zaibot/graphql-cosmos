@@ -1,5 +1,5 @@
 import { FeedResponse } from '@azure/cosmos'
-import { GraphQLCosmosPageOutput } from '../../4-resolver-builder/3-schema-transformer'
+import { GraphQLCosmosPageOutput } from '../../4-resolver-builder/3-typedefs-transformer'
 import { Lazy } from '../../typescript'
 import { SourceDescriptor } from '../x-descriptors'
 

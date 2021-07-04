@@ -1,7 +1,13 @@
-import { GraphQLSchema, validateSchema } from 'graphql'
+import { buildASTSchema, GraphQLSchema, validateSchema } from 'graphql'
 import gql from 'graphql-tag'
-import { makeExecutableSchema, printSchemaWithDirectives } from 'graphql-tools'
-import { CosmosDefaultCompiler } from '../src/4-resolver-builder/4-default-compiler'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { printSchemaWithDirectives } from '@graphql-tools/utils'
+
+import { mergeTypeDefs } from '@graphql-tools/merge'
+
+import { CosmosSchemaCompiler } from '../src/4-resolver-builder/4-schema-compiler'
+import { CosmosTypeDefsCompiler } from '../src/4-resolver-builder/4-typedefs-compiler'
+import { GraphQLCosmosSchema } from '../src/1-graphql/1-directives'
 
 const dummyTypeDefs = gql`
   type Query {
@@ -27,17 +33,32 @@ const dummyTypeDefs = gql`
 `
 
 describe(`Processed schema`, () => {
-  let output: string
-  let dummy: GraphQLSchema
+  let fromTypeDefs: GraphQLSchema
+  let fromSchema: GraphQLSchema
 
   beforeEach(() => {
-    dummy = makeExecutableSchema(CosmosDefaultCompiler.fromTypeDefs(dummyTypeDefs))
+    fromTypeDefs = makeExecutableSchema(CosmosTypeDefsCompiler.fromTypeDefs(dummyTypeDefs))
+    fromSchema = CosmosSchemaCompiler.fromSchema(
+      buildASTSchema(mergeTypeDefs([GraphQLCosmosSchema.typeDefs, dummyTypeDefs]))
+    ).schema
 
-    expect(validateSchema(dummy)).toHaveLength(0)
+    expect(validateSchema(fromTypeDefs)).toHaveLength(0)
+    expect(validateSchema(fromSchema)).toHaveLength(0)
   })
 
-  it(`should match expected`, () => {
-    output = printSchemaWithDirectives(dummy)
+  it(`fromTypeDefs and fromSchema should output the same`, () => {
+    const typedefs = printSchemaWithDirectives(fromTypeDefs)
+    const schema = printSchemaWithDirectives(fromSchema)
+    expect(typedefs).toMatch(schema)
+  })
+
+  it(`fromTypeDefs should match expected`, () => {
+    const output = printSchemaWithDirectives(fromTypeDefs)
+    expect(output).toMatchSnapshot()
+  })
+
+  it(`fromSchema should match expected`, () => {
+    const output = printSchemaWithDirectives(fromTypeDefs)
     expect(output).toMatchSnapshot()
   })
 })

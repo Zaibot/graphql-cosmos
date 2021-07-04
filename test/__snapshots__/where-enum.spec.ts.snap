@@ -83,24 +83,29 @@ exports[`Where expects schema to remain the same 1`] = `
 "schema {
   query: Query
 }
+
 type Query {
   entities(where: EntityWhere, cursor: String, limit: Int): EntityPage!
 }
+
 type Entity {
   id: ID!
   status: Status!
 }
+
 enum Status {
   NONE
   OPEN
   CLOSE
 }
+
 type EntityPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Entity]!
 }
+
 input EntityWhere {
   and: [EntityWhere!]
   or: [EntityWhere!]
@@ -108,5 +113,6 @@ input EntityWhere {
   status_neq: Status
   status_in: [Status]
   status_nin: [Status]
-}"
+}
+"
 `;

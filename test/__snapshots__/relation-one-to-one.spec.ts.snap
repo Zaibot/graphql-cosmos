@@ -104,20 +104,25 @@ exports[`One to one expects schema to remain the same 1`] = `
 "schema {
   query: Query
 }
+
 type Query {
   lefts(cursor: String, limit: Int): LeftPage!
 }
+
 type Left {
   id: ID!
   right: Right
 }
+
 type Right {
   id: ID!
 }
+
 type LeftPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Left]!
-}"
+}
+"
 `;

@@ -1,4 +1,4 @@
-import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-schema-transformer'
+import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-typedefs-transformer'
 import { failql, valueIfOne } from '../typescript'
 import { parseInputSort, parseInputWhere } from './input-args'
 import { wrapSingleSourceDescriptor } from './internals/utils'

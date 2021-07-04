@@ -121,26 +121,32 @@ exports[`Where expects schema to remain the same 1`] = `
 "schema {
   query: Query
 }
+
 type Query {
   entities(where: EntityWhere, cursor: String, limit: Int): EntityPage!
 }
+
 type Entity {
   id: ID!
   related: Related
 }
+
 type Related {
   id: ID!
   text: String
 }
+
 type EntityPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Entity]!
 }
+
 input EntityWhere {
   and: [EntityWhere!]
   or: [EntityWhere!]
   relatedId_eq: String
-}"
+}
+"
 `;

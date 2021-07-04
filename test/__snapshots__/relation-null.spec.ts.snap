@@ -205,28 +205,34 @@ exports[`Nulled relations expects schema to remain the same 1`] = `
 "schema {
   query: Query
 }
+
 type Query {
   dummies(cursor: String, limit: Int): DummyPage!
 }
+
 type Dummy {
   id: ID!
   prop: String
   embedded: [Embedded]
   related: Related
 }
+
 type Embedded {
   prop: String
   related: Related
 }
+
 type Related {
   id: ID!
   prop: String
   related: Related
 }
+
 type DummyPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Dummy]!
-}"
+}
+"
 `;

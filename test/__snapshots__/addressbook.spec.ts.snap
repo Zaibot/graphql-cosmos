@@ -215,38 +215,45 @@ exports[`Address Book expects schema to remain the same 1`] = `
 "schema {
   query: Query
 }
+
 type Query {
   person(where: PersonWhere): Person
   contact(where: ContactWhere): Contact
   people(where: PersonWhere, cursor: String, limit: Int): PersonPage!
 }
+
 type Person {
   id: ID
   name: String!
   contacts(where: ContactWhere, limit: Int): [Contact!]!
   perferredContact: Contact
 }
+
 type Contact {
   id: ID
   person: Person!
   preferredBy(where: PersonWhere, limit: Int): [Person!]!
   phonenumber: String!
 }
+
 type PersonPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Person]!
 }
+
 input ContactWhere {
   and: [ContactWhere!]
   or: [ContactWhere!]
   id_eq: ID
 }
+
 input PersonWhere {
   and: [PersonWhere!]
   or: [PersonWhere!]
   id_eq: ID
   name_containslower: String
-}"
+}
+"
 `;

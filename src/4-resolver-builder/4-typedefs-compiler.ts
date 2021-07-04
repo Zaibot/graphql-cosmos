@@ -1,14 +1,13 @@
 import { IResolvers } from '@graphql-tools/utils'
-import { buildASTSchema, DocumentNode, GraphQLSchema } from 'graphql'
-import { mergeSchemas } from 'graphql-tools'
+import { DocumentNode } from 'graphql'
 import { getGraphQLCosmosSchemaFromGraphQL } from '../2-meta/1-ast'
 import { getMetaSchema, MetaSchema } from '../2-meta/2-intermediate'
 import { MetaIndex } from '../2-meta/3-meta-index'
 import { CosmosResolverBuilder } from './1-resolver-map'
 import { CosmosSchemaDirectivesBuilder } from './2-schema-with-directives'
-import { CosmosSchemaTransformer } from './3-schema-transformer'
+import { CosmosTypeDefsTransformer } from './3-typedefs-transformer'
 
-export class CosmosDefaultCompiler {
+export class CosmosTypeDefsCompiler {
   metaSchema!: MetaSchema
   typeDefs!: DocumentNode
   resolvers!: IResolvers
@@ -31,13 +30,15 @@ export class CosmosDefaultCompiler {
     const schemaWithDirectives = schemaBuilder.mergeTypedefs(typedefs)
 
     // 3-CosmosSchemaTransformer
-    const schemaTranformer = new CosmosSchemaTransformer(meta)
+    const schemaTranformer = new CosmosTypeDefsTransformer(meta)
     const compiledSchema = schemaTranformer.transform(schemaWithDirectives)
 
-    const r = new CosmosDefaultCompiler()
+    const r = new CosmosTypeDefsCompiler()
     r.metaSchema = metaSchema
     r.typeDefs = compiledSchema
     r.resolvers = resolvers
     return r
   }
 }
+
+

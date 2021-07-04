@@ -1,4 +1,4 @@
-import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-schema-transformer'
+import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-typedefs-transformer'
 import { failql, lazy, valueIfOne } from '../typescript'
 import { defaultCosmosResolveColumnOurs } from './resolve-column'
 import { parseInputSort, parseInputWhere } from './input-args'

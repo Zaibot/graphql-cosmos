@@ -78,23 +78,28 @@ exports[`Sorting expects schema to remain the same 1`] = `
 "schema {
   query: Query
 }
+
 type Query {
   dummies(sort: DummySort, cursor: String, limit: Int): DummyPage!
 }
+
 type Dummy {
   id: ID!
   name: String!
 }
+
 type DummyPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Dummy]!
 }
+
 input DummySort {
   id_ASC: Int
   id_DESC: Int
   name_ASC: Int
   name_DESC: Int
-}"
+}
+"
 `;

@@ -122,27 +122,33 @@ exports[`Data Loader expects schema to remain the same 1`] = `
 "schema {
   query: Query
 }
+
 type Query {
   dummies(where: DummyWhere, cursor: String, limit: Int): DummyPage!
 }
+
 type Dummy {
   id: ID!
   related: Related
 }
+
 type Related {
   id: ID!
   text: String
 }
+
 type DummyPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Dummy]!
 }
+
 input DummyWhere {
   and: [DummyWhere!]
   or: [DummyWhere!]
   id_eq: ID
   id_in: [ID]
-}"
+}
+"
 `;

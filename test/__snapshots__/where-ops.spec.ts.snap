@@ -81,23 +81,28 @@ exports[`Where Operations expects schema to remain the same 1`] = `
 "schema {
   query: Query
 }
+
 type Query {
   dummies(where: DummyWhere, cursor: String, limit: Int): DummyPage!
 }
+
 type Dummy {
   id: ID!
   prop: String
 }
+
 type DummyPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Dummy]!
 }
+
 input DummyWhere {
   and: [DummyWhere!]
   or: [DummyWhere!]
   prop_eq: String
   prop_in: [String]
-}"
+}
+"
 `;

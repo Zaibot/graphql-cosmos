@@ -8,7 +8,7 @@ import {
   ObjectTypeExtensionNode,
   TypeNode,
 } from 'graphql'
-import { isListTypeNode } from 'graphql-tools'
+import { isListTypeNode } from '@graphql-tools/merge'
 import { Directives } from '../1-graphql/2-ast'
 import { isWhereOp, WhereOps } from '../6-datasource/x-where'
 

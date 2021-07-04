@@ -119,27 +119,33 @@ exports[`Reference to other container (ours) expects schema to remain the same 1
 "schema {
   query: Query
 }
+
 type Query {
   dummies(cursor: String, limit: Int): DummyPage!
 }
+
 type Dummy {
   id: ID!
   related(cursor: String, limit: Int): RelatedPage!
 }
+
 type Related {
   id: ID!
   dummies(cursor: String, limit: Int): DummyPage!
 }
+
 type RelatedPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Related]!
 }
+
 type DummyPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Dummy]!
-}"
+}
+"
 `;

@@ -141,34 +141,41 @@ exports[`Build Cosmos AST Schema expects schema to remain the same 1`] = `
 "schema {
   query: Query
 }
+
 type Query {
   dummies(where: DummyWhere, cursor: String, limit: Int): DummyPage!
 }
+
 type Dummy {
   id: ID!
   status: Status!
   related(where: RelatedWhere, sort: RelatedSort, cursor: String, limit: Int): RelatedPage!
 }
+
 type Related {
   id: ID!
   name: String!
 }
+
 enum Status {
   OPEN
   CLOSE
 }
+
 type RelatedPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Related]!
 }
+
 type DummyPage {
   total: Int!
   cursor: String
   nextCursor: String
   page: [Dummy]!
 }
+
 input DummyWhere {
   and: [DummyWhere!]
   or: [DummyWhere!]
@@ -176,13 +183,16 @@ input DummyWhere {
   status_eq: Status
   status_neq: Status
 }
+
 input RelatedWhere {
   and: [RelatedWhere!]
   or: [RelatedWhere!]
   id_eq: ID
 }
+
 input RelatedSort {
   name_ASC: Int
   name_DESC: Int
-}"
+}
+"
 `;
