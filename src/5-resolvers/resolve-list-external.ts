@@ -1,4 +1,3 @@
-import { defined } from '../typescript'
 import { defaultCosmosResolveColumnOurs } from './resolve-column'
 import { GraphQLCosmosFieldResolver } from './resolver'
 

@@ -1,5 +1,5 @@
 import { IResolvers } from '@graphql-tools/utils'
-import { defaultFieldResolver, getNamedType, GraphQLResolveInfo } from 'graphql'
+import { defaultFieldResolver, GraphQLResolveInfo } from 'graphql'
 import { MetaField, MetaType } from '../2-meta/2-intermediate'
 import { MetaIndex } from '../2-meta/3-meta-index'
 import { defaultCosmosResolveColumnOurs } from '../5-resolvers/resolve-column'

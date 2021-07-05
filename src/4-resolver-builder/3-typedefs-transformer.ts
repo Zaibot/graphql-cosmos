@@ -380,9 +380,6 @@ function makeInputValueDefinitionNode(name: string, type: TypeNode): InputValueD
 function hasInputObjectTypeDefinition(doc: DocumentNode, name: string) {
   return doc.definitions.some((x) => x.kind === `InputObjectTypeDefinition` && x.name.value === name)
 }
-function hasObjectTypeDefinition(doc: DocumentNode, name: string) {
-  return doc.definitions.some((x) => x.kind === `ObjectTypeDefinition` && x.name.value === name)
-}
 
 function addType(doc: DocumentNode, pageType: DefinitionNode) {
   doc = {

@@ -1,5 +1,5 @@
 import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-typedefs-transformer'
-import { fail, failql } from '../typescript'
+import { failql } from '../typescript'
 import { parseInputSort, parseInputWhere } from './input-args'
 import { wrapSingleSourceDescriptor } from './internals/utils'
 import { GraphQLCosmosFieldResolver } from './resolver'

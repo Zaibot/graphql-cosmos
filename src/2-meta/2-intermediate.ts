@@ -56,7 +56,7 @@ export function getMetaType(type: GraphQLCosmosTypeFromAst, schema: GraphQLCosmo
       database: type.database,
       container: type.container,
       fields: (type.fields ?? [])
-        .map((field) => getMetaField(field, type, schema))
+        .map((field) => getMetaField(field, schema))
         .sort((a, b) => a.fieldname.localeCompare(b.fieldname)),
       filterable: (type.fields ?? []).some((x) => (x.whereOps ?? []).length > 0),
       sortable: (type.fields ?? []).some((x) => x.sortable),
@@ -68,7 +68,6 @@ export function getMetaType(type: GraphQLCosmosTypeFromAst, schema: GraphQLCosmo
 
 export function getMetaField(
   field: GraphQLCosmosFieldFromAst,
-  type: GraphQLCosmosTypeFromAst,
   schema: GraphQLCosmosSchemaFromAst
 ): MetaField {
   try {
