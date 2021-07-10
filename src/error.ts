@@ -19,13 +19,14 @@ export const withErrorMiddleware = <T extends IFieldResolver<any, GraphQLCosmosC
   original: T
 ): T => {
   const f: IFieldResolver<any, GraphQLCosmosConceptContext> = async (source, args, context, info) => {
-    if (!context.dataSources.graphqlCosmos.onError) {
+    const graphqlCosmos = context.dataSources.graphqlCosmos
+    if (!graphqlCosmos.onError) {
       return await original(source, args, context, info)
     } else {
       try {
         return await original(source, args, context, info)
       } catch (error) {
-        return await context.dataSources.graphqlCosmos.onError({
+        return await graphqlCosmos.onError({
           resolver,
           source,
           args,

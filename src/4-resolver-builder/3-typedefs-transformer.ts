@@ -25,11 +25,11 @@ export interface GraphQLCosmosPageInput {
   limit?: number
 }
 
-export interface GraphQLCosmosPageOutput {
+export interface GraphQLCosmosPageOutput<T extends { id: string }> {
   total: PromiseOrValue<number>
   cursor: PromiseOrValue<string | null>
   nextCursor: PromiseOrValue<string | null>
-  page: PromiseOrValue<Array<SourceDescriptor.Embedded<{ id: string }>>>
+  page: PromiseOrValue<Array<SourceDescriptor.Embedded<T>>>
 }
 
 export class CosmosTypeDefsTransformer {
@@ -131,6 +131,7 @@ export class CosmosTypeDefsTransformer {
       contains: false,
       containslower: false,
       ncontains: false,
+      defined: false,
     }
 
     const whereables = type.fields.filter((x) => x.whereOps?.length)
@@ -326,7 +327,6 @@ export class CosmosTypeDefsTransformer {
               const args: InputValueDefinitionNode[] = []
               const nameWhered = `${field.returnTypename}Where`
               const nameSorted = `${field.returnTypename}Sort`
-              const itemType: NamedTypeNode = { kind: `NamedType`, name: { kind: `Name`, value: field.returnTypename } } //(schema.getTypeMap()[nameWhered] ?? null) as GraphQLInputType | null
               const whereType: NamedTypeNode = { kind: `NamedType`, name: { kind: `Name`, value: nameWhered } } //(schema.getTypeMap()[nameWhered] ?? null) as GraphQLInputType | null
               const sortType: NamedTypeNode = { kind: `NamedType`, name: { kind: `Name`, value: nameSorted } } //(schema.getTypeMap()[nameSorted] ?? null) as GraphQLInputType | null
               if (hasInputObjectTypeDefinition(doc, nameWhered)) {
@@ -341,13 +341,6 @@ export class CosmosTypeDefsTransformer {
               const r: FieldDefinitionNode = {
                 ...node,
                 arguments: args,
-                type: {
-                  kind: `NonNullType`,
-                  type: {
-                    kind: `ListType`,
-                    type: itemType,
-                  },
-                },
               }
               return r
             } else if (doc && field.cosmos && !field.returnMany) {

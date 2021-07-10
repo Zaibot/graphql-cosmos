@@ -79,9 +79,21 @@ export namespace DefaultResolver {
     }
   }
 
+  export const ComsoslessListByOurs: CosmosResolverPlugin = (field, _type, meta, _next) => {
+    if (field.cosmos && field.returnMany && field.ours) {
+      return withErrorMiddleware(`list-by-ours`, defaultCosmosResolveListByOurs)
+    }
+  }
+
   export const OneOurs: CosmosResolverPlugin = (field, _type, meta, _next) => {
     const returnType = meta.type(field.returnTypename)
     if (returnType?.cosmos && field.cosmos && !field.returnMany && field.theirs === null) {
+      return withErrorMiddleware(`one-ours`, defaultCosmosResolveOneOurs)
+    }
+  }
+
+  export const ComsoslessOneOurs: CosmosResolverPlugin = (field, _type, meta, _next) => {
+    if (field.cosmos && !field.returnMany && field.theirs === null) {
       return withErrorMiddleware(`one-ours`, defaultCosmosResolveOneOurs)
     }
   }
@@ -136,6 +148,8 @@ export const CommosResolverDefaults: CosmosResolverPlugin[] = [
   DefaultResolver.OneOurs,
   DefaultResolver.OneTheirs,
   DefaultResolver.ColumnOurs,
+  DefaultResolver.ComsoslessOneOurs,
+  DefaultResolver.ComsoslessListByOurs,
 ]
 
 export class CosmosResolverBuilder {

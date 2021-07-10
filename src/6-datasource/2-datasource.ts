@@ -94,7 +94,8 @@ export class GraphQLCosmosDataSource<TContext = unknown> extends ApolloDataSourc
 
     const id = SourceDescriptor.getObjectId(descriptor) ?? fail(`expects source to have an id`)
     const context = this.context ?? fail(`requires context for fetching value ${descriptor.typename}.${column}`)
-    const dataloader = this.dataloader ?? fail(`requires dataloader for fetching value ${descriptor.typename}.${column}`)
+    const dataloader =
+      this.dataloader ?? fail(`requires dataloader for fetching value ${descriptor.typename}.${column}`)
     const spec: DataLoaderSpec = {
       container: descriptor.container,
       columns: [column],
@@ -119,16 +120,6 @@ export class GraphQLCosmosDataSource<TContext = unknown> extends ApolloDataSourc
       query.limit
     )
     return result as FeedResponse<T>
-  }
-
-  refSingle(typename: string, database: string, container: string, id: string): SourceDescriptor.Single
-  refSingle(typename: string, database: string, container: string, id: string | null): SourceDescriptor.Single | null
-  refSingle(typename: string, database: string, container: string, id: string | null): SourceDescriptor.Single | null {
-    if (id === null) {
-      return null
-    } else {
-      return { kind: `Single`, typename, database, container, id }
-    }
   }
 
   single<T extends CosmosEntity>(

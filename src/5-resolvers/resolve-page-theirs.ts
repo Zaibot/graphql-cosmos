@@ -6,10 +6,11 @@ import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
 
 export const defaultCosmosResolvePageByTheirs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
-  const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
-  const returnType = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
+  const graphqlCosmos = context.dataSources.graphqlCosmos
+  const field = graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
+  const returnType = graphqlCosmos.meta.requireType(field.returnTypename)
   const theirField =
-    context.dataSources.graphqlCosmos.meta.oursField(field.returnTypename, field.theirs ?? `id`) ??
+    graphqlCosmos.meta.oursField(field.returnTypename, field.theirs ?? `id`) ??
     failql(`can't find theirs: ${field.returnTypename}.${field.theirs ?? `id`}`, info)
 
   const id = SourceDescriptor.getObjectId(parent) ?? failql(`expects parent to have an id`, info)
@@ -17,21 +18,17 @@ export const defaultCosmosResolvePageByTheirs: GraphQLCosmosFieldResolver = asyn
   const pageArgs = (args ?? {}) as Partial<GraphQLCosmosPageInput>
   const cursor = pageArgs.cursor ?? null
   const limit = pageArgs.limit ?? 50
-  const where = parseInputWhere({
-    and: [
-      pageArgs.where ?? {},
-      theirField.returnMany ? { [`${field.theirs}_in`]: id } : { [`${field.theirs}_eq`]: id },
-    ],
-  })
+  const resolverWhere = theirField.returnMany ? { [`${field.theirs}_in`]: id } : { [`${field.theirs}_eq`]: id }
+  const where = parseInputWhere(pageArgs.where ? { and: [pageArgs.where ?? {}, resolverWhere] } : resolverWhere)
   const sort = parseInputSort(pageArgs.sort ?? {})
 
   const database = field.database ?? returnType.database ?? failql(`requires database`, info)
   const container = field.container ?? returnType.container ?? failql(`requires container`, info)
 
-  const prefetch = context.dataSources.graphqlCosmos.prefetchOfPage(info)
+  const prefetch = graphqlCosmos.prefetchOfPage(info)
 
   const query = lazy(async () => {
-    const query = context.dataSources.graphqlCosmos.buildQuery({
+    const query = graphqlCosmos.buildQuery({
       database,
       container,
       context,
@@ -43,12 +40,12 @@ export const defaultCosmosResolvePageByTheirs: GraphQLCosmosFieldResolver = asyn
       typename: returnType.typename,
       limit,
     })
-    const result = await context.dataSources.graphqlCosmos.query<{ id: string }>(query)
+    const result = await graphqlCosmos.query<{ id: string }>(query)
     return result
   })
 
   const count = lazy(async () => {
-    const query = context.dataSources.graphqlCosmos.buildCountQuery({
+    const query = graphqlCosmos.buildCountQuery({
       database,
       container,
       context,
@@ -60,9 +57,11 @@ export const defaultCosmosResolvePageByTheirs: GraphQLCosmosFieldResolver = asyn
       typename: returnType.typename,
       limit: null,
     })
-    const result = await context.dataSources.graphqlCosmos.query<number>(query)
+    const result = await graphqlCosmos.query<number>(query)
     return result
   })
 
-  return graphqlCosmosPageResponse(returnType.typename, database, container, cursor, query, count)
+  return graphqlCosmosPageResponse(cursor, query, count, (x) =>
+    graphqlCosmos.single(returnType.typename, database, container, x)
+  )
 }

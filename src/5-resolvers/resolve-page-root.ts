@@ -6,9 +6,10 @@ import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
 
 export const defaultCosmosResolvePageRoot: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
-  const parentType = context.dataSources.graphqlCosmos.meta.requireType(info.parentType.name)
-  const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
-  const returnType = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
+  const graphqlCosmos = context.dataSources.graphqlCosmos
+  const parentType = graphqlCosmos.meta.requireType(info.parentType.name)
+  const field = graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
+  const returnType = graphqlCosmos.meta.requireType(field.returnTypename)
 
   const source = SourceDescriptor.getDescriptor(parent)
   if (source) {
@@ -24,10 +25,10 @@ export const defaultCosmosResolvePageRoot: GraphQLCosmosFieldResolver = async (p
   const database = field.database ?? parentType.database ?? failql(`requires database`, info)
   const container = field.container ?? parentType.container ?? failql(`requires container`, info)
 
-  const prefetch = context.dataSources.graphqlCosmos.prefetchOfPage(info)
+  const prefetch = graphqlCosmos.prefetchOfPage(info)
 
   const query = lazy(async () => {
-    const query = context.dataSources.graphqlCosmos.buildQuery({
+    const query = graphqlCosmos.buildQuery({
       database,
       container,
       context,
@@ -39,12 +40,12 @@ export const defaultCosmosResolvePageRoot: GraphQLCosmosFieldResolver = async (p
       typename: returnType.typename,
       limit,
     })
-    const result = await context.dataSources.graphqlCosmos.query<{ id: string }>(query)
+    const result = await graphqlCosmos.query<{ id: string }>(query)
     return result
   })
 
   const count = lazy(async () => {
-    const query = context.dataSources.graphqlCosmos.buildCountQuery({
+    const query = graphqlCosmos.buildCountQuery({
       database,
       container,
       context,
@@ -56,9 +57,11 @@ export const defaultCosmosResolvePageRoot: GraphQLCosmosFieldResolver = async (p
       typename: returnType.typename,
       limit: null,
     })
-    const result = await context.dataSources.graphqlCosmos.query<number>(query)
+    const result = await graphqlCosmos.query<number>(query)
     return result
   })
 
-  return graphqlCosmosPageResponse(returnType.typename, database, container, cursor, query, count)
+  return graphqlCosmosPageResponse(cursor, query, count, (x) =>
+    graphqlCosmos.single(returnType.typename, database, container, x)
+  )
 }

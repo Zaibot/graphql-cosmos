@@ -23,6 +23,7 @@ export enum WhereOps {
   contains = 'contains',
   containslower = 'containslower',
   ncontains = 'ncontains',
+  defined = 'defined',
 }
 
 export const isWhereOp = (input: string | WhereOps): input is WhereOps => {
@@ -50,6 +51,7 @@ export interface WhereBinary<T = unknown> {
   containslower: Binary<T>
   ncontains: Binary<T>
   ncontainslower: Binary<T>
+  defined: Binary<T>
 }
 
 export const WhereOpSet = new Set(Object.values(WhereOps)) as ReadonlySet<string>
@@ -94,9 +96,9 @@ export function transformWhere(
   return where.flatMap((x) => {
     return Object.entries(x).map(([op, arg]) => {
       if (op === `and`) {
-        return transformWhere(meta, typename, output, arg as Where, alias).join(` AND `)
+        return `(${transformWhere(meta, typename, output, arg as Where, alias).join(` AND `)})`
       } else if (op === `or`) {
-        return transformWhere(meta, typename, output, arg as Where, alias).join(` OR `)
+        return `(${transformWhere(meta, typename, output, arg as Where, alias).join(` OR `)})`
       } else {
         const [fieldname, value] = arg as Binary
         const parametername = output.get(value)
@@ -115,7 +117,8 @@ export function transformWhere(
 }
 
 function transformBinary(op: keyof WhereBinary, binary: Binary, secondIsArray: boolean, alias: string) {
-  if (op === `contains`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
+  if (op === `defined`) return `IS_DEFINED(${alias}.${binary[0]}) = ${binary[1]}`
+  else if (op === `contains`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
   else if (op === `containslower`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]}, true)`
   else if (op === `ncontains`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
   else if (op === `ncontainslower`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]}, true)`

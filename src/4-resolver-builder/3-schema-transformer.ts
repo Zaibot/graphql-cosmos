@@ -3,9 +3,11 @@ import {
   DefinitionNode,
   extendSchema,
   GraphQLFieldConfigArgumentMap,
+  GraphQLInputObjectType,
   GraphQLInputType,
   GraphQLInt,
   GraphQLNonNull,
+  GraphQLObjectType,
   GraphQLOutputType,
   GraphQLSchema,
   GraphQLString,
@@ -106,6 +108,7 @@ export class CosmosSchemaTransformer {
       contains: false,
       containslower: false,
       ncontains: false,
+      defined: false,
     }
 
     const whereables = type.fields.filter((x) => x.whereOps?.length)

@@ -24,8 +24,8 @@ describe(`Reference to deep container`, () => {
       'SELECT c.id, c.relatedIds FROM c ORDER BY c.id': [{ id: `1`, relatedIds: [`1b`, `2b`] }],
     },
     Relations: {
-      'SELECT VALUE COUNT(1) FROM c WHERE c.id = @p2 AND ARRAY_CONTAINS(@p4, c.id) (@p2=1b,@p4=1b,2b)': [1],
-      'SELECT c.id FROM c WHERE c.id = @p2 AND ARRAY_CONTAINS(@p4, c.id) ORDER BY c.id (@p2=1b,@p4=1b,2b)': [
+      'SELECT VALUE COUNT(1) FROM c WHERE (c.id = @p2 AND ARRAY_CONTAINS(@p4, c.id)) (@p2=1b,@p4=1b,2b)': [1],
+      'SELECT c.id FROM c WHERE (c.id = @p2 AND ARRAY_CONTAINS(@p4, c.id)) ORDER BY c.id (@p2=1b,@p4=1b,2b)': [
         { id: `1b` },
       ],
     },

@@ -4,9 +4,9 @@ import { defaultCosmosResolveColumnOurs } from './resolve-column'
 import { GraphQLCosmosFieldResolver } from './resolver'
 
 export const defaultCosmosResolveOneOurs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
-  // const parentType = context.dataSources.graphqlCosmos.meta.requireType(info.parentType.name)
-  // const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
-  // const returnType = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
+  // const parentType = graphqlCosmos.meta.requireType(info.parentType.name)
+  // const field = graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
+  // const returnType = graphqlCosmos.meta.requireType(field.returnTypename)
 
   // const current = (await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? null
   // if (current == null) {
@@ -26,9 +26,9 @@ export const defaultCosmosResolveOneOurs: GraphQLCosmosFieldResolver = async (pa
   // const database = field.database ?? parentType.database ?? failql(`requires database`, info)
   // const container = field.container ?? parentType.container ?? failql(`requires container`, info)
 
-  // const prefetch = context.dataSources.graphqlCosmos.prefetchOfObject(info)
+  // const prefetch = graphqlCosmos.prefetchOfObject(info)
 
-  // const query = context.dataSources.graphqlCosmos.buildQuery({
+  // const query = graphqlCosmos.buildQuery({
   //   database,
   //   container,
   //   context,
@@ -41,22 +41,23 @@ export const defaultCosmosResolveOneOurs: GraphQLCosmosFieldResolver = async (pa
   //   limit: 2,
   // })
 
-  // const feed = await context.dataSources.graphqlCosmos.query<{ id: string }>(query)
+  // const feed = await graphqlCosmos.query<{ id: string }>(query)
   // if (feed.resources.length > 1) {
   //   failql(`defaultCosmosResolveOneRoot expects a single result`, info)
   // }
 
   // return feed.resources.map(wrapSingleSourceDescriptor(returnType.typename, database, container))[0]
 
-  const field = context.dataSources.graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
-  const type = context.dataSources.graphqlCosmos.meta.requireType(field.returnTypename)
+  const graphqlCosmos = context.dataSources.graphqlCosmos
+  const field = graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
+  const type = graphqlCosmos.meta.requireType(field.returnTypename)
   const current = (await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? null
 
   if (field.returnMany) {
     const container = field.container ?? type.container ?? failql(`requires container`, info)
     const database = field.database ?? type.database ?? failql(`requires database`, info)
     return current?.filter(Boolean).map((obj: any) =>
-      context.dataSources.graphqlCosmos.single(type.typename, database, container, {
+      graphqlCosmos.single(type.typename, database, container, {
         id: getObjectId(obj) ?? failql(`one or more results is missing an id value`, info),
       })
     )
@@ -64,7 +65,7 @@ export const defaultCosmosResolveOneOurs: GraphQLCosmosFieldResolver = async (pa
     if (current) {
       const container = field.container ?? type.container ?? failql(`requires container`, info)
       const database = field.database ?? type.database ?? failql(`requires database`, info)
-      return context.dataSources.graphqlCosmos.single(type.typename, database, container, {
+      return graphqlCosmos.single(type.typename, database, container, {
         id: getObjectId(current) ?? failql(`one or more results is missing an id value`, info),
       })
     }
