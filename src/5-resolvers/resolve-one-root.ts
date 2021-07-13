@@ -37,9 +37,9 @@ export const defaultCosmosResolveOneRoot: GraphQLCosmosFieldResolver = async (pa
   })
 
   const feed = await graphqlCosmos.query<{ id: string }>(query)
-  if (feed.resources.length > 1) {
+  if (feed.resources?.length > 1) {
     failql(`defaultCosmosResolveOneRoot expects a single result`, info)
   }
 
-  return feed.resources.map((x) => graphqlCosmos.single(returnType.typename, database, container, x))[0]
+  return (feed.resources ?? []).map((x) => graphqlCosmos.single(returnType.typename, database, container, x))[0]
 }

@@ -44,5 +44,5 @@ export const defaultCosmosResolveListByOurs: GraphQLCosmosFieldResolver = async 
   })
 
   const feed = await graphqlCosmos.query<{ id: string }>(query)
-  return feed.resources.map((x) => graphqlCosmos.single(returnType.typename, database, container, x))
+  return (feed.resources ?? []).map((x) => graphqlCosmos.single(returnType.typename, database, container, x))
 }

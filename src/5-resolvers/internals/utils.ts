@@ -24,7 +24,7 @@ export function graphqlCosmosPageResponse<T extends { id: string }>(
       return query().then((x) => x.continuationToken)
     },
     get page() {
-      return query().then((x) => x.resources.map(transformer))
+      return query().then((x) => (x.resources ?? []).map(transformer))
     },
     get total() {
       return count().then((x) => x.resources[0])

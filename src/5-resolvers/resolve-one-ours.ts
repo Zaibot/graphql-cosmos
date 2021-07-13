@@ -42,11 +42,11 @@ export const defaultCosmosResolveOneOurs: GraphQLCosmosFieldResolver = async (pa
   // })
 
   // const feed = await graphqlCosmos.query<{ id: string }>(query)
-  // if (feed.resources.length > 1) {
+  // if (feed.resources?.length > 1) {
   //   failql(`defaultCosmosResolveOneRoot expects a single result`, info)
   // }
 
-  // return feed.resources.map(wrapSingleSourceDescriptor(returnType.typename, database, container))[0]
+  // return (feed.resources??[]).map(wrapSingleSourceDescriptor(returnType.typename, database, container))[0]
 
   const graphqlCosmos = context.dataSources.graphqlCosmos
   const field = graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)

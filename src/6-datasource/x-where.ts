@@ -63,15 +63,15 @@ export function indexWhere(where: Where) {
   let outputId = 0
   let output = new Map<unknown, string>()
 
-  indexWhere2(where)
+  indexWhereRecursive(where)
 
-  function indexWhere2(where: Where) {
+  function indexWhereRecursive(where: Where) {
     for (const x of where) {
       for (const [op, arg] of Object.entries(x)) {
         if (op === `and`) {
-          indexWhere2(arg as Where)
+          indexWhereRecursive(arg as Where)
         } else if (op === `or`) {
-          indexWhere2(arg as Where)
+          indexWhereRecursive(arg as Where)
         } else {
           const [, value] = arg as Binary
           if (output.has(`@p${outputId}`)) {
@@ -84,6 +84,7 @@ export function indexWhere(where: Where) {
       }
     }
   }
+
   return output
 }
 export function transformWhere(

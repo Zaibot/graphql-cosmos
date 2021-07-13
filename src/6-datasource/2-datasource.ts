@@ -208,10 +208,6 @@ export class GraphQLCosmosDataSource<TContext = unknown> extends ApolloDataSourc
       return []
     }
   }
-
-  // prefetchApply<T>(typename: string, obj: T){
-  //   return Object.fromEntries(Object.entries(obj).map(([k,v]) =>  [this.meta.oursField(typename, k)?.fieldname,  ))
-  // }
 }
 
 export interface GraphQLCosmosArgs {

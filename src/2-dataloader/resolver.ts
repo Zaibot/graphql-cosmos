@@ -28,5 +28,5 @@ export const defaultOnDataLoaderResolve: DataLoaderResolveHandler = async (
   })
 
   const response = await graphqlCosmos.query(build)
-  return response.resources
+  return response.resources ?? []
 }

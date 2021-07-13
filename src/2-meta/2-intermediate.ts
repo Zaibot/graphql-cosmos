@@ -55,21 +55,18 @@ export function getMetaType(type: GraphQLCosmosTypeFromAst, schema: GraphQLCosmo
       typename: type.typename,
       database: type.database,
       container: type.container,
-      fields: (type.fields ?? [])
+      fields: type.fields
         .map((field) => getMetaField(field, schema))
         .sort((a, b) => a.fieldname.localeCompare(b.fieldname)),
-      filterable: (type.fields ?? []).some((x) => (x.whereOps ?? []).length > 0),
-      sortable: (type.fields ?? []).some((x) => x.sortable),
+      filterable: type.fields.some((x) => (x.whereOps ?? []).length > 0),
+      sortable: type.fields.some((x) => x.sortable),
     }
   } catch (ex) {
     throw new GraphQLCosmosInitError(`Type: ${type.typename}`, ex)
   }
 }
 
-export function getMetaField(
-  field: GraphQLCosmosFieldFromAst,
-  schema: GraphQLCosmosSchemaFromAst
-): MetaField {
+export function getMetaField(field: GraphQLCosmosFieldFromAst, schema: GraphQLCosmosSchemaFromAst): MetaField {
   try {
     const returnType = schema.types.find((x) => x.typename === field.returnTypename) ?? null
 
