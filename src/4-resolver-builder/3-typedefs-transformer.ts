@@ -344,6 +344,10 @@ export class CosmosTypeDefsTransformer {
               )
               const r: FieldDefinitionNode = {
                 ...node,
+                type: {
+                  kind: `NonNullType`,
+                  type: getNonNullableType(node.type),
+                },
                 arguments: args,
               }
               return r
@@ -376,6 +380,13 @@ function makeInputValueDefinitionNode(name: string, type: TypeNode): InputValueD
 
 function hasInputObjectTypeDefinition(doc: DocumentNode, name: string) {
   return doc.definitions.some((x) => x.kind === `InputObjectTypeDefinition` && x.name.value === name)
+}
+
+function getNonNullableType(type: TypeNode) {
+  while (type.kind === `NonNullType`) {
+    type = type.type
+  }
+  return type
 }
 
 function addType(doc: DocumentNode, pageType: DefinitionNode) {
