@@ -1,22 +1,19 @@
-import { mapSchema } from '@graphql-tools/utils'
+import { mapSchema, SchemaMapper } from '@graphql-tools/utils'
 import {
   DefinitionNode,
   extendSchema,
   GraphQLFieldConfigArgumentMap,
-  GraphQLInputObjectType,
   GraphQLInputType,
   GraphQLInt,
   GraphQLNonNull,
-  GraphQLObjectType,
   GraphQLOutputType,
   GraphQLSchema,
   GraphQLString,
   InputValueDefinitionNode,
 } from 'graphql'
-import { SchemaMapper } from '@graphql-tools/utils'
 import { MetaType } from '../2-meta/2-intermediate'
 import { MetaIndex } from '../2-meta/3-meta-index'
-import { WhereOps } from '../6-datasource/x-where'
+import { WhereBinaryPlural } from '../6-datasource/x-where'
 import { fail } from '../typescript'
 
 export class CosmosSchemaTransformer {
@@ -88,29 +85,6 @@ export class CosmosSchemaTransformer {
   }
 
   generateWhereType(type: MetaType): DefinitionNode {
-    const isPlural: Record<WhereOps, boolean> = {
-      lt: false,
-      ltlower: false,
-      lte: false,
-      ltelower: false,
-      gt: false,
-      gtlower: false,
-      gte: false,
-      gtelower: false,
-      eq: false,
-      eqlower: false,
-      neq: false,
-      neqlower: false,
-      in: true,
-      inlower: true,
-      nin: true,
-      ninlower: true,
-      contains: false,
-      containslower: false,
-      ncontains: false,
-      defined: false,
-    }
-
     const whereables = type.fields.filter((x) => x.whereOps?.length)
     const whereInputFields = whereables
       .flatMap((x) => (x.whereOps ?? []).map((y) => ({ field: x, op: y })))
@@ -118,7 +92,7 @@ export class CosmosSchemaTransformer {
         (f): InputValueDefinitionNode => ({
           kind: `InputValueDefinition`,
           name: { kind: `Name`, value: `${f.field.whereOurs ?? f.field.fieldname}_${f.op}` },
-          type: isPlural[f.op]
+          type: WhereBinaryPlural[f.op]
             ? {
                 kind: `ListType`,
                 type: {

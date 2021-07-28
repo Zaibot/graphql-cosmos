@@ -1,108 +1,521 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Where Operations expects meta schema to remain the same 1`] = `
+exports[`Where Operation contains (list result) should match snapshot 1`] = `
 Object {
-  "types": Array [
-    Object {
-      "container": "Dummies",
-      "cosmos": true,
-      "database": "Test",
-      "external": false,
-      "fields": Array [
-        Object {
-          "container": null,
-          "cosmos": false,
-          "database": null,
-          "fieldname": "id",
-          "ours": null,
-          "pagination": false,
-          "returnMany": false,
-          "returnTypename": "ID",
-          "sortOurs": null,
-          "sortable": false,
-          "theirs": null,
-          "whereOps": Array [],
-          "whereOurs": null,
-        },
-        Object {
-          "container": null,
-          "cosmos": false,
-          "database": null,
-          "fieldname": "prop",
-          "ours": null,
-          "pagination": false,
-          "returnMany": false,
-          "returnTypename": "String",
-          "sortOurs": null,
-          "sortable": false,
-          "theirs": null,
-          "whereOps": Array [
-            "eq",
-            "in",
-          ],
-          "whereOurs": null,
-        },
-      ],
-      "filterable": true,
-      "sortable": false,
-      "typename": "Dummy",
-    },
-    Object {
-      "container": null,
-      "cosmos": false,
-      "database": null,
-      "external": false,
-      "fields": Array [
-        Object {
-          "container": "Dummies",
-          "cosmos": true,
-          "database": "Test",
-          "fieldname": "dummies",
-          "ours": null,
-          "pagination": true,
-          "returnMany": true,
-          "returnTypename": "Dummy",
-          "sortOurs": null,
-          "sortable": false,
-          "theirs": null,
-          "whereOps": Array [],
-          "whereOurs": null,
-        },
-      ],
-      "filterable": false,
-      "sortable": false,
-      "typename": "Query",
-    },
-  ],
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "CONTAINS(c.list, @p2)",
 }
 `;
 
-exports[`Where Operations expects schema to remain the same 1`] = `
-"schema {
-  query: Query
+exports[`Where Operation contains should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "CONTAINS(c.value, @p2)",
 }
+`;
 
-type Query {
-  dummies(where: DummyWhere, cursor: String, limit: Int): DummyPage!
+exports[`Where Operation containslower (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "CONTAINS(c.list, @p2, true)",
 }
+`;
 
-type Dummy {
-  id: ID!
-  prop: String
+exports[`Where Operation containslower should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "CONTAINS(c.value, @p2, true)",
 }
+`;
 
-type DummyPage {
-  total: Int!
-  cursor: String
-  nextCursor: String
-  page: [Dummy]!
+exports[`Where Operation defined (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "IS_DEFINED(c.list) = @p2",
 }
+`;
 
-input DummyWhere {
-  and: [DummyWhere!]
-  or: [DummyWhere!]
-  prop_eq: String
-  prop_in: [String]
+exports[`Where Operation defined should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "IS_DEFINED(c.value) = @p2",
 }
-"
+`;
+
+exports[`Where Operation eq (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.list = @p2",
+}
+`;
+
+exports[`Where Operation eq should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.value = @p2",
+}
+`;
+
+exports[`Where Operation eqlower (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "STRINGEQUALS(c.list, @p2, true)",
+}
+`;
+
+exports[`Where Operation eqlower should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "STRINGEQUALS(c.value, @p2, true)",
+}
+`;
+
+exports[`Where Operation gt (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.list > @p2",
+}
+`;
+
+exports[`Where Operation gt should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.value > @p2",
+}
+`;
+
+exports[`Where Operation gte (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.list >= @p2",
+}
+`;
+
+exports[`Where Operation gte should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.value >= @p2",
+}
+`;
+
+exports[`Where Operation gtelower (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.list) >= LOWER(@p2)",
+}
+`;
+
+exports[`Where Operation gtelower should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.value) >= LOWER(@p2)",
+}
+`;
+
+exports[`Where Operation gtlower (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.list) > LOWER(@p2)",
+}
+`;
+
+exports[`Where Operation gtlower should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.value) > LOWER(@p2)",
+}
+`;
+
+exports[`Where Operation in (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "ARRAY_CONTAINS(c.list, @p2)",
+}
+`;
+
+exports[`Where Operation in (plural 1) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": Array [
+      "test",
+    ],
+  },
+  "query": "ARRAY_CONTAINS(@p2, c.value)",
+}
+`;
+
+exports[`Where Operation in (plural 2) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": Array [
+      "test",
+    ],
+  },
+  "query": "ARRAY_CONTAINS(@p2, c.list)",
+}
+`;
+
+exports[`Where Operation in should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "ARRAY_CONTAINS(c.value, @p2)",
+}
+`;
+
+exports[`Where Operation inlower (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "ARRAY_CONTAINS(c.list, @p2)",
+}
+`;
+
+exports[`Where Operation inlower (plural 1) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": Array [
+      "test",
+    ],
+  },
+  "query": "ARRAY_CONTAINS(@p2, c.value)",
+}
+`;
+
+exports[`Where Operation inlower (plural 2) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": Array [
+      "test",
+    ],
+  },
+  "query": "ARRAY_CONTAINS(@p2, c.list)",
+}
+`;
+
+exports[`Where Operation inlower should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "ARRAY_CONTAINS(c.value, @p2)",
+}
+`;
+
+exports[`Where Operation like (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.list LIKE @p2",
+}
+`;
+
+exports[`Where Operation like should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.value LIKE @p2",
+}
+`;
+
+exports[`Where Operation likelower (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.list) LIKE @p2",
+}
+`;
+
+exports[`Where Operation likelower should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.value) LIKE @p2",
+}
+`;
+
+exports[`Where Operation lt (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.list < @p2",
+}
+`;
+
+exports[`Where Operation lt should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.value < @p2",
+}
+`;
+
+exports[`Where Operation lte (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.list <= @p2",
+}
+`;
+
+exports[`Where Operation lte should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.value <= @p2",
+}
+`;
+
+exports[`Where Operation ltelower (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.list) <= LOWER(@p2)",
+}
+`;
+
+exports[`Where Operation ltelower should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.value) <= LOWER(@p2)",
+}
+`;
+
+exports[`Where Operation ltlower (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.list) < LOWER(@p2)",
+}
+`;
+
+exports[`Where Operation ltlower should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.value) < LOWER(@p2)",
+}
+`;
+
+exports[`Where Operation ncontains (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "NOT CONTAINS(c.list, @p2)",
+}
+`;
+
+exports[`Where Operation ncontains should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "NOT CONTAINS(c.value, @p2)",
+}
+`;
+
+exports[`Where Operation neq (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.list != @p2",
+}
+`;
+
+exports[`Where Operation neq should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.value != @p2",
+}
+`;
+
+exports[`Where Operation neqlower (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "NOT STRINGEQUALS(c.list, @p2, true)",
+}
+`;
+
+exports[`Where Operation neqlower should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "NOT STRINGEQUALS(c.value, @p2, true)",
+}
+`;
+
+exports[`Where Operation nin (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "NOT ARRAY_CONTAINS(c.list, @p2)",
+}
+`;
+
+exports[`Where Operation nin (plural 1) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": Array [
+      "test",
+    ],
+  },
+  "query": "NOT ARRAY_CONTAINS(@p2, c.value)",
+}
+`;
+
+exports[`Where Operation nin (plural 2) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": Array [
+      "test",
+    ],
+  },
+  "query": "NOT ARRAY_CONTAINS(@p2, c.list)",
+}
+`;
+
+exports[`Where Operation nin should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "NOT ARRAY_CONTAINS(c.value, @p2)",
+}
+`;
+
+exports[`Where Operation ninlower (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "NOT ARRAY_CONTAINS(c.list, @p2)",
+}
+`;
+
+exports[`Where Operation ninlower (plural 1) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": Array [
+      "test",
+    ],
+  },
+  "query": "NOT ARRAY_CONTAINS(@p2, c.value)",
+}
+`;
+
+exports[`Where Operation ninlower (plural 2) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": Array [
+      "test",
+    ],
+  },
+  "query": "NOT ARRAY_CONTAINS(@p2, c.list)",
+}
+`;
+
+exports[`Where Operation ninlower should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "NOT ARRAY_CONTAINS(c.value, @p2)",
+}
+`;
+
+exports[`Where Operation nlike (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.list LIKE @p2",
+}
+`;
+
+exports[`Where Operation nlike should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "c.value LIKE @p2",
+}
+`;
+
+exports[`Where Operation nlikelower (list result) should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.list) LIKE @p2",
+}
+`;
+
+exports[`Where Operation nlikelower should match snapshot 1`] = `
+Object {
+  "parameters": Object {
+    "@p2": "test",
+  },
+  "query": "LOWER(c.value) LIKE @p2",
+}
 `;

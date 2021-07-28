@@ -15,7 +15,7 @@ import { MetaType } from '../2-meta/2-intermediate'
 import { MetaIndex } from '../2-meta/3-meta-index'
 import { GraphQLCosmosPageInputSort, GraphQLCosmosPageInputWhere } from '../5-resolvers/input-args'
 import { SourceDescriptor } from '../5-resolvers/x-descriptors'
-import { WhereOps } from '../6-datasource/x-where'
+import { WhereBinaryPlural, WhereOps } from '../6-datasource/x-where'
 import { fail, PromiseOrValue } from '../typescript'
 
 export interface GraphQLCosmosPageInput {
@@ -131,6 +131,10 @@ export class CosmosTypeDefsTransformer {
       contains: false,
       containslower: false,
       ncontains: false,
+      like: false,
+      nlike: false,
+      likelower: false,
+      nlikelower: false,
       defined: false,
     }
 
@@ -141,7 +145,7 @@ export class CosmosTypeDefsTransformer {
         (f): InputValueDefinitionNode =>
           makeInputValueDefinitionNode(
             `${f.field.whereOurs ?? f.field.fieldname}_${f.op}`,
-            isPlural[f.op]
+            WhereBinaryPlural[f.op]
               ? {
                   kind: `ListType`,
                   type: {

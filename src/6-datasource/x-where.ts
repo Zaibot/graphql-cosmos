@@ -23,6 +23,10 @@ export enum WhereOps {
   contains = 'contains',
   containslower = 'containslower',
   ncontains = 'ncontains',
+  like = 'like',
+  nlike = 'nlike',
+  likelower = 'likelower',
+  nlikelower = 'nlikelower',
   defined = 'defined',
 }
 
@@ -48,10 +52,42 @@ export interface WhereBinary<T = unknown> {
   nin: Binary<T>
   ninlower: Binary<T>
   contains: Binary<T>
-  containslower: Binary<T>
   ncontains: Binary<T>
+  containslower: Binary<T>
   ncontainslower: Binary<T>
+  like: Binary<T>
+  nlike: Binary<T>
+  likelower: Binary<T>
+  nlikelower: Binary<T>
   defined: Binary<T>
+}
+
+export const WhereBinaryPlural: Record<keyof WhereBinary, boolean> = {
+  lt: false,
+  ltlower: false,
+  lte: false,
+  ltelower: false,
+  gt: false,
+  gtlower: false,
+  gte: false,
+  gtelower: false,
+  eq: false,
+  eqlower: false,
+  neq: false,
+  neqlower: false,
+  in: true,
+  inlower: true,
+  nin: true,
+  ninlower: true,
+  contains: false,
+  ncontains: false,
+  containslower: false,
+  ncontainslower: false,
+  like: false,
+  nlike: false,
+  likelower: false,
+  nlikelower: false,
+  defined: false,
 }
 
 export const WhereOpSet = new Set(Object.values(WhereOps)) as ReadonlySet<string>
@@ -118,38 +154,154 @@ export function transformWhere(
 }
 
 function transformBinary(op: keyof WhereBinary, binary: Binary, secondIsArray: boolean, alias: string) {
-  if (op === `defined`) return `IS_DEFINED(${alias}.${binary[0]}) = ${binary[1]}`
-  else if (op === `contains`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
-  else if (op === `containslower`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]}, true)`
-  else if (op === `ncontains`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
-  else if (op === `ncontainslower`) return `CONTAINS(${alias}.${binary[0]}, ${binary[1]}, true)`
-  else if (op === `eq`) return `${alias}.${binary[0]} = ${binary[1]}`
-  else if (op === `eqlower`) return `STRINGEQUALS(${alias}.${binary[0]}, ${binary[1]}, true)`
-  else if (op === `lt`) return `${alias}.${binary[0]} < ${binary[1]}`
-  else if (op === `ltlower`) return `LOWER(${alias}.${binary[0]}) < LOWER(${binary[1]})`
-  else if (op === `lte`) return `${alias}.${binary[0]} <= ${binary[1]}`
-  else if (op === `ltelower`) return `LOWER(${alias}.${binary[0]}) <= LOWER(${binary[1]})`
-  else if (op === `gt`) return `${alias}.${binary[0]} > ${binary[1]}`
-  else if (op === `gtlower`) return `LOWER(${alias}.${binary[0]}) > LOWER(${binary[1]})`
-  else if (op === `gte`) return `${alias}.${binary[0]} >= ${binary[1]}`
-  else if (op === `gtelower`) return `LOWER(${alias}.${binary[0]}) >= LOWER(${binary[1]})`
-  else if (op === `in`)
-    return secondIsArray
-      ? `ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
-      : `ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
-  else if (op === `inlower`)
-    return secondIsArray
-      ? `ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
-      : `ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
-  else if (op === `neq`) return `${alias}.${binary[0]} != ${binary[1]}`
-  else if (op === `neqlower`) return `NOT STRINGEQUALS(${alias}.${binary[0]}, ${binary[1]}, true)`
-  else if (op === `nin`)
-    return secondIsArray
-      ? `NOT ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
-      : `NOT ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
-  else if (op === `ninlower`)
-    return secondIsArray
-      ? `NOT ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
-      : `NOT ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
-  else fail(`unknown op: ${op}`)
+  switch (op) {
+    case 'defined':
+      return `IS_DEFINED(${alias}.${binary[0]}) = ${binary[1]}`
+    case 'contains':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
+      }
+    case 'containslower':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `CONTAINS(${alias}.${binary[0]}, ${binary[1]}, true)`
+      }
+    case 'ncontains':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `NOT CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
+      }
+    case 'ncontainslower':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `NOT CONTAINS(${alias}.${binary[0]}, ${binary[1]}, true)`
+      }
+    case 'eq':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `${alias}.${binary[0]} = ${binary[1]}`
+      }
+    case 'eqlower':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `STRINGEQUALS(${alias}.${binary[0]}, ${binary[1]}, true)`
+      }
+    case 'lt':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `${alias}.${binary[0]} < ${binary[1]}`
+      }
+    case 'ltlower':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `LOWER(${alias}.${binary[0]}) < LOWER(${binary[1]})`
+      }
+    case 'lte':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `${alias}.${binary[0]} <= ${binary[1]}`
+      }
+    case 'ltelower':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `LOWER(${alias}.${binary[0]}) <= LOWER(${binary[1]})`
+      }
+    case 'gt':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `${alias}.${binary[0]} > ${binary[1]}`
+      }
+    case 'gtlower':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `LOWER(${alias}.${binary[0]}) > LOWER(${binary[1]})`
+      }
+    case 'gte':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `${alias}.${binary[0]} >= ${binary[1]}`
+      }
+    case 'gtelower':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `LOWER(${alias}.${binary[0]}) >= LOWER(${binary[1]})`
+      }
+    case 'in':
+      if (secondIsArray) {
+        return `ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
+      } else {
+        return `ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
+      }
+    case 'inlower':
+      if (secondIsArray) {
+        return `ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
+      } else {
+        return `ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
+      }
+    case 'neq':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `${alias}.${binary[0]} != ${binary[1]}`
+      }
+    case 'neqlower':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `NOT STRINGEQUALS(${alias}.${binary[0]}, ${binary[1]}, true)`
+      }
+    case 'nin':
+      if (secondIsArray) {
+        return `NOT ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
+      } else {
+        return `NOT ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
+      }
+    case 'ninlower':
+      if (secondIsArray) {
+        return `NOT ARRAY_CONTAINS(${binary[1]}, ${alias}.${binary[0]})`
+      } else {
+        return `NOT ARRAY_CONTAINS(${alias}.${binary[0]}, ${binary[1]})`
+      }
+    case 'like':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `${alias}.${binary[0]} LIKE ${binary[1]}`
+      }
+    case 'nlike':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `${alias}.${binary[0]} LIKE ${binary[1]}`
+      }
+    case 'likelower':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `LOWER(${alias}.${binary[0]}) LIKE ${binary[1]}`
+      }
+    case 'nlikelower':
+      if (secondIsArray) {
+        throw Error(`did not expect array as argument`)
+      } else {
+        return `LOWER(${alias}.${binary[0]}) LIKE ${binary[1]}`
+      }
+    default:
+      throw Error(`unknown op: ${op}`)
+  }
 }
