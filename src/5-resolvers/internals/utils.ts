@@ -17,17 +17,9 @@ export function graphqlCosmosPageResponse<T extends { id: string }>(
   transformer: (item: T) => SourceDescriptor.Embedded<T>
 ): GraphQLCosmosPageOutput<T> {
   return {
-    get cursor() {
-      return Promise.resolve(cursor)
-    },
-    get nextCursor() {
-      return query().then((x) => x.continuationToken)
-    },
-    get page() {
-      return query().then((x) => (x.resources ?? []).map(transformer))
-    },
-    get total() {
-      return count().then((x) => x.resources[0])
-    },
+    cursor: cursor,
+    nextCursor: () => query().then((x) => x.continuationToken),
+    page: () => query().then((x) => (x.resources ?? []).map(transformer)),
+    total: () => count().then((x) => x.resources[0]),
   }
 }

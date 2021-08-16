@@ -16,7 +16,7 @@ import { MetaIndex } from '../2-meta/3-meta-index'
 import { GraphQLCosmosPageInputSort, GraphQLCosmosPageInputWhere } from '../5-resolvers/input-args'
 import { SourceDescriptor } from '../5-resolvers/x-descriptors'
 import { WhereBinaryPlural, WhereOps } from '../6-datasource/x-where'
-import { fail, PromiseOrValue } from '../typescript'
+import { fail, LazyPromiseOrValue } from '../typescript'
 
 export interface GraphQLCosmosPageInput {
   where?: GraphQLCosmosPageInputWhere
@@ -26,10 +26,10 @@ export interface GraphQLCosmosPageInput {
 }
 
 export interface GraphQLCosmosPageOutput<T extends { id: string }> {
-  total: PromiseOrValue<number>
-  cursor: PromiseOrValue<string | null>
-  nextCursor: PromiseOrValue<string | null>
-  page: PromiseOrValue<Array<SourceDescriptor.Embedded<T>>>
+  total: LazyPromiseOrValue<number>
+  cursor: LazyPromiseOrValue<string | null>
+  nextCursor: LazyPromiseOrValue<string | null>
+  page: LazyPromiseOrValue<Array<SourceDescriptor.Embedded<T>>>
 }
 
 export class CosmosTypeDefsTransformer {

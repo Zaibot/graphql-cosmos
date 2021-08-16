@@ -1,5 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql'
 
+export type LazyPromiseOrValue<T> = T | Lazy<T> | Lazy<Promise<T>>
 export type PromiseOrValue<T> = Promise<T> | T
 
 export function defined<T>(value: T | null | undefined): value is T {
