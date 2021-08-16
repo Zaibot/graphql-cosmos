@@ -5,7 +5,7 @@ import { DocumentNode, execute, parse, validate, validateSchema } from 'graphql'
 import { defaultDataLoader } from '../src/2-dataloader/default'
 import { MetaIndex } from '../src/2-meta/3-meta-index'
 import { CosmosTypeDefsCompiler } from '../src/4-resolver-builder/4-typedefs-compiler'
-import { GraphQLCosmosConceptContext } from '../src/6-datasource/1-context'
+import { GraphQLCosmosConceptContext, requireGraphQLCosmos } from '../src/6-datasource/1-context'
 import { GraphQLCosmosDataSource } from '../src/6-datasource/2-datasource'
 import { combineDataSourcePlugins } from '../src/6-datasource/3-plugin'
 import { CosmosHandler } from '../src/6-datasource/5-cosmos'
@@ -68,7 +68,7 @@ export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData
     },
   }
 
-  context.dataSources.graphqlCosmos.initialize({
+  requireGraphQLCosmos(context).initialize({
     context,
   })
 

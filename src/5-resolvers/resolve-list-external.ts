@@ -1,8 +1,9 @@
+import { requireGraphQLCosmos } from '../6-datasource/1-context'
 import { defaultCosmosResolveColumnOurs } from './resolve-column'
 import { GraphQLCosmosFieldResolver } from './resolver'
 
 export const defaultCosmosResolveExternalListOurs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
-  const graphqlCosmos = context.dataSources.graphqlCosmos
+  const graphqlCosmos = requireGraphQLCosmos(context)
   const field = graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const type = graphqlCosmos.meta.requireType(field.returnTypename)
   const current = (await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? null

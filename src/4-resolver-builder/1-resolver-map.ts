@@ -15,7 +15,7 @@ import { defaultCosmosResolvePageByOurs } from '../5-resolvers/resolve-page-ours
 import { defaultCosmosResolvePageRoot } from '../5-resolvers/resolve-page-root'
 import { defaultCosmosResolvePageByTheirs } from '../5-resolvers/resolve-page-theirs'
 import { GraphQLCosmosFieldResolver } from '../5-resolvers/resolver'
-import { GraphQLCosmosConceptContext } from '../6-datasource/1-context'
+import { GraphQLCosmosConceptContext, requireGraphQLCosmos } from '../6-datasource/1-context'
 import { withErrorMiddleware } from '../error'
 import { failql } from '../typescript'
 
@@ -173,11 +173,11 @@ export class CosmosResolverBuilder {
 
   buildResolveReference(type: MetaType) {
     if (type.database || type.container) {
-      return function __resolveReference(parent: Record<string, unknown>, { dataSources }: GraphQLCosmosConceptContext, info: GraphQLResolveInfo) {
+      return function __resolveReference(parent: Record<string, unknown>, context: GraphQLCosmosConceptContext, info: GraphQLResolveInfo) {
         const database = type.database ?? failql(`requires database in meta type`, info)
         const container = type.container ?? failql(`requires container in meta type`, info)
         Object(parent)[`id`] ?? failql(`requires id in parent`, info)
-        return dataSources.graphqlCosmos.single(type.typename, database, container, parent as { id: string })
+        return requireGraphQLCosmos(context).single(type.typename, database, container, parent as { id: string })
       }
     }
   }

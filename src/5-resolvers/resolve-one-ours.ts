@@ -1,3 +1,4 @@
+import { requireGraphQLCosmos } from '../6-datasource/1-context'
 import { getObjectId } from '../object-id'
 import { failql } from '../typescript'
 import { defaultCosmosResolveColumnOurs } from './resolve-column'
@@ -48,7 +49,7 @@ export const defaultCosmosResolveOneOurs: GraphQLCosmosFieldResolver = async (pa
 
   // return (feed.resources??[]).map(wrapSingleSourceDescriptor(returnType.typename, database, container))[0]
 
-  const graphqlCosmos = context.dataSources.graphqlCosmos
+  const graphqlCosmos = requireGraphQLCosmos(context)
   const field = graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const type = graphqlCosmos.meta.requireType(field.returnTypename)
   const current = (await defaultCosmosResolveColumnOurs(parent, args, context, info)) ?? null

@@ -5,7 +5,7 @@ import gql from 'graphql-tag'
 import { performance } from 'perf_hooks'
 import YAML from 'yaml'
 import { CosmosTypeDefsCompiler } from './4-resolver-builder/4-typedefs-compiler'
-import { GraphQLCosmosConceptContext } from './6-datasource/1-context'
+import { GraphQLCosmosConceptContext, requireGraphQLCosmos } from './6-datasource/1-context'
 import { GraphQLCosmosDataSource } from './6-datasource/2-datasource'
 import { combineDataSourcePlugins } from './6-datasource/3-plugin'
 import { traceErrorMiddleware } from './error'
@@ -161,7 +161,7 @@ async function main() {
       },
     }
 
-    context.dataSources.graphqlCosmos.initialize({ context })
+    requireGraphQLCosmos(context).initialize({ context })
 
     return context
   }

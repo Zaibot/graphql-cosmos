@@ -1,13 +1,14 @@
 import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-typedefs-transformer'
+import { requireGraphQLCosmos } from '../6-datasource/1-context'
 import { failql, lazy, valueIfOne } from '../typescript'
-import { defaultCosmosResolveColumnOurs } from './resolve-column'
 import { parseInputSort, parseInputWhere } from './input-args'
 import { emptyPageResponse, graphqlCosmosPageResponse } from './internals/utils'
+import { defaultCosmosResolveColumnOurs } from './resolve-column'
 import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
 
 export const defaultCosmosResolvePageByOurs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
-  const graphqlCosmos = context.dataSources.graphqlCosmos
+  const graphqlCosmos = requireGraphQLCosmos(context)
   const field = graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const returnType = graphqlCosmos.meta.requireType(field.returnTypename)
 

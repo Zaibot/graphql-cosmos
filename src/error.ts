@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql'
 import { IFieldResolver } from '@graphql-tools/utils'
-import { GraphQLCosmosConceptContext } from './6-datasource/1-context'
+import { getGraphQLCosmos, GraphQLCosmosConceptContext, requireGraphQLCosmos } from './6-datasource/1-context'
 import { TraceError } from './x-error/trace-error'
 
 export type ErrorMiddleware = (arg: ErrorDescription) => Promise<unknown> | unknown
@@ -19,8 +19,8 @@ export const withErrorMiddleware = <T extends IFieldResolver<any, GraphQLCosmosC
   original: T
 ): T => {
   const f: IFieldResolver<any, GraphQLCosmosConceptContext> = async (source, args, context, info) => {
-    const graphqlCosmos = context.dataSources.graphqlCosmos
-    if (!graphqlCosmos.onError) {
+    const graphqlCosmos = getGraphQLCosmos(context)
+    if (!graphqlCosmos?.onError) {
       return await original(source, args, context, info)
     } else {
       try {

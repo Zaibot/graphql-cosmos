@@ -4,9 +4,10 @@ import { parseInputSort, parseInputWhere } from './input-args'
 import { graphqlCosmosPageResponse } from './internals/utils'
 import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
+import { requireGraphQLCosmos } from '../6-datasource/1-context'
 
 export const defaultCosmosResolvePageByTheirs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
-  const graphqlCosmos = context.dataSources.graphqlCosmos
+  const graphqlCosmos = requireGraphQLCosmos(context)
   const field = graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const returnType = graphqlCosmos.meta.requireType(field.returnTypename)
   const theirField =

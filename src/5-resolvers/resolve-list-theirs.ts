@@ -1,11 +1,12 @@
 import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-typedefs-transformer'
+import { requireGraphQLCosmos } from '../6-datasource/1-context'
 import { failql } from '../typescript'
 import { parseInputSort, parseInputWhere } from './input-args'
 import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
 
 export const defaultCosmosResolveListByTheirs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
-  const graphqlCosmos = context.dataSources.graphqlCosmos
+  const graphqlCosmos = requireGraphQLCosmos(context)
   const field = graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const returnType = graphqlCosmos.meta.requireType(field.returnTypename)
   const theirField =

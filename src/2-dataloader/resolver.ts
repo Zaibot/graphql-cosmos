@@ -1,3 +1,4 @@
+import { requireGraphQLCosmos } from '../6-datasource/1-context'
 import { fail, unique, valueIfOne } from '../typescript'
 import { DataLoaderSpec } from './spec'
 
@@ -6,7 +7,7 @@ export type DataLoaderResolveHandler = (spec: DataLoaderSpec) => Promise<Array<u
 export const defaultOnDataLoaderResolve: DataLoaderResolveHandler = async (
   spec: DataLoaderSpec
 ): Promise<Array<unknown>> => {
-  const graphqlCosmos = spec.context.dataSources.graphqlCosmos
+  const graphqlCosmos = requireGraphQLCosmos(spec.context)
   const whereIds = valueIfOne(unique(spec.id))
   const selectColumns = unique([`id`].concat(spec.columns))
 

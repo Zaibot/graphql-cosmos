@@ -1,4 +1,5 @@
 import { GraphQLCosmosPageInput } from '../4-resolver-builder/3-typedefs-transformer'
+import { requireGraphQLCosmos } from '../6-datasource/1-context'
 import { failql, valueIfOne } from '../typescript'
 import { parseInputSort, parseInputWhere } from './input-args'
 import { defaultCosmosResolveColumnOurs } from './resolve-column'
@@ -6,7 +7,7 @@ import { GraphQLCosmosFieldResolver } from './resolver'
 import { SourceDescriptor } from './x-descriptors'
 
 export const defaultCosmosResolveListByOurs: GraphQLCosmosFieldResolver = async (parent, args, context, info) => {
-  const graphqlCosmos = context.dataSources.graphqlCosmos
+  const graphqlCosmos = requireGraphQLCosmos(context)
   const parentType = graphqlCosmos.meta.requireType(info.parentType.name)
   const field = graphqlCosmos.meta.requireField(info.parentType.name, info.fieldName)
   const returnType = graphqlCosmos.meta.requireType(field.returnTypename)
