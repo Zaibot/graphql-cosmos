@@ -1,6 +1,6 @@
 {
   "name": "@zaibot/graphql-cosmos",
-  "version": "0.0.123",
+  "version": "0.0.126",
   "description": "GraphQL Cosmos directives",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
