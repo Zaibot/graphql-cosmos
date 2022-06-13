@@ -3,19 +3,19 @@ name: Pull Request
 on: [pull_request]
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 15
-      # - run: npm audit
-      - run: npm ci --also=dev
-      - run: npm test -- --coverage
-      - run: npm build
-      - name: Coverage monitor
-        uses: slavcodev/coverage-monitor-action@1.1.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          clover_file: 'coverage/clover.xml'
+    publish:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: 15
+            # - run: npm audit
+            - run: npm ci --also=dev
+            - run: npm test -- --coverage
+            - run: npm build
+            - name: Coverage monitor
+              uses: slavcodev/coverage-monitor-action@1.1.0
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  clover_file: 'coverage/clover.xml'
