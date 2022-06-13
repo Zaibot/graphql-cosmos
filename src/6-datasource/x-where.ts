@@ -1,5 +1,5 @@
 import { MetaIndex } from '../2-meta/3-meta-index'
-import { fail } from '../typescript'
+import { defined, fail } from '../typescript'
 
 export type Binary<T = unknown> = [string, T]
 
@@ -123,6 +123,17 @@ export function indexWhere(where: Where) {
 
   return output
 }
+
+function canIgnoreOp(op: keyof WhereBinary, value: unknown) {
+  if (op === `like` || op === `likelower`) {
+    return !String(value).replaceAll(`%`, ``)
+  } else if (op === `contains` || op === `containslower`) {
+    return !String(value)
+  } else {
+    return false
+  }
+}
+
 export function transformWhere(
   meta: MetaIndex,
   typename: string,
@@ -131,25 +142,42 @@ export function transformWhere(
   alias: string
 ): string[] {
   return where.flatMap((x) => {
-    return Object.entries(x).map(([op, arg]) => {
-      if (op === `and`) {
-        return `(${transformWhere(meta, typename, output, arg as Where, alias).join(` AND `)})`
-      } else if (op === `or`) {
-        return `(${transformWhere(meta, typename, output, arg as Where, alias).join(` OR `)})`
-      } else {
-        const [fieldname, value] = arg as Binary
-        const parametername = output.get(value)
-        const parametervalue = value
-        const field = meta.whereField(typename, fieldname) ?? fail(`requires field ${typename}.${fieldname}`)
-        const dbfieldname = field.whereOurs ?? field.ours ?? field.fieldname
-        return transformBinary(
-          op as keyof WhereBinary,
-          [dbfieldname, parametername],
-          Array.isArray(parametervalue),
-          alias
-        )
-      }
-    })
+    return Object.entries(x)
+      .map(([op, arg]) => {
+        if (op === `and`) {
+          const conditions = transformWhere(meta, typename, output, arg as Where, alias)
+          if (conditions.length === 0) {
+            return null
+          } else {
+            return `(${conditions.join(` AND `)})`
+          }
+        } else if (op === `or`) {
+          const conditions = transformWhere(meta, typename, output, arg as Where, alias)
+          if (conditions.length === 0) {
+            return null
+          } else {
+            return `(${conditions.join(` OR `)})`
+          }
+        } else {
+          const [fieldname, value] = arg as Binary
+          const parametername = output.get(value)
+          const parametervalue = value
+          const field = meta.whereField(typename, fieldname) ?? fail(`requires field ${typename}.${fieldname}`)
+          const dbfieldname = field.whereOurs ?? field.ours ?? field.fieldname
+          const ignored = isWhereOp(op) && canIgnoreOp(op, parametervalue)
+          if (ignored) {
+            return null
+          } else {
+            return transformBinary(
+              op as keyof WhereBinary,
+              [dbfieldname, parametername],
+              Array.isArray(parametervalue),
+              alias
+            )
+          }
+        }
+      })
+      .filter(defined)
   })
 }
 
