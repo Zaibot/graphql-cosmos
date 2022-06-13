@@ -1,5 +1,4 @@
-import { mergeSchemas } from '@graphql-tools/merge'
-import { makeExecutableSchema } from '@graphql-tools/schema'
+import { mergeSchemas, makeExecutableSchema } from '@graphql-tools/schema'
 import { IResolvers, printSchemaWithDirectives } from '@graphql-tools/utils'
 import { DocumentNode, execute, parse, validate, validateSchema } from 'graphql'
 import { defaultDataLoader } from '../src/2-dataloader/default'
@@ -38,7 +37,7 @@ export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData
 
   const query: CosmosHandler = async (_context, _database, container, sql, _cursor, _limit) => {
     const asd = _cursor ? ` @${_cursor}` : ``
-    const params = sql.parameters.length ? ` (${sql.parameters.map((x) => `${x.name}=${x.value}`).toString()})` : ``
+    const params = sql.parameters?.length ? ` (${sql.parameters.map((x) => `${x.name}=${x.value}`).toString()})` : ``
     const key = `${sql.query}${asd}${params}`
 
     mockDataUnused.delete(`${container}.${key}`)
@@ -81,10 +80,12 @@ export function createUnitTestContext(typedefs: DocumentNode, mockData: MockData
       for (const err of result.errors ?? []) {
         if (Object(err.originalError).original instanceof UnitTestMissingQuery) {
           console.error(
-            `Add the following key, can't resolve ${err.path.join(`/`)}:\n${Object(err.originalError).original.message}`
+            `Add the following key, can't resolve ${err.path?.join(`/`) ?? `(path not set)`}:\n${
+              Object(err.originalError).original.message
+            }`
           )
         } else {
-          console.error(err.path.join(`/`), err.originalError)
+          console.error(err.path?.join(`/`) ?? `(path not set)`, err.originalError)
         }
       }
     }

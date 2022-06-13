@@ -38,22 +38,23 @@
     "graphql": "*"
   },
   "dependencies": {
-    "@graphql-tools/merge": "^6.2.14",
-    "@graphql-tools/utils": "^7.10.0"
+    "@graphql-tools/merge": "^8.2.14",
+    "@graphql-tools/schema": "^8.3.14",
+    "@graphql-tools/utils": "^8.6.13"
   },
   "devDependencies": {
-    "@babel/cli": "^7.14.5",
-    "@babel/plugin-transform-runtime": "^7.14.5",
-    "@babel/preset-env": "^7.14.7",
-    "@babel/preset-typescript": "^7.14.5",
+    "@babel/cli": "^7.17.10",
+    "@babel/plugin-transform-runtime": "^7.18.5",
+    "@babel/preset-env": "^7.18.2",
+    "@babel/preset-typescript": "^7.17.12",
     "@types/isomorphic-form-data": "^2.0.0",
-    "@types/jest": "^26.0.23",
-    "@types/node": "^15.12.4",
-    "@types/ws": "^7.4.5",
-    "graphql-tag": "^2.12.5",
-    "jest": "^27.0.4",
-    "ts-node-dev": "^1.1.6",
-    "typescript": "^4.3.4",
-    "yaml": "^1.10.2"
+    "@types/jest": "^28.1.1",
+    "@types/node": "^17.0.42",
+    "@types/ws": "^8.5.3",
+    "graphql-tag": "^2.12.6",
+    "jest": "^28.1.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^4.7.3",
+    "yaml": "^2.1.1"
   }
 }
